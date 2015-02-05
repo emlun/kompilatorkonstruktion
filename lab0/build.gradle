@@ -1,0 +1,15 @@
+apply plugin: 'scala'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile 'org.scala-lang:scala-library:2.+'
+}
+
+task runScala(type: JavaExec, dependsOn: testClasses) {
+  main = 'Main'
+  classpath sourceSets.main.runtimeClasspath
+}
+test.dependsOn runScala
