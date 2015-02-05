@@ -44,20 +44,16 @@ object Main {
   /**
    * Exercise 1
    */
-  def pascal(c: Int, r: Int): Int = {
-    if(c <= 0 || c >= r || r < 0) {
-      return 1
-    } else {
-      return pascal(c - 1, r - 1) + pascal(c, r - 1)
-    }
-  }
+  def pascal(c: Int, r: Int): Int =
+    if(c <= 0 || c >= r || r < 0) 1
+    else pascal(c - 1, r - 1) + pascal(c, r - 1)
 
   /**
    * Exercise 2
    */
   private val openingPattern = """(.*)\((.*?)""".r
   private val closingPattern = """(.*?)\)(.*)""".r
-  def balance(chars: List[Char]): Boolean = {
+  def balance(chars: List[Char]): Boolean =
     chars.mkString match {
       case openingPattern(left_outside, innards) => innards match {
         case closingPattern(_, right_outside) => balance((left_outside + right_outside).toList)
@@ -66,14 +62,12 @@ object Main {
       case closingPattern(_*) => false
       case _ => true
     }
-  }
 
   /**
    * Exercise 3
    */
-  def countChange(money: Int, coins: List[Int]): Int = {
+  def countChange(money: Int, coins: List[Int]): Int =
     if(money == 0) 1
     else if(money < 0 || coins.forall((coin: Int) => money < coin)) 0
     else coins.map((coin: Int) => countChange(money - coin, coins.filter((c: Int) => c <= coin))).sum
-  }
 }
