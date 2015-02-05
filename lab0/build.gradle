@@ -1,5 +1,9 @@
 apply plugin: 'scala'
 
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.2'
+}
+
 repositories {
   mavenCentral()
 }
