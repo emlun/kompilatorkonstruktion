@@ -6,6 +6,15 @@ object Main {
         print(pascal(col, row) + " ")
       println()
     }
+
+    println()
+
+    List[String](
+      "(if (zero? x) max (/ 1 x))",
+      "I told him (that it's not (yet) done). (But he wasn't listening)",
+      ":-)",
+      "())("
+    ).foreach((it: String) => println(s"$it is balanced: ${balance(it.toList)}"))
   }
 
   /**
@@ -22,7 +31,18 @@ object Main {
   /**
    * Exercise 2
    */
-  def balance(chars: List[Char]): Boolean = { false }
+  private val openingPattern = """(.*)\((.*?)""".r
+  private val closingPattern = """(.*?)\)(.*)""".r
+  def balance(chars: List[Char]): Boolean = {
+    chars.mkString match {
+      case openingPattern(left_outside, innards) => innards match {
+        case closingPattern(_, right_outside) => balance((left_outside + right_outside).toList)
+        case _ => false
+      }
+      case closingPattern(_*) => false
+      case _ => true
+    }
+  }
 
   /**
    * Exercise 3
