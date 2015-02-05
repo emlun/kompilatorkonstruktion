@@ -15,6 +15,30 @@ object Main {
       ":-)",
       "())("
     ).foreach((it: String) => println(s"$it is balanced: ${balance(it.toList)}"))
+
+    println()
+
+    Map(
+      0 -> List[Int](1),
+      1 -> List[Int](0),
+      1 -> List[Int](),
+      1 -> List[Int](1),
+      2 -> List[Int](1),
+      2 -> List[Int](1, 2),
+      3 -> List[Int](1),
+      3 -> List[Int](1, 2),
+      3 -> List[Int](1, 2, 3),
+      4 -> List[Int](1, 2),
+      5 -> List[Int](1, 2, 5),
+      10 -> List[Int](1, 2, 5),
+      12 -> List[Int](1, 2, 5),
+      12 -> List[Int](3, 5)
+    ).foreach((t: (Int, List[Int])) => {
+        val i = t._1
+        val denoms = t._2
+        println(s"$i can be exchanged in ${countChange(i, denoms)} ways with denominations $denoms")
+      }
+    )
   }
 
   /**
@@ -47,5 +71,9 @@ object Main {
   /**
    * Exercise 3
    */
-  def countChange(money: Int, coins: List[Int]): Int = { 0 }
+  def countChange(money: Int, coins: List[Int]): Int = {
+    if(money == 0) 1
+    else if(money < 0 || coins.forall((coin: Int) => money < coin)) 0
+    else coins.map((coin: Int) => countChange(money - coin, coins.filter((c: Int) => c <= coin))).sum
+  }
 }
