@@ -10,8 +10,10 @@ repositories {
 
 dependencies {
   compile 'org.scala-lang:scala-library:2.+'
-  testCompile 'org.scalatest:scalatest_2.11:2.+'
-  testCompile 'junit:junit:+'
+  testCompile(
+    'junit:junit:+',
+    'org.scalatest:scalatest_2.11:2.+',
+  )
 }
 
 task run(type: JavaExec, dependsOn: classes) {
