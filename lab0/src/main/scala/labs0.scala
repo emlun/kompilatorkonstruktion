@@ -9,15 +9,6 @@ object Main {
 
     println()
 
-    List[String](
-      "(if (zero? x) max (/ 1 x))",
-      "I told him (that it's not (yet) done). (But he wasn't listening)",
-      ":-)",
-      "())("
-    ).foreach((it: String) => println(s"$it is balanced: ${balance(it.toList)}"))
-
-    println()
-
     Map(
       0 -> List[Int](1),
       1 -> List[Int](0),

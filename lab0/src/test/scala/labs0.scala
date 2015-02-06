@@ -42,7 +42,25 @@ class Lab0Spec extends FunSpec with Matchers {
         Main.pascal(c, r) should be (b)
       }
     }
+  }
 
+  describe("The balance function") {
+
+    val balances = Table(
+
+      ("isBalanced", "string"),
+      (true,  "(if (zero? x) max (/ 1 x))"),
+      (true,  "I told him (that it's not (yet) done). (But he wasn't listening)"),
+      (false, ":-)"),
+      (false, "())(")
+
+    )
+
+    forAll(balances) { (isBalanced: Boolean, string: String) =>
+      it(s"returns $isBalanced for: $string") {
+        Main.balance(string.toList) should be (isBalanced)
+      }
+    }
   }
 
 }
