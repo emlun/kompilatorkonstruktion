@@ -63,4 +63,31 @@ class Lab0Spec extends FunSpec with Matchers {
     }
   }
 
+  describe("The countChange function") {
+    val tests = Table(
+      ("amount", "denominations", "expectedResult") ,
+      ( 0, List[Int](1),        1),
+      ( 1, List[Int](0),        0),
+      ( 1, List[Int](),         0),
+      ( 1, List[Int](1),        1),
+      ( 2, List[Int](1),        1),
+      ( 2, List[Int](1, 2),     2),
+      ( 3, List[Int](1),        1),
+      ( 3, List[Int](1, 2),     2),
+      ( 3, List[Int](1, 2, 3),  3),
+      ( 4, List[Int](1, 2),     3),
+      ( 5, List[Int](1, 2, 5),  4),
+      (10, List[Int](1, 2, 5), 10),
+      (12, List[Int](1, 2, 5), 13),
+      (12, List[Int](3, 5),     1),
+      (12, List[Int](7),        0)
+    )
+
+    forAll(tests) { (amount: Int, denominations: List[Int], expectedResult: Int) =>
+      it(s"returns $expectedResult for amount=$amount, denominations=$denominations") {
+        Main.countChange(amount, denominations) should be (expectedResult)
+      }
+    }
+  }
+
 }
