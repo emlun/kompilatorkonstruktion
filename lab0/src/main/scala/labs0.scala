@@ -58,6 +58,10 @@ object Main {
    * Exercise 3
    */
   def countChange(money: Int, coins: List[Int]): Int =
+    if(coins.isEmpty || coins.max <= 0) 0
+    else countChangeInternal(money, coins)
+
+  private def countChangeInternal(money: Int, coins: List[Int]): Int =
     if(money == 0) 1
     else if(money < 0 || coins.forall((coin: Int) => money < coin)) 0
     else coins.map((coin: Int) => countChange(money - coin, coins.filter((c: Int) => c <= coin))).sum
