@@ -11,12 +11,5 @@ repositories {
 dependencies {
   compile 'org.scala-lang:scala-library:2.+'
   testCompile 'org.scalatest:scalatest_2.11:2.+'
+  testCompile 'junit:junit:+'
 }
-
-task testScala(type: JavaExec, dependsOn: testClasses) {
-  classpath sourceSets.test.runtimeClasspath
-  executable 'scala'
-  main 'org.scalatest.run'
-  args 'Lab0Spec'
-}
-test.dependsOn testScala
