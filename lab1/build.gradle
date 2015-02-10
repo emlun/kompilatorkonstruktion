@@ -12,7 +12,10 @@ repositories {
 }
 
 dependencies {
-  compile 'org.scala-lang:scala-library:2.+'
+  compile(
+    'org.scala-lang:scala-library:2.+',
+    'org.scala-lang:scala-parser-combinators:2.11.0-M4',
+  )
   testCompile 'org.scalatest:scalatest_2.11:2.+'
   testRuntime 'org.pegdown:pegdown:1.+'
 }
