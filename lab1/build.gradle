@@ -11,6 +11,10 @@ repositories {
   mavenCentral()
 }
 
+configurations {
+  submission
+}
+
 dependencies {
   compile(
     'org.scala-lang:scala-library:2.+',
@@ -24,4 +28,17 @@ task run(type: JavaExec, dependsOn: classes) {
   classpath sourceSets.main.runtimeClasspath
   executable 'scala'
   main 'objsets.Main'
+}
+
+task zip(type: Zip) {
+  from sourceSets.main.allSource
+  into 'src'
+
+  baseName = 'komp15'
+  appendix = project.name
+  classifier = 'emlun'
+}
+
+artifacts {
+  submission zip
 }
