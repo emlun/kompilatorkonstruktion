@@ -1,9 +1,6 @@
-import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.junit.JUnitRunner
 import org.scalatest.prop.TableDrivenPropertyChecks._
 
-@RunWith(classOf[JUnitRunner])
 class Lab0Spec extends FunSpec with Matchers {
 
   describe("The pascal function") {
