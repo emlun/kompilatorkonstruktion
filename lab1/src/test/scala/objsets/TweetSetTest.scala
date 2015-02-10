@@ -221,6 +221,30 @@ class TweetSetSpec extends FunSpec with Matchers {
       }
     }
 
+    describe("has a descendingByRetweet method") {
+      it("which returns a list sorted in descending order of retweets") {
+        val tweets = Seq(
+          new Tweet(null, "a", 1),
+          new Tweet(null, "b", 2),
+          new Tweet(null, "c", 3),
+          new Tweet(null, "d", 1),
+          new Tweet(null, "e", 2),
+          new Tweet(null, "f", 3)
+        )
+        var set: TweetSet = new Empty
+        tweets.foreach((tweet: Tweet) => { set = set.incl(tweet) })
+
+        var sorted = set.descendingByRetweet
+
+        sorted.head.retweets should be (3); sorted = sorted.tail
+        sorted.head.retweets should be (3); sorted = sorted.tail
+        sorted.head.retweets should be (2); sorted = sorted.tail
+        sorted.head.retweets should be (2); sorted = sorted.tail
+        sorted.head.retweets should be (1); sorted = sorted.tail
+        sorted.head.retweets should be (1)
+      }
+    }
+
   }
 
 }
