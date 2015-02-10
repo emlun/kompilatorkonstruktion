@@ -138,6 +138,74 @@ class TweetSetSpec extends FunSpec with Matchers {
 
     }
 
+    describe("has a union method") {
+
+      it("which returns the empty set if both operands are empty") {
+        val counter = new CallCounter
+
+        new Empty().union(new Empty).foreach(counter)
+
+        counter.count should be (0)
+      }
+
+      it("which returns the first operand if the second operand is empty") {
+        val counter = new CallCounter
+        val tweet = new Tweet(null, "foo", 0)
+
+        val set = new Empty().incl(tweet)
+
+        val united = set.union(new Empty)
+        united.foreach(counter)
+
+        counter.count should be (1)
+        united contains tweet should be (true)
+      }
+
+      it("which returns the second operand if the first operand is empty") {
+        val counter = new CallCounter
+        val tweet = new Tweet(null, "foo", 0)
+
+        val set = new Empty().incl(tweet)
+
+        val united = new Empty().union(set)
+        united.foreach(counter)
+
+        counter.count should be (1)
+        united contains tweet should be (true)
+      }
+
+      it("which returns a set containing the sum of the sets if operands are disjoint") {
+        val counter = new CallCounter
+        val tweet1 = new Tweet(null, "foo", 0)
+        val tweet2 = new Tweet(null, "bar", 0)
+
+        val set1 = new Empty().incl(tweet1)
+        val set2 = new Empty().incl(tweet2)
+
+        val united = set1.union(set2)
+        united.foreach(counter)
+
+        counter.count should be (2)
+        united contains tweet1 should be (true)
+        united contains tweet2 should be (true)
+      }
+
+      it("which eliminates duplicates if operands are conjoint") {
+        val counter = new CallCounter
+        val tweet = new Tweet(null, "foo", 0)
+
+        val set1 = new Empty().incl(tweet)
+        val set2 = new Empty().incl(tweet)
+
+        val united = set1.union(set2)
+        united.foreach(counter)
+
+        counter.count should be (1)
+        united contains tweet should be (true)
+      }
+
+    }
+
   }
 
 }
