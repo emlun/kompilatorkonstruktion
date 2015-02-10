@@ -19,3 +19,9 @@ dependencies {
   testCompile 'org.scalatest:scalatest_2.11:2.+'
   testRuntime 'org.pegdown:pegdown:1.+'
 }
+
+task run(type: JavaExec, dependsOn: classes) {
+  classpath sourceSets.main.runtimeClasspath
+  executable 'scala'
+  main 'objsets.Main'
+}
