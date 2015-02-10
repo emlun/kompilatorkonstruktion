@@ -109,25 +109,25 @@ abstract class TweetSet {
 
 class Empty extends TweetSet {
 
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
+  override def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
 
 
   /**
    * The following methods are already implemented
    */
 
-  def contains(tweet: Tweet): Boolean = false
+  override def contains(tweet: Tweet): Boolean = false
 
-  def incl(tweet: Tweet): TweetSet = new NonEmpty(tweet, new Empty, new Empty)
+  override def incl(tweet: Tweet): TweetSet = new NonEmpty(tweet, new Empty, new Empty)
 
-  def remove(tweet: Tweet): TweetSet = this
+  override def remove(tweet: Tweet): TweetSet = this
 
-  def foreach(f: Tweet => Unit): Unit = ()
+  override def foreach(f: Tweet => Unit): Unit = ()
 }
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =
+  override def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =
     right.filterAcc(p, left.filterAcc(p, if(p(elem)) acc.incl(elem) else acc))
 
 
@@ -135,23 +135,23 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
    * The following methods are already implemented
    */
 
-  def contains(x: Tweet): Boolean =
+  override def contains(x: Tweet): Boolean =
     if (x.text < elem.text) left.contains(x)
     else if (elem.text < x.text) right.contains(x)
     else true
 
-  def incl(x: Tweet): TweetSet = {
+  override def incl(x: Tweet): TweetSet = {
     if (x.text < elem.text) new NonEmpty(elem, left.incl(x), right)
     else if (elem.text < x.text) new NonEmpty(elem, left, right.incl(x))
     else this
   }
 
-  def remove(tw: Tweet): TweetSet =
+  override def remove(tw: Tweet): TweetSet =
     if (tw.text < elem.text) new NonEmpty(elem, left.remove(tw), right)
     else if (elem.text < tw.text) new NonEmpty(elem, left, right.remove(tw))
     else left.union(right)
 
-  def foreach(f: Tweet => Unit): Unit = {
+  override def foreach(f: Tweet => Unit): Unit = {
     f(elem)
     left.foreach(f)
     right.foreach(f)
