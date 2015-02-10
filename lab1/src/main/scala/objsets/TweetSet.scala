@@ -1,5 +1,7 @@
 package objsets
 
+import java.util.NoSuchElementException
+
 import TweetReader._
 
 /**
@@ -70,7 +72,18 @@ abstract class TweetSet {
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def mostRetweeted: Tweet = ???
+  def mostRetweeted: Tweet = {
+    var max: Tuple2[Int, Tweet] = (-1, null)
+
+    foreach((tweet: Tweet) => {
+      if(tweet.retweets > max._1) {
+        max = (tweet.retweets, tweet)
+      }
+    })
+
+    if(max._1 < 0) throw new NoSuchElementException("Can't get mostRetweeted on empty TweetSet")
+    return max._2
+  }
 
   /**
    * Returns a list containing all tweets of this set, sorted by retweet count
