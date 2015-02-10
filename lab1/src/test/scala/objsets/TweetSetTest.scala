@@ -206,6 +206,21 @@ class TweetSetSpec extends FunSpec with Matchers {
 
     }
 
+    describe("has a mostRetweeted method") {
+      it("which returns a tweet with maximum retweets in the set") {
+        val tweets = Seq(
+          new Tweet(null, "foo", 1),
+          new Tweet(null, "bar", 1),
+          new Tweet(null, "boo", 2),
+          new Tweet(null, "far", 2)
+        )
+        var set: TweetSet = new Empty
+        tweets.foreach((tweet: Tweet) => { set = set.incl(tweet) })
+
+        set.mostRetweeted.retweets should be (2)
+      }
+    }
+
   }
 
 }
