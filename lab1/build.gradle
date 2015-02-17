@@ -31,8 +31,11 @@ task run(type: JavaExec, dependsOn: classes) {
 }
 
 task zip(type: Zip) {
-  from sourceSets.main.allSource
-  into 'src'
+  from(sourceSets.main.allSource) { into 'src' }
+  from('gradle') { into 'gradle' }
+  from 'build.gradle'
+  from 'gradlew'
+  from 'README.md'
 
   baseName = 'komp15'
   appendix = project.name
