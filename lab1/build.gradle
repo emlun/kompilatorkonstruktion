@@ -35,6 +35,8 @@ task zip(type: Zip) {
   from('gradle') { into 'gradle' }
   from 'build.gradle'
   from 'gradlew'
+  from('project') { into 'project' }
+  from 'build.sbt'
   from 'README.md'
 
   baseName = 'komp15'
