@@ -79,6 +79,19 @@ class TweetSetSpec extends FunSpec with Matchers {
         filtered contains tweet should be (true)
       }
 
+      it("which retains the tweets in the accumulator even if some tweets in the set match") {
+        val tweet = new Tweet(null, "foo", 0)
+        val acc = new Empty().incl(tweet)
+
+        val filtered = new Empty().incl(new Tweet(null, "bar", 0)).filterAcc((_) => true, acc)
+
+        val counter = new CallCounter
+        filtered.foreach(counter)
+        counter.count should be (2)
+
+        filtered contains tweet should be (true)
+      }
+
     }
 
     describe("has a filter method") {
