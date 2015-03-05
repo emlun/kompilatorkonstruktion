@@ -88,7 +88,6 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         candidates = ALL_TOKEN_KINDS
       } else {
         current = nextPrefix
-        candidates = nextCandidates
       }
     }
 
