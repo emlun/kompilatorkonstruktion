@@ -79,11 +79,18 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
             if(candidates.size == 1) candidates.head
             else (candidates - IDKIND).head
 
-          if(Tokens.isToken(current, kind)) {
-            result = result :+ new Token(kind)
-          } else {
-            result = result :+ new Token(BAD)
-          }
+          val token = if(Tokens.isToken(current, kind)) {
+               kind match {
+                case INTLITKIND => new INTLIT(current.toInt)
+                case STRLITKIND => new STRLIT(current)
+                case IDKIND => new ID(current)
+                case _ => new Token(kind)
+              }
+            } else {
+              new Token(BAD)
+            }
+          token.setPos(ctx.file, currentPos)
+          result = result :+ token
 
           current = "" + next
           currentPos = source.pos
@@ -101,13 +108,22 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         if(nextCandidates.size == 1) nextCandidates.head
         else (nextCandidates - IDKIND).head
 
-      if(Tokens.isToken(current, kind)) {
-        result = result :+ new Token(kind)
-      } else {
-        result = result :+ new Token(BAD)
-      }
+      val token = if(Tokens.isToken(current, kind)) {
+          kind match {
+            case INTLITKIND => new INTLIT(current.toInt)
+            case STRLITKIND => new STRLIT(current)
+            case IDKIND => new ID(current)
+            case _ => new Token(kind)
+          }
+        } else {
+          new Token(BAD)
+        }
+      token.setPos(ctx.file, currentPos)
+      result = result :+ token
     }
 
-    (result :+ new Token(EOF)).toIterator
+    val eof = new Token(EOF)
+    eof.setPos(ctx.file, source.pos)
+    (result :+ eof).toIterator
   }
 }
