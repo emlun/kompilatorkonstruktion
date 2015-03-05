@@ -51,6 +51,22 @@ class TokensSpec extends FunSpec with Matchers {
         isPrefix("7", IDKIND) should be (false)
         isPrefix("8", IDKIND) should be (false)
         isPrefix("9", IDKIND) should be (false)
+
+        isPrefix("0a", IDKIND) should be (false)
+        isPrefix("1a", IDKIND) should be (false)
+        isPrefix("2a", IDKIND) should be (false)
+        isPrefix("3a", IDKIND) should be (false)
+        isPrefix("4a", IDKIND) should be (false)
+        isPrefix("5a", IDKIND) should be (false)
+        isPrefix("6a", IDKIND) should be (false)
+        isPrefix("7a", IDKIND) should be (false)
+        isPrefix("8a", IDKIND) should be (false)
+        isPrefix("9a", IDKIND) should be (false)
+
+        isPrefix(" ", IDKIND) should be (false)
+        isPrefix("a ", IDKIND) should be (false)
+        isPrefix(" a", IDKIND) should be (false)
+        isPrefix(" a ", IDKIND) should be (false)
       }
     }
   }
