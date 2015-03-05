@@ -68,6 +68,21 @@ class TokensSpec extends FunSpec with Matchers {
         isPrefix(" a", IDKIND) should be (false)
         isPrefix(" a ", IDKIND) should be (false)
       }
+
+      it("which is correct for string literals") {
+        isPrefix("\"", STRLITKIND) should be (true)
+        isPrefix("\"\"", STRLITKIND) should be (true)
+        isPrefix(""""foo""", STRLITKIND) should be (true)
+        isPrefix(""""foo"""", STRLITKIND) should be (true)
+        isPrefix(""""foo1337_"""", STRLITKIND) should be (true)
+
+        isPrefix("a", STRLITKIND) should be (false)
+        isPrefix("""a"foo"""", STRLITKIND) should be (false)
+        isPrefix("""a"foo""", STRLITKIND) should be (false)
+        isPrefix(""""foo"a""", STRLITKIND) should be (false)
+        isPrefix(""""foo"a"""", STRLITKIND) should be (false)
+        isPrefix("""a"foo"a"""", STRLITKIND) should be (false)
+      }
     }
   }
 }
