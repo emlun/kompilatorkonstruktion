@@ -19,3 +19,9 @@ dependencies {
   testCompile 'org.scalatest:scalatest_2.11:2.+'
   testRuntime 'org.pegdown:pegdown:1.+'
 }
+
+task runRef(type: JavaExec) {
+  classpath fileTree('lib')
+  executable 'scala'
+  main 'koolc.Main'
+}
