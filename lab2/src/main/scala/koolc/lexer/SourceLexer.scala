@@ -77,6 +77,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         if(nextCandidates isEmpty) {
           val kind =
             if(candidates.size == 1) candidates.head
+            else if(candidates.size == 0) BAD
             else (candidates - IDKIND).head
 
           val token = if(Tokens.isToken(current, kind)) {
