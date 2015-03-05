@@ -134,6 +134,8 @@ object Tokens {
       case IDKIND    => prefix matches "^([a-zA-Z][a-zA-Z0-9_]*)?$"
       case STRLITKIND => (prefix == "") || (prefix matches """^"[^"]*"?$""")
       case INTLITKIND => prefix matches "0|[1-9][0-9]*"
+
+      case BAD => true
       case _ => false
     }
   }
