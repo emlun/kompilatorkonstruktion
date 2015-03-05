@@ -139,4 +139,57 @@ object Tokens {
       case _ => false
     }
   }
+
+  def isToken(word: String, kind: TokenKind): Boolean = {
+    kind match {
+      case EOF       => false
+      case COLON     => ":"       equals word
+      case SEMICOLON => ";"       equals word
+      case DOT       => "."       equals word
+      case COMMA     => ","       equals word
+      case EQSIGN    => "="       equals word
+      case EQUALS    => "=="      equals word
+      case BANG      => "!"       equals word
+      case LPAREN    => "("       equals word
+      case RPAREN    => ")"       equals word
+      case LBRACKET  => "["       equals word
+      case RBRACKET  => "]"       equals word
+      case LBRACE    => "{"       equals word
+      case RBRACE    => "}"       equals word
+      case AND       => "&&"      equals word
+      case OR        => "||"      equals word
+      case LESSTHAN  => "<"       equals word
+      case PLUS      => "+"       equals word
+      case MINUS     => "-"       equals word
+      case TIMES     => "*"       equals word
+      case DIV       => "/"       equals word
+      case OBJECT    => "object"  equals word
+      case CLASS     => "class"   equals word
+      case DEF       => "def"     equals word
+      case VAR       => "var"     equals word
+      case UNIT      => "unit"    equals word
+      case MAIN      => "main"    equals word
+      case STRING    => "string"  equals word
+      case EXTENDS   => "extends" equals word
+      case INT       => "int"     equals word
+      case BOOLEAN   => "boolean" equals word
+      case WHILE     => "while"   equals word
+      case IF        => "if"      equals word
+      case ELSE      => "else"    equals word
+      case RETURN    => "return"  equals word
+      case LENGTH    => "length"  equals word
+      case TRUE      => "true"    equals word
+      case FALSE     => "false"   equals word
+      case THIS      => "this"    equals word
+      case NEW       => "new"     equals word
+      case PRINTLN   => "println" equals word
+
+      case IDKIND    => word matches "^[a-zA-Z][a-zA-Z0-9_]*$"
+      case STRLITKIND => word matches """^"[^"]*"$"""
+      case INTLITKIND => word matches "^0|[1-9][0-9]*$"
+
+      case BAD => true
+      case _ => false
+    }
+  }
 }
