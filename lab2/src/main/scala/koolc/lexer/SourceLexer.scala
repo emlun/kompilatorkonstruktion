@@ -65,41 +65,47 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     var result: Seq[Token] = Nil
 
     for(next <- source) {
-
-      candidates = candidates.filter(kind => Tokens.isPrefix(current, kind))
-
-      val nextPrefix = current + next
-      val nextCandidates = candidates.filter(kind => Tokens.isPrefix(nextPrefix, kind))
-
-      if(nextCandidates isEmpty) {
-        val kind =
-          if(candidates.size == 1) candidates.head
-          else (candidates - IDKIND).head
-
-        if(Tokens.isToken(current, kind)) {
-          result = result :+ new Token(kind)
-        } else {
-          result = result :+ new Token(BAD)
-        }
-
+      if(current matches "^\\s*$") {
         current = "" + next
         currentPos = source.pos
-        candidates = ALL_TOKEN_KINDS
       } else {
-        current = nextPrefix
+        candidates = candidates.filter(kind => Tokens.isPrefix(current, kind))
+
+        val nextPrefix = current + next
+        val nextCandidates = candidates.filter(kind => Tokens.isPrefix(nextPrefix, kind))
+
+        if(nextCandidates isEmpty) {
+          val kind =
+            if(candidates.size == 1) candidates.head
+            else (candidates - IDKIND).head
+
+          if(Tokens.isToken(current, kind)) {
+            result = result :+ new Token(kind)
+          } else {
+            result = result :+ new Token(BAD)
+          }
+
+          current = "" + next
+          currentPos = source.pos
+          candidates = ALL_TOKEN_KINDS
+        } else {
+          current = nextPrefix
+        }
       }
     }
 
     val nextCandidates = ALL_TOKEN_KINDS.filter(kind => Tokens.isPrefix(current, kind))
 
-    val kind =
-      if(nextCandidates.size == 1) nextCandidates.head
-      else (nextCandidates - IDKIND).head
+    if(!(current matches "^\\s*$")) {
+      val kind =
+        if(nextCandidates.size == 1) nextCandidates.head
+        else (nextCandidates - IDKIND).head
 
-    if(Tokens.isToken(current, kind)) {
-      result = result :+ new Token(kind)
-    } else {
-      result = result :+ new Token(BAD)
+      if(Tokens.isToken(current, kind)) {
+        result = result :+ new Token(kind)
+      } else {
+        result = result :+ new Token(BAD)
+      }
     }
 
     (result :+ new Token(EOF)).toIterator
