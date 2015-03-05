@@ -86,4 +86,8 @@ object Tokens {
   class STRLIT(val value: String) extends Token(STRLITKIND) {
     override def toString = "STR("+value+")"
   }
+
+  def isPrefix(prefix: String, kind: TokenKind): Boolean = {
+    ???
+  }
 }
