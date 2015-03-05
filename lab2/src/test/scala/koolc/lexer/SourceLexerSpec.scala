@@ -51,6 +51,11 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
       val source = """println("Hello, World!")"""
       lexer.run(ctx)(source) should beTokens (PRINTLN :: LPAREN :: STRLITKIND :: RPAREN :: EOF :: Nil)
     }
+
+    it("lexes Hello World with whitespace correctly") {
+      val source = """println ( "Hello, World!" ) """
+      lexer.run(ctx)(source) should beTokens (PRINTLN :: LPAREN :: STRLITKIND :: RPAREN :: EOF :: Nil)
+    }
   }
 
 }
