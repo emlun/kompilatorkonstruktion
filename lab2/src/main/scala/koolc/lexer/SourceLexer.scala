@@ -64,8 +64,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
     var result: Seq[Token] = Nil
 
-    while(source.hasNext) {
-      val next = source.next
+    for(next <- source) {
 
       candidates = candidates.filter(kind => Tokens.isPrefix(current, kind))
 
