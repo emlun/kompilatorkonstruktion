@@ -88,6 +88,53 @@ object Tokens {
   }
 
   def isPrefix(prefix: String, kind: TokenKind): Boolean = {
-    ???
+    kind match {
+      case EOF       => ""        startsWith prefix
+      case COLON     => ":"       startsWith prefix
+      case SEMICOLON => ";"       startsWith prefix
+      case DOT       => "."       startsWith prefix
+      case COMMA     => ","       startsWith prefix
+      case EQSIGN    => "="       startsWith prefix
+      case EQUALS    => "=="      startsWith prefix
+      case BANG      => "!"       startsWith prefix
+      case LPAREN    => "("       startsWith prefix
+      case RPAREN    => ")"       startsWith prefix
+      case LBRACKET  => "["       startsWith prefix
+      case RBRACKET  => "]"       startsWith prefix
+      case LBRACE    => "{"       startsWith prefix
+      case RBRACE    => "}"       startsWith prefix
+      case AND       => "&&"      startsWith prefix
+      case OR        => "||"      startsWith prefix
+      case LESSTHAN  => "<"       startsWith prefix
+      case PLUS      => "+"       startsWith prefix
+      case MINUS     => "-"       startsWith prefix
+      case TIMES     => "*"       startsWith prefix
+      case DIV       => "/"       startsWith prefix
+      case OBJECT    => "object"  startsWith prefix
+      case CLASS     => "class"   startsWith prefix
+      case DEF       => "def"     startsWith prefix
+      case VAR       => "var"     startsWith prefix
+      case UNIT      => "unit"    startsWith prefix
+      case MAIN      => "main"    startsWith prefix
+      case STRING    => "string"  startsWith prefix
+      case EXTENDS   => "extends" startsWith prefix
+      case INT       => "int"     startsWith prefix
+      case BOOLEAN   => "boolean" startsWith prefix
+      case WHILE     => "while"   startsWith prefix
+      case IF        => "if"      startsWith prefix
+      case ELSE      => "else"    startsWith prefix
+      case RETURN    => "return"  startsWith prefix
+      case LENGTH    => "length"  startsWith prefix
+      case TRUE      => "true"    startsWith prefix
+      case FALSE     => "false"   startsWith prefix
+      case THIS      => "this"    startsWith prefix
+      case NEW       => "new"     startsWith prefix
+      case PRINTLN   => "println" startsWith prefix
+
+      case IDKIND    => prefix matches "^([a-zA-Z][a-zA-Z0-9_]*)?$"
+      case STRLITKIND => (prefix == "") || (prefix matches """^"[^"]*"?$""")
+      case INTLITKIND => prefix matches "0|[1-9][0-9]*"
+      case _ => false
+    }
   }
 }
