@@ -40,6 +40,6 @@ object Main {
 
     val pipeline = Lexer andThen PrintTokens
 
-    val program = pipeline.run(ctx)(ctx.file)
+    val program = pipeline.run(ctx)(ctx.file.get)
   }
 }

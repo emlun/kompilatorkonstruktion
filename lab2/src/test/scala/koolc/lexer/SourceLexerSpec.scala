@@ -10,10 +10,6 @@ import matchers._
 
 import utils._
 
-object StringToSource extends Pipeline[String, Source] {
-  override def run(ctx : Context)(v : String): Source = Source.fromString(v)
-}
-
 trait TokenMatchers {
 
   class TokenIteratorMatchesExpectedTokensMatcher(expected: Seq[TokenKind])
@@ -52,27 +48,31 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
   describe("The SourceLexer") {
     import Tokens._
 
-    val ctx = Context(new koolc.utils.Reporter, None, null)
-    val lexer = StringToSource andThen SourceLexer
+    def lexed(s: String) = {
+      val source = Source fromString s
+      SourceLexer.run(
+          Context(reporter = new koolc.utils.Reporter, file = None, outDir = None, source = source)
+        )(source)
+    }
 
     it("lexes Hello World correctly") {
       val source = """println("Hello, World!")"""
-      lexer.run(ctx)(source) should beTokens (PRINTLN :: LPAREN :: STRLITKIND :: RPAREN :: EOF :: Nil)
+      lexed(source) should beTokens (PRINTLN :: LPAREN :: STRLITKIND :: RPAREN :: EOF :: Nil)
     }
 
     it("lexes Hello World with whitespace correctly") {
       val source = """println ( "Hello, World!" ) """
-      lexer.run(ctx)(source) should beTokens (PRINTLN :: LPAREN :: STRLITKIND :: RPAREN :: EOF :: Nil)
+      lexed(source) should beTokens (PRINTLN :: LPAREN :: STRLITKIND :: RPAREN :: EOF :: Nil)
     }
 
     it("lexes Hello World with faulty tokens correctly") {
       val source = """println ( & "Hello, World!" ) """
-      lexer.run(ctx)(source) should beTokens (PRINTLN :: LPAREN :: BAD :: STRLITKIND :: RPAREN :: EOF :: Nil)
+      lexed(source) should beTokens (PRINTLN :: LPAREN :: BAD :: STRLITKIND :: RPAREN :: EOF :: Nil)
     }
 
     it("lexes int-identifier") {
       val source = """111aaa"""
-      lexer.run(ctx)(source) should beTokens (INTLITKIND :: IDKIND :: EOF :: Nil)
+      lexed(source) should beTokens (INTLITKIND :: IDKIND :: EOF :: Nil)
     }
 
     it("ignores comments") {
@@ -83,7 +83,7 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
         * // /*
         */pa(
       """
-      lexer.run(ctx)(source) should beTokens (PRINTLN :: IDKIND :: IDKIND :: LPAREN :: EOF :: Nil)
+      lexed(source) should beTokens (PRINTLN :: IDKIND :: IDKIND :: LPAREN :: EOF :: Nil)
     }
 
     it("does not support nested block comments") {
@@ -94,7 +94,7 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
         * // /*
         */pa(
       """
-      lexer.run(ctx)(source) should beTokens (
+      lexed(source) should beTokens (
         PRINTLN ::
         IDKIND ::
         MINUS :: IDKIND :: THIS :: IDKIND ::

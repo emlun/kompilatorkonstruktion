@@ -8,10 +8,10 @@ trait Positioned {
   private[Positioned] var _line: Int = 0
   private[Positioned] var _col: Int = 0
 
-  def setPos(file: File, pos: Int): this.type = {
+  def setPos(file: Option[File], pos: Int): this.type = {
     _line = Position.line(pos)
     _col  = Position.column(pos)
-    _file = Some(file)
+    _file = file
 
     this
   }
