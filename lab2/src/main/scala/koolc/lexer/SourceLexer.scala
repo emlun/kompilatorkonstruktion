@@ -33,6 +33,10 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         new Token(BAD)
       }
     token.setPos(ctx.file, currentPos)
+    if(token.kind == BAD) {
+      ctx.reporter.error(s"Bad token: $current", token)
+    }
+    token
   }
 
   private def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int): Tuple3[Option[Token], String, Int] = {
