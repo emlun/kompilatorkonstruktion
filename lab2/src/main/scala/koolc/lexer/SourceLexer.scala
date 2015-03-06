@@ -86,7 +86,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
     for(next <- source) {
       if(current.trim.isEmpty) {
-        current = "" + next
+        current = next.toString
         currentPos = source.pos
       } else {
         candidates = candidates.filter(kind => Tokens.isPrefix(current, kind))
@@ -97,7 +97,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         if(nextCandidates.isEmpty) {
           result = result :+ makeToken(current, candidates, ctx, currentPos)
 
-          current = "" + next
+          current = next.toString
           currentPos = source.pos
           candidates = ALL_TOKEN_KINDS
         } else {
