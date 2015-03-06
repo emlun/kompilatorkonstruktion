@@ -25,8 +25,8 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         kind match {
           case INTLITKIND => new INTLIT(current.toInt)
           case STRLITKIND => new STRLIT(current)
-          case IDKIND => new ID(current)
-          case _ => new Token(kind)
+          case IDKIND     => new ID(current)
+          case _          => new Token(kind)
         }
       } else {
         new Token(BAD)
