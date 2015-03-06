@@ -83,7 +83,9 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
     var result: Seq[Token] = Nil
 
-    for(next <- source) {
+    while(source.hasNext) {
+      val next = source.next
+
       if(current.trim.isEmpty) {
         current = next.toString
         currentPos = source.pos
