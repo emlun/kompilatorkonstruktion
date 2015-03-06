@@ -72,6 +72,9 @@ object Tokens {
   case object NEW extends TokenKind         // new
   case object PRINTLN extends TokenKind     // println
 
+  case object LINECOMMENT extends TokenKind  // //
+  case object BLOCKCOMMENT extends TokenKind // /* */
+
   // Identifiers
   class ID(val value: String) extends Token(IDKIND) {
     override def toString = "ID("+value+")"
@@ -131,6 +134,9 @@ object Tokens {
       case NEW       => "new"     startsWith prefix
       case PRINTLN   => "println" startsWith prefix
 
+      case LINECOMMENT  => "//" startsWith prefix
+      case BLOCKCOMMENT => "/*" startsWith prefix
+
       case IDKIND    => prefix matches "^([a-zA-Z][a-zA-Z0-9_]*)?$"
       case STRLITKIND => (prefix == "") || (prefix matches """^"[^"]*"?$""")
       case INTLITKIND => prefix matches "0|[1-9][0-9]*"
@@ -183,6 +189,9 @@ object Tokens {
       case THIS      => "this"    equals word
       case NEW       => "new"     equals word
       case PRINTLN   => "println" equals word
+
+      case LINECOMMENT  => "//" equals word
+      case BLOCKCOMMENT => "/*" equals word
 
       case IDKIND    => word matches "^[a-zA-Z][a-zA-Z0-9_]*$"
       case STRLITKIND => word matches """^"[^"]*"$"""

@@ -12,7 +12,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     AND, OR, LESSTHAN, PLUS, MINUS, TIMES, DIV,
     OBJECT, CLASS, DEF, VAR, UNIT, MAIN, STRING, EXTENDS, INT, BOOLEAN,
     WHILE, IF, ELSE, RETURN, LENGTH, TRUE, FALSE, THIS,
-    NEW, PRINTLN, IDKIND, INTLITKIND, STRLITKIND)
+    NEW, PRINTLN, LINECOMMENT, BLOCKCOMMENT, IDKIND, INTLITKIND, STRLITKIND)
 
   private def makeToken(current: String, candidates: Set[TokenKind], ctx: Context, currentPos: Int) = {
     val kind = candidates.size match {
@@ -37,17 +37,54 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
   private def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int): Tuple3[Option[Token], String, Int] = {
     var current = previous
     var currentPos = prevPos
+
+    var eatingLineComment = false
+    var eatingBlockComment = false
+
     for(next <- source) {
-      if(current.trim.isEmpty) {
-        current = ""
-        currentPos = source.pos
-      } else {
-        val candidateKinds = ALL_TOKEN_KINDS filter Tokens.isPrefix(current)
-        if((candidateKinds filter Tokens.isPrefix(current + next)).isEmpty) {
-          return (Some(makeToken(current, candidateKinds, ctx, currentPos)), next.toString, source.pos)
+      if(eatingLineComment) {
+        if(current == "\n") {
+          eatingLineComment = false
+          current = ""
+          currentPos = source.pos
+        } else {
+          current = next.toString
         }
+      } else if(eatingBlockComment) {
+        if(current + next == "*/") {
+          eatingBlockComment = false
+          current = ""
+          currentPos = source.pos
+        } else {
+          current = next.toString
+        }
+      } else {
+        if(current.trim.isEmpty) {
+          current = ""
+          currentPos = source.pos
+        } else {
+          current.trim match {
+            case _ => {
+              val candidateKinds = ALL_TOKEN_KINDS filter Tokens.isPrefix(current)
+              if((candidateKinds filter Tokens.isPrefix(current + next)).isEmpty) {
+                val token = makeToken(current, candidateKinds, ctx, currentPos)
+                token.kind match {
+                  case LINECOMMENT => {
+                    eatingLineComment = true
+                    current = ""
+                  }
+                  case BLOCKCOMMENT => {
+                    eatingBlockComment = true
+                    current = ""
+                  }
+                  case _ => { return (Some(token), next.toString, source.pos) }
+                }
+              }
+            }
+          }
+        }
+        current = current + next
       }
-      current = current + next
     }
     return (
       current.trim match {
