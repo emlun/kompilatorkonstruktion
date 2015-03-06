@@ -154,5 +154,144 @@ class TokensSpec extends FunSpec with Matchers {
         INTLITKIND hasNotPrefix "a9"
       }
     }
+
+    describe("has an isToken method") {
+      it("which is correct for println") {
+        PRINTLN matches "println"
+
+        PRINTLN matchesNot ""
+        PRINTLN matchesNot "p"
+        PRINTLN matchesNot "pr"
+        PRINTLN matchesNot "pri"
+        PRINTLN matchesNot "prin"
+        PRINTLN matchesNot "print"
+        PRINTLN matchesNot "printl"
+        PRINTLN matchesNot "println_"
+        PRINTLN matchesNot "a"
+      }
+
+      it("which is correct for identifiers") {
+        IDKIND matchesNot ""
+        IDKIND matches "p"
+        IDKIND matches "pr"
+        IDKIND matches "pri"
+        IDKIND matches "prin"
+        IDKIND matches "print"
+        IDKIND matches "printl"
+
+        IDKIND hasPrefix "println"
+
+        IDKIND matches "a"
+        IDKIND matches "a_"
+        IDKIND matches "a_b"
+        IDKIND matches "a9"
+        IDKIND matches "println_"
+
+        IDKIND matchesNot "0"
+        IDKIND matchesNot "1"
+        IDKIND matchesNot "2"
+        IDKIND matchesNot "3"
+        IDKIND matchesNot "4"
+        IDKIND matchesNot "5"
+        IDKIND matchesNot "6"
+        IDKIND matchesNot "7"
+        IDKIND matchesNot "8"
+        IDKIND matchesNot "9"
+
+        IDKIND matchesNot "0a"
+        IDKIND matchesNot "1a"
+        IDKIND matchesNot "2a"
+        IDKIND matchesNot "3a"
+        IDKIND matchesNot "4a"
+        IDKIND matchesNot "5a"
+        IDKIND matchesNot "6a"
+        IDKIND matchesNot "7a"
+        IDKIND matchesNot "8a"
+        IDKIND matchesNot "9a"
+
+        IDKIND matchesNot " "
+        IDKIND matchesNot "a "
+        IDKIND matchesNot " a"
+        IDKIND matchesNot " a "
+      }
+
+      it("which is correct for string literals") {
+        STRLITKIND matches "\"\""
+        STRLITKIND matches """"foo""""
+        STRLITKIND matches """"foo1337_""""
+
+        STRLITKIND matchesNot "\""
+        STRLITKIND matchesNot "a"
+        STRLITKIND matchesNot """"foo"""
+        STRLITKIND matchesNot """a"foo""""
+        STRLITKIND matchesNot """a"foo"""
+        STRLITKIND matchesNot """"foo"a"""
+        STRLITKIND matchesNot """"foo"a""""
+        STRLITKIND matchesNot """a"foo"a""""
+      }
+
+      it("which is correct for integer literals") {
+        INTLITKIND matchesNot "\""
+        INTLITKIND matchesNot "\"\""
+        INTLITKIND matchesNot """"foo"""
+        INTLITKIND matchesNot """"foo""""
+        INTLITKIND matchesNot """"foo1337_""""
+
+        INTLITKIND matches "0"
+        INTLITKIND matches "1"
+        INTLITKIND matches "2"
+        INTLITKIND matches "3"
+        INTLITKIND matches "4"
+        INTLITKIND matches "5"
+        INTLITKIND matches "6"
+        INTLITKIND matches "7"
+        INTLITKIND matches "8"
+        INTLITKIND matches "9"
+
+        INTLITKIND matchesNot "00"
+        INTLITKIND matches "10"
+        INTLITKIND matches "20"
+        INTLITKIND matches "30"
+        INTLITKIND matches "40"
+        INTLITKIND matches "50"
+        INTLITKIND matches "60"
+        INTLITKIND matches "70"
+        INTLITKIND matches "80"
+        INTLITKIND matches "90"
+
+        INTLITKIND matchesNot "00"
+        INTLITKIND matchesNot "01"
+        INTLITKIND matchesNot "02"
+        INTLITKIND matchesNot "03"
+        INTLITKIND matchesNot "04"
+        INTLITKIND matchesNot "05"
+        INTLITKIND matchesNot "06"
+        INTLITKIND matchesNot "07"
+        INTLITKIND matchesNot "08"
+        INTLITKIND matchesNot "09"
+
+        INTLITKIND matchesNot "0a"
+        INTLITKIND matchesNot "1a"
+        INTLITKIND matchesNot "2a"
+        INTLITKIND matchesNot "3a"
+        INTLITKIND matchesNot "4a"
+        INTLITKIND matchesNot "5a"
+        INTLITKIND matchesNot "6a"
+        INTLITKIND matchesNot "7a"
+        INTLITKIND matchesNot "8a"
+        INTLITKIND matchesNot "9a"
+
+        INTLITKIND matchesNot "a0"
+        INTLITKIND matchesNot "a1"
+        INTLITKIND matchesNot "a2"
+        INTLITKIND matchesNot "a3"
+        INTLITKIND matchesNot "a4"
+        INTLITKIND matchesNot "a5"
+        INTLITKIND matchesNot "a6"
+        INTLITKIND matchesNot "a7"
+        INTLITKIND matchesNot "a8"
+        INTLITKIND matchesNot "a9"
+      }
+    }
   }
 }
