@@ -141,7 +141,6 @@ object Tokens {
       case STRLITKIND => (prefix == "") || (prefix matches """^"[^"]*"?$""")
       case INTLITKIND => prefix matches "0|[1-9][0-9]*"
 
-      case BAD => true
       case _ => false
     }
   }
@@ -197,7 +196,6 @@ object Tokens {
       case STRLITKIND => word matches """^"[^"]*"$"""
       case INTLITKIND => word matches "^0|[1-9][0-9]*$"
 
-      case BAD => true
       case _ => false
     }
   }
