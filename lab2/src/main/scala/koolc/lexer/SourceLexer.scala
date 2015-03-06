@@ -52,8 +52,8 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         current = ""
         currentPos = source.pos
       } else {
-        val candidateKinds = ALL_TOKEN_KINDS filter { Tokens.isPrefix(current, _) }
-        if((candidateKinds filter { Tokens.isPrefix(current + next, _) }).isEmpty) {
+        val candidateKinds = ALL_TOKEN_KINDS filter Tokens.isPrefix(current)
+        if((candidateKinds filter Tokens.isPrefix(current + next)).isEmpty) {
           result = result :+ makeToken(current, candidateKinds, ctx, currentPos)
 
           current = ""

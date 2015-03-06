@@ -87,7 +87,7 @@ object Tokens {
     override def toString = "STR("+value+")"
   }
 
-  def isPrefix(prefix: String, kind: TokenKind): Boolean = {
+  def isPrefix(prefix: String)(kind: TokenKind): Boolean = {
     kind match {
       case EOF       => ""        startsWith prefix
       case COLON     => ":"       startsWith prefix

@@ -10,8 +10,8 @@ import Tokens._
 class TokensSpec extends FunSpec with Matchers {
 
   implicit class TokenMatcher(val kind: TokenKind) {
-    def hasPrefix(prefix: String)    = Tokens.isPrefix(prefix, kind) should be (true)
-    def hasNotPrefix(prefix: String) = Tokens.isPrefix(prefix, kind) should be (false)
+    def hasPrefix(prefix: String)    = Tokens.isPrefix(prefix)(kind) should be (true)
+    def hasNotPrefix(prefix: String) = Tokens.isPrefix(prefix)(kind) should be (false)
     def matches(word: String)        = Tokens.isToken(word, kind) should be (true)
     def matchesNot(word: String)     = Tokens.isToken(word, kind) should be (false)
   }
