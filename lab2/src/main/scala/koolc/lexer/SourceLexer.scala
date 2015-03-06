@@ -35,12 +35,9 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     token
   }
 
-  def run(ctx: Context)(source: Source): Iterator[Token] = {
-    var currentPos = source.pos
-    var current: String = ""
-
-    var result: Seq[Token] = Nil
-
+  def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int): Tuple3[Option[Token], String, Int] = {
+    var current = previous
+    var currentPos = prevPos
     while(source.hasNext) {
       val next = source.next
 
@@ -50,13 +47,34 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       } else {
         val candidateKinds = ALL_TOKEN_KINDS filter Tokens.isPrefix(current)
         if((candidateKinds filter Tokens.isPrefix(current + next)).isEmpty) {
-          result = result :+ makeToken(current, candidateKinds, ctx, currentPos)
+          return (Some(makeToken(current, candidateKinds, ctx, currentPos)), next.toString, currentPos)
 
           current = ""
           currentPos = source.pos
         }
       }
       current = current + next
+    }
+    return (None, current, currentPos)
+  }
+
+  def run(ctx: Context)(source: Source): Iterator[Token] = {
+    var currentPos = source.pos
+    var current: String = ""
+
+    var result: Seq[Token] = Nil
+    val readNext = readNextToken(ctx, source) _
+
+    while(source.hasNext) {
+      val readResult = readNext(current, currentPos)
+      val token = readResult._1
+      current = readResult._2
+      currentPos = readResult._3
+
+      token match {
+        case Some(t) => result = result :+ t
+        case None => {}
+      }
     }
 
     if(!current.trim.isEmpty) {
