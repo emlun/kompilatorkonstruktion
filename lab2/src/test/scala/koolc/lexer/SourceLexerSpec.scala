@@ -20,19 +20,15 @@ trait TokenMatchers {
       extends Matcher[Iterator[Token]] {
 
     def apply(left: Iterator[Token]) = {
-      var accepted = true
-      var messages: Seq[String] = Nil
-
-      left.zipAll(expectedTokens.toIterator, new Token(Tokens.BAD), Tokens.BAD).foreach((pair) => {
-        val actual = pair._1
-        val expected = pair._2
-
-        if(actual.kind != expected) {
-          messages = messages :+ s"Mismatch: ${actual.kind} is not $expected"
-          accepted = false
-        }
+      val pairs = left.toSeq.zipAll(expectedTokens, new Token(Tokens.BAD), Tokens.BAD) map (pair => {
+        val (actual, expected) = pair
+        if(actual.kind != expected)
+          (false, s"Mismatch: $actual is not $expected")
+        else
+          (true, s"Ok: $actual is $expected")
       })
-      MatchResult( accepted, messages.mkString("\n"), "Success")
+      val message = (pairs map (_._2)).mkString("\n")
+      MatchResult(pairs forall (_._1), message, message)
     }
   }
 
