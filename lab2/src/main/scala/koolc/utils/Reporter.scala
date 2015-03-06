@@ -47,7 +47,7 @@ class Reporter {
 
       if (pos.line - 1 < lines.size) {
           err(lines(pos.line - 1))
-          err(" " * pos.col + "^")
+          err(" " * (pos.col - 1) + "^")
       } else {
           err("<line unavailable in source file>")
       }
