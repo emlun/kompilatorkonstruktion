@@ -85,6 +85,22 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
       """
       lexer.run(ctx)(source) should beTokens (PRINTLN :: IDKIND :: IDKIND :: LPAREN :: EOF :: Nil)
     }
+
+    it("does not support nested block comments") {
+      val source = """
+      println// This is a comment - skip this
+      a/*
+        This is also a comment /* Nested comment */ - skip this too
+        * // /*
+        */pa(
+      """
+      lexer.run(ctx)(source) should beTokens (
+        PRINTLN ::
+        IDKIND ::
+        MINUS :: IDKIND :: THIS :: IDKIND ::
+        TIMES ::
+        TIMES :: DIV :: IDKIND :: LPAREN :: EOF :: Nil)
+    }
   }
 
 }
