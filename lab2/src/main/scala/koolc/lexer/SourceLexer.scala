@@ -59,7 +59,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     )
   }
 
-  def run(ctx: Context)(source: Source): Iterator[Token] = {
+  override def run(ctx: Context)(source: Source): Iterator[Token] = {
     val readNext = readNextToken(ctx, source) _
     var (nextToken, current, currentPos) = readNext("", source.pos)
 
