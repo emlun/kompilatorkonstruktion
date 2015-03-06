@@ -21,6 +21,7 @@ dependencies {
 }
 
 tasks.withType(ScalaCompile) {
+  scalaCompileOptions.useAnt = false
   scalaCompileOptions.additionalParameters = ['-feature']
 }
 
