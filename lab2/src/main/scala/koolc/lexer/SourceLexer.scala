@@ -49,32 +49,57 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       }
       current = current + next
     }
-    return (None, current, currentPos)
+    return (
+      Some(makeToken(current, ALL_TOKEN_KINDS filter Tokens.isPrefix(current), ctx, currentPos)),
+      "",
+      source.pos
+    )
   }
 
   def run(ctx: Context)(source: Source): Iterator[Token] = {
-    var currentPos = source.pos
-    var current: String = ""
-
-    var result: Seq[Token] = Nil
     val readNext = readNextToken(ctx, source) _
+    var (nextToken, current, currentPos) = readNext("", source.pos)
 
-    while(source.hasNext) {
-      val readResult = readNext(current, currentPos)
-      val token = readResult._1
-      current = readResult._2
-      currentPos = readResult._3
+    new Iterator[Token] {
+      override def hasNext = nextToken match {
+        case Some(_) => true
+        case None    => false
+      }
 
-      token match {
-        case Some(t) => result = result :+ t
-        case None => {}
+      override def next = {
+        val result = nextToken
+        nextToken =
+          if(source.hasNext) {
+            val readResult = readNext(current, currentPos)
+            current = readResult._2
+            currentPos = readResult._3
+
+            readResult._1
+          } else {
+            if(!current.trim.isEmpty) {
+              val nextNext = makeToken(
+                current,
+                ALL_TOKEN_KINDS filter { Tokens.isToken(current, _) },
+                ctx,
+                currentPos
+              )
+              current = ""
+              Some(nextNext)
+            } else {
+              nextToken match {
+                case Some(t) =>
+                  if(t.kind == EOF) None
+                  else              Some(new Token(EOF).setPos(ctx.file, source.pos))
+                case None => None
+              }
+            }
+          }
+
+        result match {
+          case Some(t) => t
+          case None => null
+        }
       }
     }
-
-    if(!current.trim.isEmpty) {
-      result = result :+ makeToken(current, ALL_TOKEN_KINDS filter { Tokens.isToken(current, _) }, ctx, currentPos)
-    }
-
-    (result :+ new Token(EOF).setPos(ctx.file, source.pos)).toIterator
   }
 }
