@@ -32,7 +32,6 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         new Token(BAD)
       }
     token.setPos(ctx.file, currentPos)
-    token
   }
 
   def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int): Tuple3[Option[Token], String, Int] = {
