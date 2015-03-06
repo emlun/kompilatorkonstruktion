@@ -20,6 +20,10 @@ dependencies {
   testRuntime 'org.pegdown:pegdown:1.+'
 }
 
+tasks.withType(ScalaCompile) {
+  scalaCompileOptions.additionalParameters = ['-feature']
+}
+
 task runRef(type: JavaExec) {
   classpath fileTree('lib')
   executable 'scala'
