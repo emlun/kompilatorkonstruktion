@@ -62,13 +62,17 @@ class Reporter {
         lines
 
       case None =>
-        val source = Source.fromFile(f).withPositioning(true)
-        val lines = source.getLines().toIndexedSeq
-        source.close()
+        try {
+          val source = Source.fromFile(f).withPositioning(true)
+          val lines = source.getLines().toIndexedSeq
+          source.close()
 
-        filesToLines += f -> lines
+          filesToLines += f -> lines
 
-        lines
+          lines
+        } catch {
+          case _: NullPointerException => IndexedSeq()
+        }
     }
   }
 }
