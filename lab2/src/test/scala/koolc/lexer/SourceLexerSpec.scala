@@ -16,19 +16,31 @@ object StringToSource extends Pipeline[String, Source] {
 
 trait TokenMatchers {
 
-  class TokenIteratorMatchesExpectedTokensMatcher(expectedTokens: Seq[TokenKind])
+  class TokenIteratorMatchesExpectedTokensMatcher(expected: Seq[TokenKind])
       extends Matcher[Iterator[Token]] {
 
     def apply(left: Iterator[Token]) = {
-      val pairs = left.toSeq.zipAll(expectedTokens, new Token(Tokens.BAD), Tokens.BAD) map (pair => {
+      val leftSeq = left.toSeq
+      val pairs = leftSeq.zip(expected) map (pair => {
         val (actual, expected) = pair
         if(actual.kind != expected)
           (false, s"Mismatch: $actual is not $expected")
         else
           (true, s"Ok: $actual is $expected")
       })
-      val message = (pairs map (_._2)).mkString("\n")
-      MatchResult(pairs forall (_._1), message, message)
+
+      val messages = pairs map (_._2)
+
+      val (sameLength, lengthDiffMessages) =
+        if(leftSeq.size > expected.size)
+          (false, leftSeq  drop (leftSeq.size - expected.size) map (t => s"Unexpected token found: $t"))
+        else if(leftSeq.size < expected.size)
+          (false, expected drop (expected.size - leftSeq.size) map (t => s"Expected token kind not found: $t"))
+        else
+          (true, Nil)
+
+      val message = (messages ++ lengthDiffMessages) mkString "\n"
+      MatchResult(sameLength && (pairs forall (_._1)), message, message)
     }
   }
 
