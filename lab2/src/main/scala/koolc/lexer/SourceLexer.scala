@@ -74,7 +74,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         val nextPrefix = current + next
         val nextCandidates = candidates.filter(kind => Tokens.isPrefix(nextPrefix, kind))
 
-        if(nextCandidates isEmpty) {
+        if(nextCandidates.isEmpty) {
           val kind =
             if(candidates.size == 1) candidates.head
             else if(candidates.size == 0) BAD
