@@ -50,7 +50,10 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       current = current + next
     }
     return (
-      Some(makeToken(current, ALL_TOKEN_KINDS filter Tokens.isPrefix(current), ctx, currentPos)),
+      current.trim match {
+        case "" => None
+        case _  => Some(makeToken(current, ALL_TOKEN_KINDS filter Tokens.isPrefix(current), ctx, currentPos))
+      },
       "",
       source.pos
     )
@@ -68,32 +71,21 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
       override def next = {
         val result = nextToken
-        nextToken =
-          if(source.hasNext) {
-            val readResult = readNext(current, currentPos)
-            current = readResult._2
-            currentPos = readResult._3
+        nextToken = {
+          val readResult = readNext(current, currentPos)
+          current = readResult._2
+          currentPos = readResult._3
 
-            readResult._1
-          } else {
-            if(!current.trim.isEmpty) {
-              val nextNext = makeToken(
-                current,
-                ALL_TOKEN_KINDS filter { Tokens.isToken(current, _) },
-                ctx,
-                currentPos
-              )
-              current = ""
-              Some(nextNext)
-            } else {
-              nextToken match {
+          readResult._1 match {
+            case Some(t) => Some(t)
+            case _ => nextToken match {
                 case Some(t) =>
                   if(t.kind == EOF) None
                   else              Some(new Token(EOF).setPos(ctx.file, source.pos))
                 case None => None
-              }
             }
           }
+        }
 
         result match {
           case Some(t) => t
