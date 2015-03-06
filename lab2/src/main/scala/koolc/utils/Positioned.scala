@@ -33,7 +33,7 @@ trait Positioned {
 
   def position: String = {
     if (hasPosition) {
-      file.getPath+":"+line+":"+col
+      file.getPath + ":" + line + ":" + col
     } else {
       "?:?"
     }
