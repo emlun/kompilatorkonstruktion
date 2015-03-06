@@ -48,19 +48,18 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       val next = source.next
 
       if(current.trim.isEmpty) {
-        current = next.toString
+        current = ""
         currentPos = source.pos
       } else {
         val candidateKinds = ALL_TOKEN_KINDS filter { Tokens.isPrefix(current, _) }
         if((candidateKinds filter { Tokens.isPrefix(current + next, _) }).isEmpty) {
           result = result :+ makeToken(current, candidateKinds, ctx, currentPos)
 
-          current = next.toString
+          current = ""
           currentPos = source.pos
-        } else {
-          current = nextPrefix
         }
       }
+      current = current + next
     }
 
     if(!current.trim.isEmpty) {
