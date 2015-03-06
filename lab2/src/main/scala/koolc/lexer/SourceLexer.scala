@@ -15,10 +15,11 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     NEW, PRINTLN, LINECOMMENT, BLOCKCOMMENT, IDKIND, INTLITKIND, STRLITKIND)
 
   private def makeToken(current: String, candidates: Set[TokenKind], ctx: Context, currentPos: Int) = {
-    val kind = candidates.size match {
-      case 1 => candidates.head
+    val matchedCandidates = candidates filter (kind => Tokens.isToken(current, kind))
+    val kind = matchedCandidates.size match {
+      case 1 => matchedCandidates.head
       case 0 => BAD
-      case _ => (candidates - IDKIND).head
+      case _ => (matchedCandidates - IDKIND).head
     }
 
     val token = if(Tokens.isToken(current, kind)) {
