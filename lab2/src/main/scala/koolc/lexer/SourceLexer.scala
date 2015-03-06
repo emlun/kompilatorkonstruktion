@@ -80,7 +80,6 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
     var currentPos = source.pos
     var current: String = ""
-    var candidates: Set[TokenKind] = ALL_TOKEN_KINDS
 
     var result: Seq[Token] = Nil
 
@@ -89,7 +88,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         current = next.toString
         currentPos = source.pos
       } else {
-        candidates = candidates.filter(kind => Tokens.isPrefix(current, kind))
+        val candidates = ALL_TOKEN_KINDS.filter(kind => Tokens.isPrefix(current, kind))
 
         val nextPrefix = current + next
         val nextCandidates = candidates.filter(kind => Tokens.isPrefix(nextPrefix, kind))
@@ -99,7 +98,6 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
           current = next.toString
           currentPos = source.pos
-          candidates = ALL_TOKEN_KINDS
         } else {
           current = nextPrefix
         }
