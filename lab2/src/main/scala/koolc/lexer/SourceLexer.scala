@@ -67,8 +67,6 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       result = result :+ makeToken(current, ALL_TOKEN_KINDS filter { Tokens.isToken(current, _) }, ctx, currentPos)
     }
 
-    val eof = new Token(EOF)
-    eof.setPos(ctx.file, source.pos)
-    (result :+ eof).toIterator
+    (result :+ new Token(EOF).setPos(ctx.file, source.pos)).toIterator
   }
 }
