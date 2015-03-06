@@ -9,142 +9,149 @@ import Tokens._
 
 class TokensSpec extends FunSpec with Matchers {
 
+  implicit class TokenMatcher(val kind: TokenKind) {
+    def hasPrefix(prefix: String)    = Tokens.isPrefix(prefix, kind) should be (true)
+    def hasNotPrefix(prefix: String) = Tokens.isPrefix(prefix, kind) should be (false)
+    def matches(word: String)        = Tokens.isToken(word, kind) should be (true)
+    def matchesNot(word: String)     = Tokens.isToken(word, kind) should be (false)
+  }
+
   describe("The Tokens object") {
     describe("has an isPrefix method") {
       it("which is correct for println") {
-        isPrefix("", PRINTLN) should be (true)
-        isPrefix("p", PRINTLN) should be (true)
-        isPrefix("pr", PRINTLN) should be (true)
-        isPrefix("pri", PRINTLN) should be (true)
-        isPrefix("prin", PRINTLN) should be (true)
-        isPrefix("print", PRINTLN) should be (true)
-        isPrefix("printl", PRINTLN) should be (true)
-        isPrefix("println", PRINTLN) should be (true)
+        PRINTLN hasPrefix ""
+        PRINTLN hasPrefix "p"
+        PRINTLN hasPrefix "pr"
+        PRINTLN hasPrefix "pri"
+        PRINTLN hasPrefix "prin"
+        PRINTLN hasPrefix "print"
+        PRINTLN hasPrefix "printl"
+        PRINTLN hasPrefix "println"
 
-        isPrefix("a", PRINTLN) should be (false)
-        isPrefix("println_", PRINTLN) should be (false)
+        PRINTLN hasNotPrefix "a"
+        PRINTLN hasNotPrefix "println_"
       }
 
       it("which is correct for identifiers") {
-        isPrefix("", IDKIND) should be (true)
-        isPrefix("p", IDKIND) should be (true)
-        isPrefix("pr", IDKIND) should be (true)
-        isPrefix("pri", IDKIND) should be (true)
-        isPrefix("prin", IDKIND) should be (true)
-        isPrefix("print", IDKIND) should be (true)
-        isPrefix("printl", IDKIND) should be (true)
-        isPrefix("println", IDKIND) should be (true)
+        IDKIND hasPrefix ""
+        IDKIND hasPrefix "p"
+        IDKIND hasPrefix "pr"
+        IDKIND hasPrefix "pri"
+        IDKIND hasPrefix "prin"
+        IDKIND hasPrefix "print"
+        IDKIND hasPrefix "printl"
+        IDKIND hasPrefix "println"
 
-        isPrefix("a", IDKIND) should be (true)
-        isPrefix("a_", IDKIND) should be (true)
-        isPrefix("a_b", IDKIND) should be (true)
-        isPrefix("a9", IDKIND) should be (true)
-        isPrefix("println_", IDKIND) should be (true)
+        IDKIND hasPrefix "a"
+        IDKIND hasPrefix "a_"
+        IDKIND hasPrefix "a_b"
+        IDKIND hasPrefix "a9"
+        IDKIND hasPrefix "println_"
 
-        isPrefix("0", IDKIND) should be (false)
-        isPrefix("1", IDKIND) should be (false)
-        isPrefix("2", IDKIND) should be (false)
-        isPrefix("3", IDKIND) should be (false)
-        isPrefix("4", IDKIND) should be (false)
-        isPrefix("5", IDKIND) should be (false)
-        isPrefix("6", IDKIND) should be (false)
-        isPrefix("7", IDKIND) should be (false)
-        isPrefix("8", IDKIND) should be (false)
-        isPrefix("9", IDKIND) should be (false)
+        IDKIND hasNotPrefix "0"
+        IDKIND hasNotPrefix "1"
+        IDKIND hasNotPrefix "2"
+        IDKIND hasNotPrefix "3"
+        IDKIND hasNotPrefix "4"
+        IDKIND hasNotPrefix "5"
+        IDKIND hasNotPrefix "6"
+        IDKIND hasNotPrefix "7"
+        IDKIND hasNotPrefix "8"
+        IDKIND hasNotPrefix "9"
 
-        isPrefix("0a", IDKIND) should be (false)
-        isPrefix("1a", IDKIND) should be (false)
-        isPrefix("2a", IDKIND) should be (false)
-        isPrefix("3a", IDKIND) should be (false)
-        isPrefix("4a", IDKIND) should be (false)
-        isPrefix("5a", IDKIND) should be (false)
-        isPrefix("6a", IDKIND) should be (false)
-        isPrefix("7a", IDKIND) should be (false)
-        isPrefix("8a", IDKIND) should be (false)
-        isPrefix("9a", IDKIND) should be (false)
+        IDKIND hasNotPrefix "0a"
+        IDKIND hasNotPrefix "1a"
+        IDKIND hasNotPrefix "2a"
+        IDKIND hasNotPrefix "3a"
+        IDKIND hasNotPrefix "4a"
+        IDKIND hasNotPrefix "5a"
+        IDKIND hasNotPrefix "6a"
+        IDKIND hasNotPrefix "7a"
+        IDKIND hasNotPrefix "8a"
+        IDKIND hasNotPrefix "9a"
 
-        isPrefix(" ", IDKIND) should be (false)
-        isPrefix("a ", IDKIND) should be (false)
-        isPrefix(" a", IDKIND) should be (false)
-        isPrefix(" a ", IDKIND) should be (false)
+        IDKIND hasNotPrefix " "
+        IDKIND hasNotPrefix "a "
+        IDKIND hasNotPrefix " a"
+        IDKIND hasNotPrefix " a "
       }
 
       it("which is correct for string literals") {
-        isPrefix("\"", STRLITKIND) should be (true)
-        isPrefix("\"\"", STRLITKIND) should be (true)
-        isPrefix(""""foo""", STRLITKIND) should be (true)
-        isPrefix(""""foo"""", STRLITKIND) should be (true)
-        isPrefix(""""foo1337_"""", STRLITKIND) should be (true)
+        STRLITKIND hasPrefix "\""
+        STRLITKIND hasPrefix "\"\""
+        STRLITKIND hasPrefix """"foo"""
+        STRLITKIND hasPrefix """"foo""""
+        STRLITKIND hasPrefix """"foo1337_""""
 
-        isPrefix("a", STRLITKIND) should be (false)
-        isPrefix("""a"foo"""", STRLITKIND) should be (false)
-        isPrefix("""a"foo""", STRLITKIND) should be (false)
-        isPrefix(""""foo"a""", STRLITKIND) should be (false)
-        isPrefix(""""foo"a"""", STRLITKIND) should be (false)
-        isPrefix("""a"foo"a"""", STRLITKIND) should be (false)
+        STRLITKIND hasNotPrefix "a"
+        STRLITKIND hasNotPrefix """a"foo""""
+        STRLITKIND hasNotPrefix """a"foo"""
+        STRLITKIND hasNotPrefix """"foo"a"""
+        STRLITKIND hasNotPrefix """"foo"a""""
+        STRLITKIND hasNotPrefix """a"foo"a""""
       }
 
       it("which is correct for integer literals") {
-        isPrefix("\"", INTLITKIND) should be (false)
-        isPrefix("\"\"", INTLITKIND) should be (false)
-        isPrefix(""""foo""", INTLITKIND) should be (false)
-        isPrefix(""""foo"""", INTLITKIND) should be (false)
-        isPrefix(""""foo1337_"""", INTLITKIND) should be (false)
+        INTLITKIND hasNotPrefix "\""
+        INTLITKIND hasNotPrefix "\"\""
+        INTLITKIND hasNotPrefix """"foo"""
+        INTLITKIND hasNotPrefix """"foo""""
+        INTLITKIND hasNotPrefix """"foo1337_""""
 
-        isPrefix("0", INTLITKIND) should be (true)
-        isPrefix("1", INTLITKIND) should be (true)
-        isPrefix("2", INTLITKIND) should be (true)
-        isPrefix("3", INTLITKIND) should be (true)
-        isPrefix("4", INTLITKIND) should be (true)
-        isPrefix("5", INTLITKIND) should be (true)
-        isPrefix("6", INTLITKIND) should be (true)
-        isPrefix("7", INTLITKIND) should be (true)
-        isPrefix("8", INTLITKIND) should be (true)
-        isPrefix("9", INTLITKIND) should be (true)
+        INTLITKIND hasPrefix "0"
+        INTLITKIND hasPrefix "1"
+        INTLITKIND hasPrefix "2"
+        INTLITKIND hasPrefix "3"
+        INTLITKIND hasPrefix "4"
+        INTLITKIND hasPrefix "5"
+        INTLITKIND hasPrefix "6"
+        INTLITKIND hasPrefix "7"
+        INTLITKIND hasPrefix "8"
+        INTLITKIND hasPrefix "9"
 
-        isPrefix("00", INTLITKIND) should be (false)
-        isPrefix("10", INTLITKIND) should be (true)
-        isPrefix("20", INTLITKIND) should be (true)
-        isPrefix("30", INTLITKIND) should be (true)
-        isPrefix("40", INTLITKIND) should be (true)
-        isPrefix("50", INTLITKIND) should be (true)
-        isPrefix("60", INTLITKIND) should be (true)
-        isPrefix("70", INTLITKIND) should be (true)
-        isPrefix("80", INTLITKIND) should be (true)
-        isPrefix("90", INTLITKIND) should be (true)
+        INTLITKIND hasNotPrefix "00"
+        INTLITKIND hasPrefix "10"
+        INTLITKIND hasPrefix "20"
+        INTLITKIND hasPrefix "30"
+        INTLITKIND hasPrefix "40"
+        INTLITKIND hasPrefix "50"
+        INTLITKIND hasPrefix "60"
+        INTLITKIND hasPrefix "70"
+        INTLITKIND hasPrefix "80"
+        INTLITKIND hasPrefix "90"
 
-        isPrefix("00", INTLITKIND) should be (false)
-        isPrefix("01", INTLITKIND) should be (false)
-        isPrefix("02", INTLITKIND) should be (false)
-        isPrefix("03", INTLITKIND) should be (false)
-        isPrefix("04", INTLITKIND) should be (false)
-        isPrefix("05", INTLITKIND) should be (false)
-        isPrefix("06", INTLITKIND) should be (false)
-        isPrefix("07", INTLITKIND) should be (false)
-        isPrefix("08", INTLITKIND) should be (false)
-        isPrefix("09", INTLITKIND) should be (false)
+        INTLITKIND hasNotPrefix "00"
+        INTLITKIND hasNotPrefix "01"
+        INTLITKIND hasNotPrefix "02"
+        INTLITKIND hasNotPrefix "03"
+        INTLITKIND hasNotPrefix "04"
+        INTLITKIND hasNotPrefix "05"
+        INTLITKIND hasNotPrefix "06"
+        INTLITKIND hasNotPrefix "07"
+        INTLITKIND hasNotPrefix "08"
+        INTLITKIND hasNotPrefix "09"
 
-        isPrefix("0a", INTLITKIND) should be (false)
-        isPrefix("1a", INTLITKIND) should be (false)
-        isPrefix("2a", INTLITKIND) should be (false)
-        isPrefix("3a", INTLITKIND) should be (false)
-        isPrefix("4a", INTLITKIND) should be (false)
-        isPrefix("5a", INTLITKIND) should be (false)
-        isPrefix("6a", INTLITKIND) should be (false)
-        isPrefix("7a", INTLITKIND) should be (false)
-        isPrefix("8a", INTLITKIND) should be (false)
-        isPrefix("9a", INTLITKIND) should be (false)
+        INTLITKIND hasNotPrefix "0a"
+        INTLITKIND hasNotPrefix "1a"
+        INTLITKIND hasNotPrefix "2a"
+        INTLITKIND hasNotPrefix "3a"
+        INTLITKIND hasNotPrefix "4a"
+        INTLITKIND hasNotPrefix "5a"
+        INTLITKIND hasNotPrefix "6a"
+        INTLITKIND hasNotPrefix "7a"
+        INTLITKIND hasNotPrefix "8a"
+        INTLITKIND hasNotPrefix "9a"
 
-        isPrefix("a0", INTLITKIND) should be (false)
-        isPrefix("a1", INTLITKIND) should be (false)
-        isPrefix("a2", INTLITKIND) should be (false)
-        isPrefix("a3", INTLITKIND) should be (false)
-        isPrefix("a4", INTLITKIND) should be (false)
-        isPrefix("a5", INTLITKIND) should be (false)
-        isPrefix("a6", INTLITKIND) should be (false)
-        isPrefix("a7", INTLITKIND) should be (false)
-        isPrefix("a8", INTLITKIND) should be (false)
-        isPrefix("a9", INTLITKIND) should be (false)
+        INTLITKIND hasNotPrefix "a0"
+        INTLITKIND hasNotPrefix "a1"
+        INTLITKIND hasNotPrefix "a2"
+        INTLITKIND hasNotPrefix "a3"
+        INTLITKIND hasNotPrefix "a4"
+        INTLITKIND hasNotPrefix "a5"
+        INTLITKIND hasNotPrefix "a6"
+        INTLITKIND hasNotPrefix "a7"
+        INTLITKIND hasNotPrefix "a8"
+        INTLITKIND hasNotPrefix "a9"
       }
     }
   }
