@@ -72,7 +72,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       override def next = {
         val result = nextToken match {
           case Some(t) => t
-          case None => null
+          case None    => null
         }
 
         val readResult = readNext(current, currentPos)
@@ -81,12 +81,12 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
         nextToken = readResult._1 match {
           case Some(t) => Some(t)
-          case None => nextToken match {
+          case None    => nextToken match {
             case Some(t) => t.kind match {
               case EOF => None
               case _   => Some(new Token(EOF).setPos(ctx.file, source.pos))
             }
-            case None => None
+            case None    => None
           }
         }
 
