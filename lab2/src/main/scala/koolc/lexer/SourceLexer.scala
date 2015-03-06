@@ -102,12 +102,12 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       }
     }
 
-    val nextCandidates = ALL_TOKEN_KINDS.filter(kind => Tokens.isPrefix(current, kind))
+    candidates = ALL_TOKEN_KINDS.filter(kind => Tokens.isPrefix(current, kind))
 
     if(!current.trim.isEmpty) {
       val kind =
-        if(nextCandidates.size == 1) nextCandidates.head
-        else (nextCandidates - IDKIND).head
+        if(candidates.size == 1) candidates.head
+        else (candidates - IDKIND).head
 
       val token = if(Tokens.isToken(current, kind)) {
           kind match {
