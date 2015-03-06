@@ -38,9 +38,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
   def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int): Tuple3[Option[Token], String, Int] = {
     var current = previous
     var currentPos = prevPos
-    while(source.hasNext) {
-      val next = source.next
-
+    for(next <- source) {
       if(current.trim.isEmpty) {
         current = ""
         currentPos = source.pos
