@@ -36,10 +36,6 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
   }
 
   def run(ctx: Context)(source: Source): Iterator[Token] = {
-    import ctx.reporter._
-
-    // Complete this file
-
     var currentPos = source.pos
     var current: String = ""
 
