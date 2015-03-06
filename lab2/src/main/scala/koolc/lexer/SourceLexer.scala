@@ -53,6 +53,26 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     INTLITKIND,
     STRLITKIND)
 
+  def makeToken(current: String, candidates: Set[TokenKind], ctx: Context, currentPos: Int) = {
+    val kind =
+      if(candidates.size == 1) candidates.head
+      else if(candidates.size == 0) BAD
+      else (candidates - IDKIND).head
+
+    val token = if(Tokens.isToken(current, kind)) {
+        kind match {
+          case INTLITKIND => new INTLIT(current.toInt)
+          case STRLITKIND => new STRLIT(current)
+          case IDKIND => new ID(current)
+          case _ => new Token(kind)
+        }
+      } else {
+        new Token(BAD)
+      }
+    token.setPos(ctx.file, currentPos)
+    token
+  }
+
   def run(ctx: Context)(source: Source): Iterator[Token] = {
     import ctx.reporter._
 
@@ -75,23 +95,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         val nextCandidates = candidates.filter(kind => Tokens.isPrefix(nextPrefix, kind))
 
         if(nextCandidates.isEmpty) {
-          val kind =
-            if(candidates.size == 1) candidates.head
-            else if(candidates.size == 0) BAD
-            else (candidates - IDKIND).head
-
-          val token = if(Tokens.isToken(current, kind)) {
-               kind match {
-                case INTLITKIND => new INTLIT(current.toInt)
-                case STRLITKIND => new STRLIT(current)
-                case IDKIND => new ID(current)
-                case _ => new Token(kind)
-              }
-            } else {
-              new Token(BAD)
-            }
-          token.setPos(ctx.file, currentPos)
-          result = result :+ token
+          result = result :+ makeToken(current, candidates, ctx, currentPos)
 
           current = "" + next
           currentPos = source.pos
@@ -102,25 +106,8 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       }
     }
 
-    candidates = ALL_TOKEN_KINDS.filter(kind => Tokens.isPrefix(current, kind))
-
     if(!current.trim.isEmpty) {
-      val kind =
-        if(candidates.size == 1) candidates.head
-        else (candidates - IDKIND).head
-
-      val token = if(Tokens.isToken(current, kind)) {
-          kind match {
-            case INTLITKIND => new INTLIT(current.toInt)
-            case STRLITKIND => new STRLIT(current)
-            case IDKIND => new ID(current)
-            case _ => new Token(kind)
-          }
-        } else {
-          new Token(BAD)
-        }
-      token.setPos(ctx.file, currentPos)
-      result = result :+ token
+      result = result :+ makeToken(current, ALL_TOKEN_KINDS filter { Tokens.isToken(current, _) }, ctx, currentPos)
     }
 
     val eof = new Token(EOF)
