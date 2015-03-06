@@ -74,6 +74,17 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
       val source = """111aaa"""
       lexer.run(ctx)(source) should beTokens (INTLITKIND :: IDKIND :: EOF :: Nil)
     }
+
+    it("ignores comments") {
+      val source = """
+      println// This is a comment - skip this
+      a/*
+        This is also a comment - skip this too
+        * // /*
+        */pa(
+      """
+      lexer.run(ctx)(source) should beTokens (PRINTLN :: IDKIND :: IDKIND :: LPAREN :: EOF :: Nil)
+    }
   }
 
 }
