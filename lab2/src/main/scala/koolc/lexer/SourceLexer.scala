@@ -65,7 +65,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     var result: Seq[Token] = Nil
 
     for(next <- source) {
-      if(current matches "^\\s*$") {
+      if(current.trim.isEmpty) {
         current = "" + next
         currentPos = source.pos
       } else {
@@ -104,7 +104,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
     val nextCandidates = ALL_TOKEN_KINDS.filter(kind => Tokens.isPrefix(current, kind))
 
-    if(!(current matches "^\\s*$")) {
+    if(!current.trim.isEmpty) {
       val kind =
         if(nextCandidates.size == 1) nextCandidates.head
         else (nextCandidates - IDKIND).head
