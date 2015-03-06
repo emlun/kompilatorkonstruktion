@@ -7,14 +7,14 @@ import scala.io.Source
 object SourceLexer extends Pipeline[Source, Iterator[Token]] {
   import Tokens._
 
-  val ALL_TOKEN_KINDS = Set(EOF,
+  private val ALL_TOKEN_KINDS = Set(EOF,
     COLON, SEMICOLON, DOT, COMMA, EQSIGN, EQUALS, BANG, LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE,
     AND, OR, LESSTHAN, PLUS, MINUS, TIMES, DIV,
     OBJECT, CLASS, DEF, VAR, UNIT, MAIN, STRING, EXTENDS, INT, BOOLEAN,
     WHILE, IF, ELSE, RETURN, LENGTH, TRUE, FALSE, THIS,
     NEW, PRINTLN, IDKIND, INTLITKIND, STRLITKIND)
 
-  def makeToken(current: String, candidates: Set[TokenKind], ctx: Context, currentPos: Int) = {
+  private def makeToken(current: String, candidates: Set[TokenKind], ctx: Context, currentPos: Int) = {
     val kind = candidates.size match {
       case 1 => candidates.head
       case 0 => BAD
@@ -34,7 +34,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     token.setPos(ctx.file, currentPos)
   }
 
-  def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int): Tuple3[Option[Token], String, Int] = {
+  private def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int): Tuple3[Option[Token], String, Int] = {
     var current = previous
     var currentPos = prevPos
     for(next <- source) {
