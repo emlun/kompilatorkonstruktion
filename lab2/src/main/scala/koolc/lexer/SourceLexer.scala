@@ -82,10 +82,10 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         nextToken = readResult._1 match {
           case Some(t) => Some(t)
           case _ => nextToken match {
-              case Some(t) =>
-                if(t.kind == EOF) None
-                else              Some(new Token(EOF).setPos(ctx.file, source.pos))
-              case None => None
+            case Some(t) =>
+              if(t.kind == EOF) None
+              else              Some(new Token(EOF).setPos(ctx.file, source.pos))
+            case None => None
           }
         }
 
