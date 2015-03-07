@@ -29,6 +29,15 @@ object Tokens {
     }
   }
 
+  object Value {
+    def apply(token: Token) = token match {
+      case INTLIT(value) => value
+      case STRLIT(value) => value
+      case ID    (value) => value
+      case _ => None
+    }
+  }
+
   case object BAD extends TokenKind         // represents incorrect tokens.
   case object EOF extends TokenKind
   case object COLON extends TokenKind       // :
