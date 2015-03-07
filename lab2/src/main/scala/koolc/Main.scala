@@ -7,7 +7,7 @@ import lexer._
 
 object Main {
 
-  def processOptions(args: Array[String]): Context = {
+  private def processOptions(args: Array[String]): Context = {
 
     val reporter = new Reporter()
     var outDir: Option[File] = None
