@@ -29,9 +29,9 @@ trait TokenMatchers {
 
       val (sameLength, lengthDiffMessages) =
         if(leftSeq.size > expected.size)
-          (false, leftSeq  drop (leftSeq.size - expected.size) map (t => s"Unexpected token found: $t"))
+          (false, leftSeq drop expected.size map (t => s"Unexpected token found: $t"))
         else if(leftSeq.size < expected.size)
-          (false, expected drop (expected.size - leftSeq.size) map (t => s"Expected token kind not found: $t"))
+          (false, expected drop leftSeq.size map (t => s"Expected token kind not found: $t"))
         else
           (true, Nil)
 
