@@ -76,18 +76,18 @@ object Tokens {
   case object BLOCKCOMMENT extends TokenKind // /* */
 
   // Identifiers
-  class ID(val value: String) extends Token(IDKIND) {
-    override def toString = "ID("+value+")"
+  case class ID(val value: String) extends Token(IDKIND) {
+    override def toString = s"ID($value)"
   }
 
   // Integer literals
-  class INTLIT(val value: Int) extends Token(INTLITKIND) {
-    override def toString = "INT("+value+")"
+  case class INTLIT(val value: Int) extends Token(INTLITKIND) {
+    override def toString = s"INT($value)"
   }
 
   // String literals
-  class STRLIT(val value: String) extends Token(STRLITKIND) {
-    override def toString = "STR("+value+")"
+  case class STRLIT(val value: String) extends Token(STRLITKIND) {
+    override def toString = s"STR($value)"
   }
 
   def isPrefix(prefix: String)(kind: TokenKind): Boolean = {
