@@ -85,7 +85,7 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
     def lexed(s: String) = {
       val source = Source fromString s
       SourceLexer.run(
-          Context(reporter = new koolc.utils.Reporter, file = None, outDir = None, source = source)
+          Context(reporter = new koolc.utils.Reporter, file = None, outDir = None)
         )(source)
     }
 

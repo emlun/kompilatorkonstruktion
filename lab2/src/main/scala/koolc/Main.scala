@@ -36,7 +36,7 @@ object Main {
       reporter.fatal("Exactly one file expected, " + files.size + " file(s) given.")
     }
 
-    (Context(reporter = reporter, file = files.head, outDir = outDir), printTokens)
+    (Context(reporter = reporter, file = Some(files.head), outDir = outDir), printTokens)
   }
 
   def main(args: Array[String]) {
