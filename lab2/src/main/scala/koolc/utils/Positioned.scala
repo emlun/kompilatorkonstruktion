@@ -31,13 +31,7 @@ trait Positioned {
   def line = _line
   def col  = _col
 
-  def position: String = {
-    if (hasPosition) {
-      (if(file == null) "?" else file.getPath) + ":" + line + ":" + col
-    } else {
-      "?:?"
-    }
-  }
+  def position: String = (if (hasPosition) file.getPath else "?") + ":" + line + ":" + col
 }
 
 case object NoPosition extends Positioned
