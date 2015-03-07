@@ -25,7 +25,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     val token = if(Tokens.isToken(current, kind)) {
         kind match {
           case INTLITKIND => new INTLIT(current.toInt)
-          case STRLITKIND => new STRLIT(current)
+          case STRLITKIND => new STRLIT(current drop 1 dropRight 1)
           case IDKIND     => new ID(current)
           case _          => new Token(kind)
         }
