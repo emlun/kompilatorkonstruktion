@@ -7,15 +7,20 @@ import lexer._
 
 object Main {
 
-  private def processOptions(args: Array[String]): Context = {
+  private def processOptions(args: Array[String]): (Context, Boolean) = {
 
     val reporter = new Reporter()
     var outDir: Option[File] = None
     var files: List[File] = Nil
+    var printTokens = false
 
     def processOption(args: List[String]): Unit = args match {
       case "-d" :: out :: args =>
         outDir = Some(new File(out))
+        processOption(args)
+
+      case "--tokens" :: args =>
+        printTokens = true
         processOption(args)
 
       case f ::args =>
@@ -31,15 +36,20 @@ object Main {
       reporter.fatal("Exactly one file expected, " + files.size + " file(s) given.")
     }
 
-    Context(reporter = reporter, file = files.head, outDir = outDir)
+    (Context(reporter = reporter, file = files.head, outDir = outDir), printTokens)
   }
 
-
   def main(args: Array[String]) {
-    val ctx = processOptions(args)
+    val (ctx, printTokens) = processOptions(args)
 
-    val pipeline = Lexer andThen PrintTokens
+    if(printTokens) {
+      for(t <- (Lexer andThen PrintTokens).run(ctx)(ctx.file.get)) {
+        println()
+      }
+    } else {
+      for(t <- Lexer.run(ctx)(ctx.file.get)) {
+      }
+    }
 
-    val program = pipeline.run(ctx)(ctx.file.get)
   }
 }
