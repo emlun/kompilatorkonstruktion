@@ -135,6 +135,13 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
         TIMES ::
         TIMES :: DIV :: IDKIND :: LPAREN :: EOF :: Nil)
     }
+
+    it("removes the surrounding quotes from string literal values") {
+      val source = """ println("Hello, World!")"""
+      lexed(source) should beTokens (
+        new Token(PRINTLN) :: new Token(LPAREN) :: new STRLIT("Hello, World!") ::
+        new Token(RPAREN) :: new Token(EOF) :: Nil)
+    }
   }
 
 }
