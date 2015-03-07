@@ -19,10 +19,10 @@ trait TokenMatchers {
       val leftSeq = left.toSeq
       val pairs = leftSeq.zip(expected) map (pair => {
         val (actual, expected) = pair
-        if(actual.kind != expected)
-          (false, s"Mismatch: $actual is not $expected")
-        else
+        if(actual.kind == expected)
           (true, s"Ok: $actual is $expected")
+        else
+          (false, s"Kind mismatch: $actual is not $expected")
       })
 
       val messages = pairs map (_._2)
