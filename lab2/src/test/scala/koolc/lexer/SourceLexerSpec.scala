@@ -12,7 +12,7 @@ import utils._
 
 trait TokenMatchers {
 
-  class TokenIteratorMatchesExpectedTokensMatcher(expected: Seq[TokenKind])
+  class TokenIteratorMatchesExpectedTokensMatcher(val expected: Seq[TokenKind])
       extends Matcher[Iterator[Token]] {
 
     def apply(left: Iterator[Token]) = {
