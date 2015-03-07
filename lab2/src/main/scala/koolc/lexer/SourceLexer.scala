@@ -39,7 +39,9 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     token
   }
 
-  private def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int): Tuple3[Option[Token], String, Int] = {
+  private def readNextToken(ctx: Context, source: Source)(previous: String, prevPos: Int):
+    (Option[Token], String, Int) = {
+
     var current = previous
     var currentPos = prevPos
 
