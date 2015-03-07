@@ -40,9 +40,9 @@ class Reporter {
   }
 
   private def report(prefix: String, msg: Any, pos: Positioned) {
-    if (pos.hasPosition) {
-      err(pos.position + ": " + prefix + ": " + msg.toString)
+    err(pos.position + ": " + prefix + ": " + msg.toString)
 
+    if (pos.hasPosition) {
       val lines = getLines(pos.file)
 
       if (pos.line - 1 < lines.size) {
@@ -52,7 +52,7 @@ class Reporter {
           err("<line unavailable in source file>")
       }
     } else {
-      err(prefix+": "+msg.toString)
+      err("<line unavailable in source>")
     }
   }
 
