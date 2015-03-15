@@ -39,14 +39,56 @@ object Parser extends Pipeline[Iterator[Token], Program] {
       }
     }
 
+    def eatIdentifier(): Option[Identifier] = eat(IDKIND) match {
+      case Some(ID(value)) => Some(new Identifier(value))
+      case _ => {
+        expected(IDKIND)
+        None
+      }
+    }
+
     /** Complains that what was found was not expected. The method accepts arbitrarily many arguments of type TokenKind */
     def expected(kind: TokenKind, more: TokenKind*): Unit = {
       ctx.reporter.error("expected: " + (kind::more.toList).mkString(" or ") + ", found: " + currentToken, currentToken)
     }
 
     def parseGoal(): Program = {
-      ???
+      val program = new Program(parseMainObject(), Nil)
+      eat(EOF)
+      program
     }
+
+    def parseMainObject(): MainObject = {
+      eat(OBJECT)
+
+      (
+        eatIdentifier() map (id => {
+          eat(LBRACE)
+          eat(DEF)
+          eat(MAIN)
+          eat(LPAREN)
+          eat(RPAREN)
+          eat(COLON)
+          eat(UNIT)
+          eat(EQSIGN)
+          eat(LBRACE)
+
+          var statementsStack: List[StatTree] = Nil
+          while(currentToken.kind != RBRACE) {
+            statementsStack = parseStatement() :: statementsStack
+          }
+
+          eat(RBRACE)
+          eat(RBRACE)
+
+          MainObject(id, statementsStack.reverse)
+        }) orElse Some(MainObject(null, Nil))
+      ).get
+    }
+
+    def parseClassDeclaration(): ClassDecl = ???
+    def parseStatement(): StatTree = ???
+    def parseExpression(): ExprTree = ???
 
     readToken()
     val tree = parseGoal()
