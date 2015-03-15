@@ -93,7 +93,16 @@ object Parser extends Pipeline[Iterator[Token], Program] {
       def parseBlock(): StatTree = ???
       def parseIf(): If = ???
       def parseWhile(): While = ???
-      def parsePrintln(): Println = ???
+
+      def parsePrintln(): Println = {
+        eat(PRINTLN)
+        eat(LPAREN)
+        val expression = parseExpression()
+        eat(RPAREN)
+        eat(SEMICOLON)
+        new Println(expression)
+      }
+
       def parseAssignment(): StatTree = ???
 
       currentToken.kind match {
