@@ -4,14 +4,14 @@ package utils
 import java.io.File
 
 trait Positioned {
-  private var _file: Option[File] = None
-  private var _line: Int = 0
-  private var _col: Int = 0
+  private[Positioned] var _file: Option[File] = None
+  private[Positioned] var _line: Int = 0
+  private[Positioned] var _col: Int = 0
 
-  def setPos(file: File, pos: Int): this.type = {
+  def setPos(file: Option[File], pos: Int): this.type = {
     _line = Position.line(pos)
     _col  = Position.column(pos)
-    _file = Some(file)
+    _file = file
 
     this
   }
@@ -31,13 +31,7 @@ trait Positioned {
   def line = _line
   def col  = _col
 
-  def position: String = {
-    if (hasPosition) {
-      file.getPath+":"+line+":"+col
-    } else {
-      "?:?"
-    }
-  }
+  def position: String = (if (hasPosition) file.getPath else "?") + ":" + line + ":" + col
 }
 
 case object NoPosition extends Positioned

@@ -40,19 +40,19 @@ class Reporter {
   }
 
   private def report(prefix: String, msg: Any, pos: Positioned) {
-    if (pos.hasPosition) {
-      err(pos.position+": "+prefix+": "+msg.toString)
+    err(pos.position + ": " + prefix + ": " + msg.toString)
 
+    if (pos.hasPosition) {
       val lines = getLines(pos.file)
 
-      if (pos.line-1 < lines.size) {
-          err(lines(pos.line-1))
-          err(" "*pos.col+"^")
+      if (pos.line - 1 < lines.size) {
+          err(lines(pos.line - 1))
+          err(" " * (pos.col - 1) + "^")
       } else {
           err("<line unavailable in source file>")
       }
     } else {
-      err(prefix+": "+msg.toString)
+      err("<line unavailable in source>")
     }
   }
 
@@ -62,13 +62,17 @@ class Reporter {
         lines
 
       case None =>
-        val source = Source.fromFile(f).withPositioning(true)
-        val lines = source.getLines().toIndexedSeq
-        source.close()
+        try {
+          val source = Source.fromFile(f).withPositioning(true)
+          val lines = source.getLines().toIndexedSeq
+          source.close()
 
-        filesToLines += f -> lines
+          filesToLines += f -> lines
 
-        lines
+          lines
+        } catch {
+          case _: NullPointerException => IndexedSeq()
+        }
     }
   }
 }

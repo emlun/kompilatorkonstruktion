@@ -8,15 +8,20 @@ import ast._
 
 object Main {
 
-  def processOptions(args: Array[String]): Context = {
+  private def processOptions(args: Array[String]): (Context, Boolean) = {
 
     val reporter = new Reporter()
     var outDir: Option[File] = None
     var files: List[File] = Nil
+    var printTokens = false
 
     def processOption(args: List[String]): Unit = args match {
       case "-d" :: out :: args =>
         outDir = Some(new File(out))
+        processOption(args)
+
+      case "--tokens" :: args =>
+        printTokens = true
         processOption(args)
 
       case f ::args =>
@@ -29,20 +34,26 @@ object Main {
     processOption(args.toList)
 
     if (files.size != 1) {
-      reporter.fatal("Exactly one file expected, "+files.size+" file(s) given.")
+      reporter.fatal("Exactly one file expected, " + files.size + " file(s) given.")
     }
 
-    Context(reporter = reporter, file = files.head, outDir = outDir)
+    (Context(reporter = reporter, file = Some(files.head), outDir = outDir), printTokens)
   }
 
-
   def main(args: Array[String]) {
-    val ctx = processOptions(args)
+    val (ctx, printTokens) = processOptions(args)
 
-    val pipeline = Lexer andThen Parser
+    if(printTokens) {
+      for(t <- (Lexer andThen PrintTokens).run(ctx)(ctx.file.get)) {
+        println()
+      }
+    } else {
+      val pipeline = Lexer andThen Parser
 
-    val program = pipeline.run(ctx)(ctx.file)
+      val program = pipeline.run(ctx)(ctx.file.get)
 
-    println(Printer(program))
+      println(Printer(program))
+    }
+
   }
 }
