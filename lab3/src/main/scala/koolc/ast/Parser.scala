@@ -13,7 +13,7 @@ object Parser extends Pipeline[Iterator[Token], Program] {
     /** Store the current token, as read from the lexer. */
     var currentToken: Token = new Token(BAD)
 
-    def readToken(): Unit = {
+    def readToken(): Option[Token] = {
       if (tokens.hasNext) {
         // uses nextToken from the Lexer trait
         currentToken = tokens.next
@@ -22,13 +22,19 @@ object Parser extends Pipeline[Iterator[Token], Program] {
         while (currentToken.kind == BAD) {
           currentToken = tokens.next
         }
+
+        Some(currentToken)
+      } else {
+        None
       }
     }
 
     /** ''Eats'' the expected token, or terminates with an error. */
-    def eat(kind: TokenKind): Unit = {
+    def eat(kind: TokenKind): Option[Token] = {
       if (currentToken.kind == kind) {
+        val current = Some(currentToken)
         readToken
+        current
       } else {
         expected(kind)
       }
