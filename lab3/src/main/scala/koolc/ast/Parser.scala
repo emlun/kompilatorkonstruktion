@@ -87,7 +87,29 @@ object Parser extends Pipeline[Iterator[Token], Program] {
     }
 
     def parseClassDeclaration(): ClassDecl = ???
-    def parseStatement(): StatTree = ???
+
+    def parseStatement(): StatTree = {
+
+      def parseBlock(): StatTree = ???
+      def parseIf(): If = ???
+      def parseWhile(): While = ???
+      def parsePrintln(): Println = ???
+      def parseAssignment(): StatTree = ???
+
+      currentToken.kind match {
+        case LPAREN  => parseBlock()
+        case IF      => parseIf()
+        case WHILE   => parseWhile()
+        case PRINTLN => parsePrintln()
+        case IDKIND  => parseAssignment()
+        case _       => {
+          expected(LPAREN, IF, WHILE, PRINTLN, IDKIND)
+          readToken()
+          new Block(Nil)
+        }
+      }
+    }
+
     def parseExpression(): ExprTree = ???
 
     readToken()
