@@ -13,7 +13,7 @@ object Parser extends Pipeline[Iterator[Token], Program] {
     /** Store the current token, as read from the lexer. */
     var currentToken: Token = new Token(BAD)
 
-    def readToken: Unit = {
+    def readToken(): Unit = {
       if (tokens.hasNext) {
         // uses nextToken from the Lexer trait
         currentToken = tokens.next
@@ -39,12 +39,12 @@ object Parser extends Pipeline[Iterator[Token], Program] {
       fatal("expected: " + (kind::more.toList).mkString(" or ") + ", found: " + currentToken, currentToken)
     }
 
-    def parseGoal: Program = {
+    def parseGoal(): Program = {
       ???
     }
 
-    readToken
-    val tree = parseGoal
+    readToken()
+    val tree = parseGoal()
     terminateIfErrors
     tree
   }
