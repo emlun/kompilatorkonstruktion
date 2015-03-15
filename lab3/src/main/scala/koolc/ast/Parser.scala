@@ -119,7 +119,25 @@ object Parser extends Pipeline[Iterator[Token], Program] {
       }
     }
 
-    def parseExpression(): ExprTree = ???
+    def parseExpression(): ExprTree = {
+
+      def parseNew(): ExprTree = ???
+
+      currentToken match {
+        case INTLIT(value) => { eat(INTLITKIND); new IntLit(value) }
+        case STRLIT(value) => { eat(STRLITKIND); new StringLit(value) }
+        case ID(value)     => { eat(IDKIND);     new Identifier(value) }
+        case _             => currentToken.kind match {
+          case TRUE        => new True
+          case FALSE       => new False
+          case THIS        => new This
+          case NEW         => parseNew()
+          case BANG        => { eat(BANG); new Not(parseExpression()) }
+          case LPAREN      => { eat(LPAREN); val expression = parseExpression(); eat(RPAREN); expression }
+          case _           => ???
+        }
+      }
+    }
 
     readToken()
     val tree = parseGoal()
