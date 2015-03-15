@@ -1,0 +1,32 @@
+plugins {
+  id "com.github.maiflai.scalatest" version "0.6-5-g9065d91"
+}
+apply plugin: 'scala'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.2'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile(
+    'org.scala-lang:scala-library:2.+',
+    'org.scala-lang:scala-parser-combinators:2.+',
+  )
+  testCompile 'org.scalatest:scalatest_2.11:2.+'
+  testRuntime 'org.pegdown:pegdown:1.+'
+}
+
+tasks.withType(ScalaCompile) {
+  scalaCompileOptions.useAnt = false
+  scalaCompileOptions.additionalParameters = ['-feature']
+}
+
+task runRef(type: JavaExec) {
+  classpath fileTree('lib')
+  executable 'scala'
+  main 'koolc.Main'
+}
