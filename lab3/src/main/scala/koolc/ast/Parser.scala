@@ -140,7 +140,6 @@ object Parser extends Pipeline[Iterator[Token], Program] {
     }
 
     readToken()
-    val tree = parseGoal()
-    tree
+    parseGoal()
   }
 }
