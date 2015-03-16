@@ -82,5 +82,51 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(source.toIterator)
     }
 
+    it("parses single-keyword values correctly.") {
+      val source: Seq[Token] =
+        new Token(OBJECT) ::
+        new ID("foo") ::
+        new Token(LBRACE) ::
+        new Token(DEF) ::
+        new Token(MAIN) ::
+        new Token(LPAREN) ::
+        new Token(RPAREN) ::
+        new Token(COLON) ::
+        new Token(UNIT) ::
+        new Token(EQSIGN) ::
+        new Token(LBRACE) ::
+        new Token(PRINTLN) :: new Token(LPAREN) :: new Token(TRUE) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
+        new Token(PRINTLN) :: new Token(LPAREN) :: new Token(FALSE) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
+        new Token(PRINTLN) :: new Token(LPAREN) :: new Token(THIS) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
+        new Token(RBRACE) ::
+        new Token(RBRACE) ::
+        new Token(EOF) ::
+        Nil
+
+      val pipeline = Parser andThen checkResult((ctx, program) => {
+        ctx.reporter shouldBe errorless
+
+        program map (inside(_) { case Program(main, classes) =>
+          classes should be ('empty)
+
+          inside(main) { case MainObject(id, statements) =>
+            id.value should be ("foo")
+
+            statements.size should be (3)
+            statements.zipWithIndex foreach { case (statement, index) =>
+              inside(statement) { case Println(expr) =>
+                index match {
+                  case 0 => expr should be (new True)
+                  case 1 => expr should be (new False)
+                  case 2 => expr should be (new This)
+                }
+              }
+            }
+          }
+        }) orElse fail("Expected program to be defined.")
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(source.toIterator)
+    }
+
   }
 }
