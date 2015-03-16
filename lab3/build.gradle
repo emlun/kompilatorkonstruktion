@@ -36,7 +36,7 @@ task runParser(type: JavaExec) {
   classpath sourceSets.main.runtimeClasspath
   executable 'scala'
   main 'koolc.Main'
-  args 'src/test/resources/koolc/lexer/bad.kool'
+  args 'src/test/resources/helloworld.kool'
 }
 
 task runRef(type: JavaExec) {
