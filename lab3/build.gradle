@@ -25,6 +25,20 @@ tasks.withType(ScalaCompile) {
   scalaCompileOptions.additionalParameters = ['-feature']
 }
 
+task runLexer(type: JavaExec) {
+  classpath sourceSets.main.runtimeClasspath
+  executable 'scala'
+  main 'koolc.Main'
+  args 'src/test/resources/koolc/lexer/foo.kool', '--tokens'
+}
+
+task runParser(type: JavaExec) {
+  classpath sourceSets.main.runtimeClasspath
+  executable 'scala'
+  main 'koolc.Main'
+  args 'src/test/resources/koolc/lexer/foo.kool'
+}
+
 task runRef(type: JavaExec) {
   classpath fileTree('lib')
   executable 'scala'
