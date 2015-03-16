@@ -45,6 +45,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
         new Token(LPAREN) ::
         new STRLIT("Hello, World!") ::
         new Token(RPAREN) ::
+        new Token(SEMICOLON) ::
         new Token(RBRACE) ::
         new Token(RBRACE) ::
         new Token(EOF) ::
