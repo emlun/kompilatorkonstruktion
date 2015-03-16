@@ -3,8 +3,7 @@ package ast
 
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
-import org.scalatest._
-import matchers._
+import org.scalatest.Inside
 
 import utils._
 import lexer._
