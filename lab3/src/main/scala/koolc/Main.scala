@@ -52,7 +52,7 @@ object Main {
 
       println(
         pipeline.run(ctx)(ctx.file.get)
-          map Printer.apply getOrElse "Failed to parse input."
+          map Printer getOrElse "Failed to parse input."
       )
     }
 

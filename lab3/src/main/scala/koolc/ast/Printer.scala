@@ -3,7 +3,7 @@ package ast
 
 import Trees._
 
-object Printer {
+object Printer extends (Tree => String) {
   def apply(t: Tree): String = {
     "???"
   }
