@@ -6,8 +6,8 @@ import Trees._
 import lexer._
 import lexer.Tokens._
 
-object Parser extends Pipeline[Iterator[Token], Program] {
-  def run(ctx: Context)(tokens: Iterator[Token]): Program = {
+object Parser extends Pipeline[Iterator[Token], Option[Program]] {
+  def run(ctx: Context)(tokens: Iterator[Token]): Option[Program] = {
     /** Store the current token, as read from the lexer. */
     var currentToken: Token = new Token(BAD)
 
@@ -52,10 +52,14 @@ object Parser extends Pipeline[Iterator[Token], Program] {
       ctx.reporter.error("expected: " + (kind::more.toList).mkString(" or ") + ", found: " + currentToken, currentToken)
     }
 
-    def parseGoal(): Program = {
+    def parseGoal(): Option[Program] = {
       val program = new Program(parseMainObject(), Nil)
       eat(EOF)
-      program
+
+      if(ctx.reporter.hasErrors)
+        None
+      else
+        Some(program)
     }
 
     def parseMainObject(): MainObject = {

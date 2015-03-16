@@ -26,8 +26,8 @@ trait ParseMatchers {
 
 class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
 
-  def checkResult(body: (Context, Program) => Unit): Pipeline[Program, Unit] = new Pipeline[Program, Unit] {
-    def run(ctx: Context)(program: Program) = body(ctx, program)
+  def checkResult(body: (Context, Option[Program]) => Unit) = new Pipeline[Option[Program], Unit] {
+    def run(ctx: Context)(program: Option[Program]) = body(ctx, program)
   }
 
   describe("The Parser") {
@@ -61,10 +61,10 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
         new Token(EOF) ::
         Nil
 
-      val pipeline = Parser andThen checkResult((ctx: Context, program: Program) => {
+      val pipeline = Parser andThen checkResult((ctx, program) => {
         ctx.reporter shouldBe errorless
 
-        inside(program) { case Program(main, classes) =>
+        program map (inside(_) { case Program(main, classes) =>
           classes should be ('empty)
 
           inside(main) { case MainObject(id, statements) =>
@@ -77,7 +77,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
               }
             }
           }
-        }
+        }) orElse fail("Expected program to be defined.")
       })
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(source.toIterator)
     }
