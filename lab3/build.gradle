@@ -29,14 +29,14 @@ task runLexer(type: JavaExec) {
   classpath sourceSets.main.runtimeClasspath
   executable 'scala'
   main 'koolc.Main'
-  args 'src/test/resources/koolc/lexer/foo.kool', '--tokens'
+  args 'src/test/resources/koolc/lexer/bad.kool', '--tokens'
 }
 
 task runParser(type: JavaExec) {
   classpath sourceSets.main.runtimeClasspath
   executable 'scala'
   main 'koolc.Main'
-  args 'src/test/resources/koolc/lexer/foo.kool'
+  args 'src/test/resources/koolc/lexer/bad.kool'
 }
 
 task runRef(type: JavaExec) {
