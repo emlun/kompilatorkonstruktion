@@ -11,7 +11,20 @@ import Tokens._
 
 import Trees._
 
-class ParserSpec extends FunSpec with Matchers with Inside {
+trait ParseMatchers {
+  import org.scalatest.matchers._
+
+  class ReporterShouldBeErrorlessMatcher extends BeMatcher[Reporter] {
+    override def apply(left: Reporter) = {
+      val message = left.messages map (_.toString) mkString "\n"
+      MatchResult(!left.hasErrors, message, message)
+    }
+  }
+
+  def errorless = new ReporterShouldBeErrorlessMatcher
+}
+
+class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
 
   describe("The Parser") {
 
