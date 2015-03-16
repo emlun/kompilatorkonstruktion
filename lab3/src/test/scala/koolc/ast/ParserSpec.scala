@@ -32,6 +32,12 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
 
   describe("The Parser") {
 
+    it("fails on empty input.") {
+      (Parser andThen checkResult ((ctx: Context, _) => {
+        ctx.reporter should not be errorless
+      })).run(Context(reporter = new Reporter, outDir = None, file = None))((new Token(EOF) :: Nil).toIterator)
+    }
+
     it("parses Hello World correctly.") {
       val source: Seq[Token] =
         new Token(OBJECT) ::
