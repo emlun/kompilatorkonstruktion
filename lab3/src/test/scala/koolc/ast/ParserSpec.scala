@@ -50,24 +50,28 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
         new Token(EOF) ::
         Nil
 
-      val program = Parser.run(
-          Context(reporter = new koolc.utils.Reporter, outDir = None, file = None)
-        )(source.toIterator)
+      val pipeline = Parser andThen new Pipeline[Program, Unit] {
+        def run(ctx: Context)(program: Program) = {
+          ctx.reporter shouldBe errorless
 
-      inside(program) { case Program(main, classes) =>
-        classes should be ('empty)
+          inside(program) { case Program(main, classes) =>
+            classes should be ('empty)
 
-        inside(main) { case MainObject(id, statements) =>
-          id.value should be ("foo")
+            inside(main) { case MainObject(id, statements) =>
+              id.value should be ("foo")
 
-          statements.size should be (1)
-          inside(statements.head) { case Println(expr) =>
-            inside(expr) { case StringLit(value) =>
-              value should be ("Hello, World!")
+              statements.size should be (1)
+              inside(statements.head) { case Println(expr) =>
+                inside(expr) { case StringLit(value) =>
+                  value should be ("Hello, World!")
+                }
+              }
             }
           }
         }
       }
+
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(source.toIterator)
     }
 
   }
