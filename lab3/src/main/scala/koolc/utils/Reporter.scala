@@ -5,6 +5,12 @@ import java.io.File
 import scala.io.Source
 
 class Reporter {
+  case class Message(val prefix: String, val msg: Any, val pos: Positioned) {
+    override def toString: String = s"${pos.position}: ${prefix}: ${msg.toString}"
+  }
+
+  var messagesStack: Seq[Message] = Nil
+  def messages: Seq[Message] = messagesStack.reverse
 
   def info(msg: Any, pos: Positioned = NoPosition): Unit = {
     report("Info", msg, pos)
@@ -54,6 +60,8 @@ class Reporter {
     } else {
       err("<line unavailable in source>")
     }
+
+    messagesStack = Message(prefix, msg, pos) +: messagesStack
   }
 
   private def getLines(f: File): IndexedSeq[String] = {
