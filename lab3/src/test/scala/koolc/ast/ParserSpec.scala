@@ -40,23 +40,12 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
 
     it("parses Hello World correctly.") {
       val source: Seq[Token] =
-        new Token(OBJECT) ::
-        new ID("foo") ::
-        new Token(LBRACE) ::
-        new Token(DEF) ::
-        new Token(MAIN) ::
-        new Token(LPAREN) ::
-        new Token(RPAREN) ::
-        new Token(COLON) ::
-        new Token(UNIT) ::
-        new Token(EQSIGN) ::
-        new Token(LBRACE) ::
-        new Token(PRINTLN) ::
-        new Token(LPAREN) ::
-        new STRLIT("Hello, World!") ::
-        new Token(RPAREN) ::
-        new Token(SEMICOLON) ::
-        new Token(RBRACE) ::
+        new Token(OBJECT) :: new ID("foo") :: new Token(LBRACE) ::
+          new Token(DEF) :: new Token(MAIN) :: new Token(LPAREN) :: new Token(RPAREN) ::
+          new Token(COLON) :: new Token(UNIT) :: new Token(EQSIGN) :: new Token(LBRACE) ::
+            new Token(PRINTLN) ::
+              new Token(LPAREN) :: new STRLIT("Hello, World!") :: new Token(RPAREN) :: new Token(SEMICOLON) ::
+          new Token(RBRACE) ::
         new Token(RBRACE) ::
         new Token(EOF) ::
         Nil
@@ -84,21 +73,16 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
 
     it("parses single-keyword values correctly.") {
       val source: Seq[Token] =
-        new Token(OBJECT) ::
-        new ID("foo") ::
-        new Token(LBRACE) ::
-        new Token(DEF) ::
-        new Token(MAIN) ::
-        new Token(LPAREN) ::
-        new Token(RPAREN) ::
-        new Token(COLON) ::
-        new Token(UNIT) ::
-        new Token(EQSIGN) ::
-        new Token(LBRACE) ::
-        new Token(PRINTLN) :: new Token(LPAREN) :: new Token(TRUE) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
-        new Token(PRINTLN) :: new Token(LPAREN) :: new Token(FALSE) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
-        new Token(PRINTLN) :: new Token(LPAREN) :: new Token(THIS) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
-        new Token(RBRACE) ::
+        new Token(OBJECT) :: new ID("foo") :: new Token(LBRACE) ::
+          new Token(DEF) :: new Token(MAIN) :: new Token(LPAREN) :: new Token(RPAREN) ::
+          new Token(COLON) :: new Token(UNIT) :: new Token(EQSIGN) :: new Token(LBRACE) ::
+            new Token(PRINTLN) ::
+              new Token(LPAREN) :: new Token(TRUE) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
+            new Token(PRINTLN) ::
+              new Token(LPAREN) :: new Token(FALSE) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
+            new Token(PRINTLN) ::
+              new Token(LPAREN) :: new Token(THIS) :: new Token(RPAREN) :: new Token(SEMICOLON) ::
+          new Token(RBRACE) ::
         new Token(RBRACE) ::
         new Token(EOF) ::
         Nil
