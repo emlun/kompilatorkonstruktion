@@ -132,9 +132,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         case STRLIT(value) => { eat(STRLITKIND); new StringLit(value) }
         case ID(value)     => { eat(IDKIND);     new Identifier(value) }
         case _             => currentToken.kind match {
-          case TRUE        => new True
-          case FALSE       => new False
-          case THIS        => new This
+          case TRUE        => { eat(TRUE); new True }
+          case FALSE       => { eat(FALSE); new False }
+          case THIS        => { eat(THIS); new This }
           case NEW         => parseNew()
           case BANG        => { eat(BANG); new Not(parseExpression()) }
           case LPAREN      => { eat(LPAREN); val expression = parseExpression(); eat(RPAREN); expression }
