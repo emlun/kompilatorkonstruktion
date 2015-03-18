@@ -157,7 +157,16 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
     def parseStatement(): Option[StatTree] = {
 
-      def parseBlock(): Option[StatTree] = ???
+      def parseBlock(): Option[StatTree] = {
+        eat(LBRACE)
+        val statements = new ListBuffer[StatTree]
+        while(currentToken isnt RBRACE) {
+          statements ++= parseStatement()
+        }
+        eat(RBRACE)
+        Some(Block(statements.toList))
+      }
+
       def parseIf(): Option[If] = ???
       def parseWhile(): Option[While] = ???
 
