@@ -170,7 +170,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
 
       def parseAssignment(): StatTree = {
-        (eatIdentifier() flatMap (assignId =>
+        eatIdentifier() flatMap (assignId =>
           currentToken.kind match {
             case EQSIGN   => {
               eat(EQSIGN)
@@ -192,7 +192,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
               None
             }
           }
-        )).getOrElse(new Block(Nil))
+        ) getOrElse new Block(Nil)
       }
 
       currentToken.kind match {
