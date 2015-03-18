@@ -1,0 +1,35 @@
+object biggerTest {
+  def main ( ) : Unit = {
+    aaa = 1 ;
+    bbb = 1 + 1 ;
+    ccc = aaa * bbb ;
+    ddd = new Int [10] ;
+    eee = ddd . length ;
+    if ( aaa == bbb )
+      while ( aaa < ccc )
+        aaa = aaa + 1 ;
+    else
+      {
+        aaa = aaa + 2 ;
+        println ( aaa ) ;
+      }
+    }
+}
+
+class firstClass {
+  var a1 : Int [ ] ;
+  var a2 : Bool ;
+  var a3 : Int ;
+
+  def firstMethod ( input1 : Int [ ] , input2: Int ) : Int =
+  {
+    var a4 : String ;
+    var a5 : a2 ;
+    println ( input1 [ input2 ] ) ;
+    return input1 [ input2 ] ;
+  }
+}
+
+class secondClass extends firstClass {
+  println ( this ) ;
+}
