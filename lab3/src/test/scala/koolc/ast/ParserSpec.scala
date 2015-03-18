@@ -131,5 +131,22 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(file)))(file)
     }
 
+    it("parses a one-of-everything program correctly.") {
+      val file = new File(getClass.getResource("/plundahl.kool").toURI())
+
+      val pipeline = Lexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter shouldBe errorless
+
+        program map (inside(_) { case Program(main, classes) =>
+          classes should not be ('empty)
+
+          inside(main) { case MainObject(id, statements) =>
+            id.value should be ("biggerTest")
+          }
+        }) orElse fail("Expected program to be defined.")
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(file)))(file)
+    }
+
   }
 }
