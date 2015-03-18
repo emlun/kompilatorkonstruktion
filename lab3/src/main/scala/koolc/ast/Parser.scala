@@ -19,7 +19,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         currentToken = tokens.next
 
         // skips bad tokens
-        while (currentToken.kind == BAD) {
+        while (currentToken is BAD) {
           currentToken = tokens.next
         }
 
@@ -80,7 +80,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           eat(LBRACE)
 
           var statements = new ListBuffer[StatTree]
-          while(currentToken.kind != RBRACE) {
+          while(currentToken isnt RBRACE) {
             statements += parseStatement()
           }
 
@@ -100,7 +100,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
             eatIdentifier() map (id => {
               eat(LPAREN)
               val parameters = new ListBuffer[Formal]
-              while(currentToken.kind != RPAREN) {
+              while(currentToken isnt RPAREN) {
                 if(parameters.length > 0) eat(COMMA)
                 parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
               }
@@ -112,7 +112,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
               val varDeclarations = parseVarDeclarations()
 
               val statements = new ListBuffer[StatTree]
-              while(currentToken.kind != RETURN) {
+              while(currentToken isnt RETURN) {
                 statements += parseStatement()
               }
 
@@ -126,7 +126,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           }
 
           val methods = new ListBuffer[MethodDecl]
-          while(currentToken.kind == DEF) {
+          while(currentToken is DEF) {
             methods ++= parseMethodDeclaration()
           }
           methods.toList
@@ -134,7 +134,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
         eat(CLASS)
         eatIdentifier() map (id => {
-          val parentClass = if(currentToken.kind == EXTENDS) { eat(EXTENDS); eatIdentifier() } else None
+          val parentClass = if(currentToken is EXTENDS) { eat(EXTENDS); eatIdentifier() } else None
           eat(LBRACE);
           val classDeclaration = ClassDecl(id, parentClass, parseVarDeclarations(), parseMethodDeclarations())
           eat(RBRACE);
@@ -143,7 +143,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
 
       val classes = new ListBuffer[ClassDecl]
-      while(currentToken.kind == CLASS) {
+      while(currentToken is CLASS) {
         classes ++= parseClassDeclaration()
       }
       classes.toList
