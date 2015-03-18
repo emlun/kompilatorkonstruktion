@@ -2,6 +2,7 @@ package koolc
 package utils
 
 import java.io.File
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 class Reporter {
@@ -9,8 +10,8 @@ class Reporter {
     override def toString: String = s"${pos.position}: ${prefix}: ${msg.toString}"
   }
 
-  var messagesStack: Seq[Message] = Nil
-  def messages: Seq[Message] = messagesStack.reverse
+  var messageBuffer = new ListBuffer[Message]
+  def messages: Seq[Message] = messageBuffer.toSeq
 
   def info(msg: Any, pos: Positioned = NoPosition): Unit = {
     report("Info", msg, pos)
@@ -61,7 +62,7 @@ class Reporter {
       err("<line unavailable in source>")
     }
 
-    messagesStack = Message(prefix, msg, pos) +: messagesStack
+    messageBuffer += Message(prefix, msg, pos)
   }
 
   private def getLines(f: File): IndexedSeq[String] = {

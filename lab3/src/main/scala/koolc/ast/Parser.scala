@@ -20,7 +20,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         currentToken = tokens.next
 
         // skips bad tokens
-        while (currentToken.kind == BAD) {
+        while (currentToken is BAD) {
           currentToken = tokens.next
         }
 
@@ -56,7 +56,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
     }
 
     def parseGoal(): Option[Program] = {
-      val program = new Program(parseMainObject(), Nil)
+      val program = new Program(parseMainObject(), parseClassDeclarations())
       eat(EOF)
 
       if(ctx.reporter.hasErrors)
@@ -68,49 +68,131 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
     def parseMainObject(): MainObject = {
       eat(OBJECT)
 
-      (
-        eatIdentifier() map (id => {
-          eat(LBRACE)
-          eat(DEF)
-          eat(MAIN)
-          eat(LPAREN)
-          eat(RPAREN)
-          eat(COLON)
-          eat(UNIT)
-          eat(EQSIGN)
-          eat(LBRACE)
+      eatIdentifier() map (id => {
+        eat(LBRACE)
+        eat(DEF)
+        eat(MAIN)
+        eat(LPAREN)
+        eat(RPAREN)
+        eat(COLON)
+        eat(UNIT)
+        eat(EQSIGN)
+        eat(LBRACE)
 
-          var statementsStack: List[StatTree] = Nil
-          while(currentToken.kind != RBRACE) {
-            statementsStack = parseStatement() :: statementsStack
-          }
+        var statements = new ListBuffer[StatTree]
+        while(currentToken isnt RBRACE) {
+          statements ++= parseStatement()
+        }
 
-          eat(RBRACE)
-          eat(RBRACE)
+        eat(RBRACE)
+        eat(RBRACE)
 
-          MainObject(id, statementsStack.reverse)
-        }) orElse Some(MainObject(null, Nil))
-      ).get
+        MainObject(id, statements.toList)
+      }) getOrElse MainObject(null, Nil)
     }
 
-    def parseClassDeclaration(): ClassDecl = ???
+    def parseClassDeclarations(): List[ClassDecl] = {
+      def parseClassDeclaration(): Option[ClassDecl] = {
+        def parseMethodDeclarations(): List[MethodDecl] = {
+          def parseMethodDeclaration(): Option[MethodDecl] = {
+            eat(DEF)
+            eatIdentifier() map (id => {
+              eat(LPAREN)
+              val parameters = new ListBuffer[Formal]
+              while(currentToken isnt RPAREN) {
+                if(parameters.length > 0) eat(COMMA)
+                parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
+              }
+              eat(RPAREN)
+              val returnType = parseType()
+              eat(EQSIGN)
+              eat(LBRACE)
 
-    def parseStatement(): StatTree = {
+              val varDeclarations = parseVarDeclarations()
 
-      def parseBlock(): StatTree = ???
-      def parseIf(): If = ???
-      def parseWhile(): While = ???
+              val statements = new ListBuffer[StatTree]
+              while(currentToken isnt RETURN) {
+                statements ++= parseStatement()
+              }
 
-      def parsePrintln(): Println = {
+              eat(RETURN)
+              val returnExpression = parseExpression()
+              eat(SEMICOLON)
+              eat(RBRACE)
+              MethodDecl(returnType, id,
+                parameters.toList, varDeclarations.toList, statements.toList, returnExpression)
+            })
+          }
+
+          val methods = new ListBuffer[MethodDecl]
+          while(currentToken is DEF) {
+            methods ++= parseMethodDeclaration()
+          }
+          methods.toList
+        }
+
+        eat(CLASS)
+        eatIdentifier() map (id => {
+          val parentClass = if(currentToken is EXTENDS) { eat(EXTENDS); eatIdentifier() } else None
+          eat(LBRACE);
+          val classDeclaration = ClassDecl(id, parentClass, parseVarDeclarations(), parseMethodDeclarations())
+          eat(RBRACE);
+          classDeclaration
+        }) orElse None
+      }
+
+      val classes = new ListBuffer[ClassDecl]
+      while(currentToken is CLASS) {
+        classes ++= parseClassDeclaration()
+      }
+      classes.toList
+    }
+
+    def parseVarDeclarations(): List[VarDecl] = ???
+
+    def parseType(): TypeTree = {
+      eat(COLON)
+      ???
+    }
+
+    def parseStatement(): Option[StatTree] = {
+
+      def parseBlock(): Option[StatTree] = ???
+      def parseIf(): Option[If] = ???
+      def parseWhile(): Option[While] = ???
+
+      def parsePrintln(): Option[Println] = {
         eat(PRINTLN)
         eat(LPAREN)
         val expression = parseExpression()
         eat(RPAREN)
         eat(SEMICOLON)
-        new Println(expression)
+        Some(Println(expression))
       }
 
-      def parseAssignment(): StatTree = ???
+      def parseAssignment(): Option[StatTree] = eatIdentifier() flatMap (assignId =>
+        currentToken.kind match {
+          case EQSIGN   => {
+            eat(EQSIGN)
+            val value = parseExpression()
+            eat(SEMICOLON)
+            Some(Assign(assignId, value))
+          }
+          case LBRACKET => {
+            eat(LBRACKET)
+            val index = parseExpression()
+            eat(RBRACKET)
+            eat(EQSIGN)
+            val value = parseExpression()
+            eat(SEMICOLON);
+            Some(ArrayAssign(assignId, index, value))
+          }
+          case _        => {
+            expected(EQSIGN, LBRACKET)
+            None
+          }
+        }
+      )
 
       currentToken.kind match {
         case LPAREN  => parseBlock()
@@ -121,7 +203,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         case _       => {
           expected(LPAREN, IF, WHILE, PRINTLN, IDKIND)
           readToken()
-          new Block(Nil)
+          None
         }
       }
     }
