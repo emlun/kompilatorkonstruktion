@@ -99,21 +99,91 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
 
       val pipeline = Lexer andThen Parser andThen checkResult((ctx, program) => {
         ctx.reporter shouldBe errorless
-
-        program map (inside(_) { case Program(main, classes) =>
-          classes should not be ('empty)
-
-          inside(main) { case MainObject(id, statements) =>
-            id.value should be ("HelloWorld")
-
-            statements should be (List(
-              Assign(Identifier("greeter"), New(Identifier("Greeter"))),
+        program.get should be (Program(
+          main = MainObject(id = Identifier("HelloWorld"),
+            stats =
+              Assign(Identifier("greeter"), New(Identifier("Greeter"))) ::
               Assign(Identifier("result"), MethodCall(
-                Identifier("greeter"), Identifier("greet"), List(StringLit("World")))
-              )
-            ));
-          }
-        }) orElse fail("Expected program to be defined.")
+                  Identifier("greeter"), Identifier("greet"), List(StringLit("World")))
+                ) ::
+              Nil
+          ),
+          classes =
+            ClassDecl(id = Identifier("Named"), parent = None,
+              vars = List(VarDecl(new StringType, Identifier("name"))),
+              methods =
+                MethodDecl(retType = new BooleanType, id = Identifier("setName"),
+                  args = List(Formal(new StringType, Identifier("newName"))),
+                  vars = Nil,
+                  stats =
+                    Assign(Identifier("name"), Identifier("newName")) ::
+                    Nil,
+                  retExpr = new This
+                ) ::
+                Nil
+            ) ::
+            ClassDecl(id = Identifier("Greeter"), parent = Some(Identifier("Named")),
+              vars = Nil,
+              methods =
+                MethodDecl(retType = new BooleanType, id = Identifier("greet"),
+                  args = List(Formal(new StringType, Identifier("greetee"))),
+                  vars = List(VarDecl(new StringType, Identifier("message"))),
+                  stats =
+                    Assign(Identifier("message"),
+                      Plus(
+                        Plus(
+                          Plus(
+                            Plus(StringLit("Hello, "), Identifier("greetee")),
+                            StringLit(" from ")
+                          ),
+                          Identifier("name")
+                        ),
+                        StringLit("!")
+                      )
+                    ) ::
+                    Println(Identifier("message")) ::
+                    Nil,
+                  retExpr = new True
+                ) ::
+                MethodDecl(retType = new BooleanType, id = Identifier("greetTwo"),
+                  args =
+                    Formal(new StringType, Identifier("greetee1")) ::
+                    Formal(new StringType, Identifier("greetee2")) ::
+                    Nil,
+                  vars = Nil,
+                  stats = Nil,
+                  retExpr = And(
+                    MethodCall(new This, Identifier("greet"), List(Identifier("greetee1"))),
+                    MethodCall(new This, Identifier("greet"), List(Identifier("greetee2")))
+                    )
+                ) ::
+                MethodDecl(retType = new BooleanType, id = Identifier("greetYears"),
+                  args = List(Formal(new IntArrayType, Identifier("years"))),
+                  vars =
+                    VarDecl(new IntType, Identifier("i")) ::
+                    VarDecl(new BooleanType, Identifier("allSucceeded")) ::
+                    Nil,
+                  stats =
+                    Assign(Identifier("i"), IntLit(0)) ::
+                    While(LessThan(Identifier("i"), ArrayLength(Identifier("years"))), Block(
+                      Assign(Identifier("allSucceeded"), And(
+                        Identifier("allSucceeded"),
+                        MethodCall(new This, Identifier("greet"),
+                          Plus(StringLit("Year "), ArrayRead(Identifier("years"), Identifier("i"))) ::
+                          Nil
+                        )
+                      )) ::
+                      Assign(Identifier("i"), Plus(Identifier("i"), IntLit(1))) ::
+                      Nil
+                      )
+                    ) ::
+                    Nil,
+                  retExpr = Identifier("allSucceeded")
+                ) ::
+                Nil
+            ) ::
+            Nil
+        ))
       })
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(file)))(file)
     }
