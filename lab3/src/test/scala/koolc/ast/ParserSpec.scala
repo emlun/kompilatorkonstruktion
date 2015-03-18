@@ -61,12 +61,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
           inside(main) { case MainObject(id, statements) =>
             id.value should be ("foo")
 
-            statements.size should be (1)
-            inside(statements.head) { case Println(expr) =>
-              inside(expr) { case StringLit(value) =>
-                value should be ("Hello, World!")
-              }
-            }
+            statements should be (Println(StringLit("Hello, World!")) :: Nil)
           }
         }) orElse fail("Expected program to be defined.")
       })
@@ -98,16 +93,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
           inside(main) { case MainObject(id, statements) =>
             id.value should be ("foo")
 
-            statements.size should be (3)
-            statements.zipWithIndex foreach { case (statement, index) =>
-              inside(statement) { case Println(expr) =>
-                index match {
-                  case 0 => expr should be (new True)
-                  case 1 => expr should be (new False)
-                  case 2 => expr should be (new This)
-                }
-              }
-            }
+            statements should be (Println(new True) :: Println(new False) :: Println(new This) :: Nil)
           }
         }) orElse fail("Expected program to be defined.")
       })
