@@ -303,10 +303,10 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
       
       def parseDot(expression: ExprTree): ExprTree = {
-        if(currentToken is LENGTH)
+        if(currentToken is LENGTH) {
+          eat(LENGTH);
           return new ArrayLength(expression);
-        else
-        {
+        } else {
           return parseMethodCall(expression);
         }
       }
