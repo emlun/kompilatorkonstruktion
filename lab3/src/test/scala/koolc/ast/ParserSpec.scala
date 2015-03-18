@@ -125,6 +125,13 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
 
           inside(main) { case MainObject(id, statements) =>
             id.value should be ("HelloWorld")
+
+            statements should be (List(
+              Assign(Identifier("greeter"), New(Identifier("Greeter"))),
+              Assign(Identifier("result"), MethodCall(
+                Identifier("greeter"), Identifier("greet"), List(StringLit("World")))
+              )
+            ));
           }
         }) orElse fail("Expected program to be defined.")
       })
