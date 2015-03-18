@@ -70,23 +70,19 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
           current = ""
           currentPos = source.pos
         } else {
-          current.trim match {
-            case _ => {
-              val candidateKinds = ALL_TOKEN_KINDS filter Tokens.isPrefix(current)
-              if((candidateKinds filter Tokens.isPrefix(current + next)).isEmpty) {
-                val token = makeToken(current, candidateKinds, ctx, currentPos)
-                token.kind match {
-                  case LINECOMMENT => {
-                    eatingLineComment = true
-                    current = ""
-                  }
-                  case BLOCKCOMMENT => {
-                    eatingBlockComment = true
-                    current = ""
-                  }
-                  case _ => { return (Some(token), next.toString, source.pos) }
-                }
+          val candidateKinds = ALL_TOKEN_KINDS filter Tokens.isPrefix(current)
+          if((candidateKinds filter Tokens.isPrefix(current + next)).isEmpty) {
+            val token = makeToken(current, candidateKinds, ctx, currentPos)
+            token.kind match {
+              case LINECOMMENT => {
+                eatingLineComment = true
+                current = ""
               }
+              case BLOCKCOMMENT => {
+                eatingBlockComment = true
+                current = ""
+              }
+              case _ => { return (Some(token), next.toString, source.pos) }
             }
           }
         }
