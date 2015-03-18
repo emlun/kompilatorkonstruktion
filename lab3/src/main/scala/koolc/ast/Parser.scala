@@ -55,17 +55,17 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       ctx.reporter.error("expected: " + (kind::more.toList).mkString(" or ") + ", found: " + currentToken, currentToken)
     }
 
-    def parseGoal(): Option[Program] = {
-      val program = new Program(parseMainObject(), parseClassDeclarations())
+    def parseGoal(): Option[Program] = parseMainObject() flatMap (main => {
+      val program = Program(main, parseClassDeclarations())
       eat(EOF)
 
       if(ctx.reporter.hasErrors)
         None
       else
         Some(program)
-    }
+    })
 
-    def parseMainObject(): MainObject = {
+    def parseMainObject(): Option[MainObject] = {
       eat(OBJECT)
 
       eatIdentifier() map (id => {
@@ -88,7 +88,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         eat(RBRACE)
 
         MainObject(id, statements.toList)
-      }) getOrElse MainObject(null, Nil)
+      })
     }
 
     def parseClassDeclarations(): List[ClassDecl] = {
