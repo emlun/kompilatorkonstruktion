@@ -198,8 +198,28 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         Some(Block(statements.toList))
       }
 
-      def parseIf(): Option[If] = ???
-      def parseWhile(): Option[While] = ???
+      def parseIf(): Option[If] = {
+        eat(IF)
+        eat(LPAREN)
+        val expression = parseExpression()
+        eat(RPAREN)
+        parseStatement() map (thenStatement => {
+          val elseStatement = if(currentToken is ELSE) {
+            eat(ELSE)
+            parseStatement()
+          } else None
+
+          If(expression, thenStatement, elseStatement)
+        })
+      }
+
+      def parseWhile(): Option[While] = {
+        eat(WHILE)
+        eat(LPAREN)
+        val expression = parseExpression()
+        eat(RPAREN)
+        parseStatement() map ( doStatement => While(expression, doStatement) )
+      }
 
       def parsePrintln(): Option[Println] = {
         eat(PRINTLN)
