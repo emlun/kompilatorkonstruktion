@@ -31,5 +31,8 @@ class firstClass {
 }
 
 class secondClass extends firstClass {
-  println ( this ) ;
+  def secondMethod(): Boolean = {
+    println ( this ) ;
+    return false;
+  }
 }
