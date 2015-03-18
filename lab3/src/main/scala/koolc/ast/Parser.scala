@@ -67,29 +67,27 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
     def parseMainObject(): MainObject = {
       eat(OBJECT)
 
-      (
-        eatIdentifier() map (id => {
-          eat(LBRACE)
-          eat(DEF)
-          eat(MAIN)
-          eat(LPAREN)
-          eat(RPAREN)
-          eat(COLON)
-          eat(UNIT)
-          eat(EQSIGN)
-          eat(LBRACE)
+      eatIdentifier() map (id => {
+        eat(LBRACE)
+        eat(DEF)
+        eat(MAIN)
+        eat(LPAREN)
+        eat(RPAREN)
+        eat(COLON)
+        eat(UNIT)
+        eat(EQSIGN)
+        eat(LBRACE)
 
-          var statements = new ListBuffer[StatTree]
-          while(currentToken isnt RBRACE) {
-            statements += parseStatement()
-          }
+        var statements = new ListBuffer[StatTree]
+        while(currentToken isnt RBRACE) {
+          statements += parseStatement()
+        }
 
-          eat(RBRACE)
-          eat(RBRACE)
+        eat(RBRACE)
+        eat(RBRACE)
 
-          MainObject(id, statements.toList)
-        }) orElse Some(MainObject(null, Nil))
-      ).get
+        MainObject(id, statements.toList)
+      }) getOrElse MainObject(null, Nil)
     }
 
     def parseClassDeclarations(): List[ClassDecl] = {
