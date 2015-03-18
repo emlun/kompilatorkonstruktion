@@ -281,7 +281,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
     }
 
     def parseFactor(): ExprTree = {
-      var factor = parseTerm()
+      var factor = parseNegation()
       while(currentToken.kind == TIMES || currentToken.kind == DIV)
       {
         currentToken.kind match {
