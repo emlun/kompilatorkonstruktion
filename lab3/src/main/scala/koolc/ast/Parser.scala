@@ -130,7 +130,31 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         new Println(expression)
       }
 
-      def parseAssignment(): StatTree = ???
+      def parseAssignment(): StatTree = {
+        (eatIdentifier() flatMap (assignId =>
+          currentToken.kind match {
+            case EQSIGN   => {
+              eat(EQSIGN)
+              val value = parseExpression()
+              eat(SEMICOLON)
+              Some(Assign(assignId, value))
+            }
+            case LBRACKET => {
+              eat(LBRACKET)
+              val index = parseExpression()
+              eat(RBRACKET)
+              eat(EQSIGN)
+              val value = parseExpression()
+              eat(SEMICOLON);
+              Some(ArrayAssign(assignId, index, value))
+            }
+            case _        => {
+              expected(EQSIGN, LBRACKET)
+              None
+            }
+          }
+        )).getOrElse(new Block(Nil))
+      }
 
       currentToken.kind match {
         case LPAREN  => parseBlock()
