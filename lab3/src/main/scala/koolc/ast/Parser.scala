@@ -55,7 +55,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
     }
 
     def parseGoal(): Option[Program] = {
-      val program = new Program(parseMainObject(), Nil)
+      val program = new Program(parseMainObject(), parseClassDeclarations())
       eat(EOF)
 
       if(ctx.reporter.hasErrors)
@@ -92,7 +92,28 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       ).get
     }
 
-    def parseClassDeclaration(): ClassDecl = ???
+    def parseClassDeclarations(): List[ClassDecl] = {
+      def parseClassDeclaration(): Option[ClassDecl] = {
+        def parseMethodDeclarations(): List[MethodDecl] = ???
+
+        eat(CLASS)
+        eatIdentifier() map (id => {
+          val parentClass = if(currentToken.kind == EXTENDS) { eat(EXTENDS); eatIdentifier() } else None
+          eat(LBRACE);
+          val classDeclaration = ClassDecl(id, parentClass, parseVarDeclarations(), parseMethodDeclarations())
+          eat(RBRACE);
+          classDeclaration
+        }) orElse None
+      }
+
+      val classes = new ListBuffer[ClassDecl]
+      while(currentToken.kind == CLASS) {
+        classes ++= parseClassDeclaration()
+      }
+      classes.toList
+    }
+
+    def parseVarDeclarations(): List[VarDecl] = ???
 
     def parseStatement(): StatTree = {
 
