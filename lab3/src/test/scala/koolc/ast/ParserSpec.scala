@@ -115,44 +115,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
     }
 
     it("parses a non-trivial program correctly.") {
-      val source = """
-      object HelloWorld {
-        def main(): Unit = {
-          var greeter: Greeter;
-          greeter = new Greeter();
-          greeter.greet("World");
-        }
-      }
-
-      class Named {
-        var name: String;
-        def setName(newName: String): Bool = {
-          this.name = newName;
-        }
-      }
-
-      class Greeter extends Named {
-        def greet(greetee: String): Bool = {
-          var message: String;
-          message = "Hello, " + greetee + " from " + name + "!";
-          println(message);
-          return true;
-        }
-        def greetTwo(greetee1: String, greetee2: String): Bool = {
-          return greet(greetee1) && greet(greetee2);
-        }
-        def greetYears(years: Int[]): Bool = {
-          var i: Int;
-          var allSucceeded: Bool;
-          i = 0;
-          while((i < years.length)) {
-            allSucceeded = allSucceeded && greet("Year " + years[i]);
-            i = i + 1;
-          }
-          return allSucceeded;
-        }
-      }
-      """
+      val source = Source fromURL getClass.getResource("/greeter.kool")
 
       val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
         ctx.reporter shouldBe errorless
@@ -165,7 +128,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
           }
         }) orElse fail("Expected program to be defined.")
       })
-      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(source)
     }
 
   }
