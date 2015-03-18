@@ -148,11 +148,42 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       classes.toList
     }
 
-    def parseVarDeclarations(): List[VarDecl] = ???
+    def parseVarDeclarations(): List[VarDecl] = {
+      def parseVarDeclaration(): Option[VarDecl] = {
+        eat(VAR)
+        eatIdentifier() map (id => {
+          val variable = VarDecl(parseType(), id)
+          eat(SEMICOLON)
+          variable
+        })
+      }
+
+      val variables = new ListBuffer[VarDecl]
+      while(currentToken is VAR) {
+        variables ++= parseVarDeclaration()
+      }
+      variables.toList
+    }
 
     def parseType(): TypeTree = {
       eat(COLON)
-      ???
+      currentToken.kind match {
+        case BOOLEAN => { eat(BOOLEAN); new BooleanType }
+        case STRING  => { eat(STRING);  new StringType }
+        case IDKIND  => eatIdentifier().get
+        case INT     => {
+          eat(INT)
+          if(currentToken is LBRACKET) {
+            eat(LBRACKET)
+            eat(RBRACKET)
+            new IntArrayType
+          } else new IntType
+        }
+        case _ => {
+          expected(BOOLEAN, STRING, IDKIND, INT)
+          null
+        }
+      }
     }
 
     def parseStatement(): Option[StatTree] = {
