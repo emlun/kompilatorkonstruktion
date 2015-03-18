@@ -136,7 +136,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           case FALSE       => { eat(FALSE); new False }
           case THIS        => { eat(THIS); new This }
           case NEW         => parseNew()
-          case BANG        => { eat(BANG); new Not(parseExpression()) }
+          case BANG        => ???
           case LPAREN      => { eat(LPAREN); val expression = parseExpression(); eat(RPAREN); expression }
           case _           => ???
         }
