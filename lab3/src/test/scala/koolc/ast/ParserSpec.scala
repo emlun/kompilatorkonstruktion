@@ -1,7 +1,7 @@
 package koolc
 package ast
 
-import scala.io.Source
+import java.io.File
 
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
@@ -115,9 +115,9 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
     }
 
     it("parses a non-trivial program correctly.") {
-      val source = Source fromURL getClass.getResource("/greeter.kool")
+      val file = new File(getClass.getResource("/greeter.kool").toURI())
 
-      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+      val pipeline = Lexer andThen Parser andThen checkResult((ctx, program) => {
         ctx.reporter shouldBe errorless
 
         program map (inside(_) { case Program(main, classes) =>
@@ -128,7 +128,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
           }
         }) orElse fail("Expected program to be defined.")
       })
-      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(source)
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(file)))(file)
     }
 
   }
