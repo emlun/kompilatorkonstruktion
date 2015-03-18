@@ -80,7 +80,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
         var statements = new ListBuffer[StatTree]
         while(currentToken isnt RBRACE) {
-          statements += parseStatement()
+          statements ++= parseStatement()
         }
 
         eat(RBRACE)
@@ -111,7 +111,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
               val statements = new ListBuffer[StatTree]
               while(currentToken isnt RETURN) {
-                statements += parseStatement()
+                statements ++= parseStatement()
               }
 
               eat(RETURN)
@@ -154,46 +154,44 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       ???
     }
 
-    def parseStatement(): StatTree = {
+    def parseStatement(): Option[StatTree] = {
 
-      def parseBlock(): StatTree = ???
-      def parseIf(): If = ???
-      def parseWhile(): While = ???
+      def parseBlock(): Option[StatTree] = ???
+      def parseIf(): Option[If] = ???
+      def parseWhile(): Option[While] = ???
 
-      def parsePrintln(): Println = {
+      def parsePrintln(): Option[Println] = {
         eat(PRINTLN)
         eat(LPAREN)
         val expression = parseExpression()
         eat(RPAREN)
         eat(SEMICOLON)
-        new Println(expression)
+        Some(Println(expression))
       }
 
-      def parseAssignment(): StatTree = {
-        eatIdentifier() flatMap (assignId =>
-          currentToken.kind match {
-            case EQSIGN   => {
-              eat(EQSIGN)
-              val value = parseExpression()
-              eat(SEMICOLON)
-              Some(Assign(assignId, value))
-            }
-            case LBRACKET => {
-              eat(LBRACKET)
-              val index = parseExpression()
-              eat(RBRACKET)
-              eat(EQSIGN)
-              val value = parseExpression()
-              eat(SEMICOLON);
-              Some(ArrayAssign(assignId, index, value))
-            }
-            case _        => {
-              expected(EQSIGN, LBRACKET)
-              None
-            }
+      def parseAssignment(): Option[StatTree] = eatIdentifier() flatMap (assignId =>
+        currentToken.kind match {
+          case EQSIGN   => {
+            eat(EQSIGN)
+            val value = parseExpression()
+            eat(SEMICOLON)
+            Some(Assign(assignId, value))
           }
-        ) getOrElse new Block(Nil)
-      }
+          case LBRACKET => {
+            eat(LBRACKET)
+            val index = parseExpression()
+            eat(RBRACKET)
+            eat(EQSIGN)
+            val value = parseExpression()
+            eat(SEMICOLON);
+            Some(ArrayAssign(assignId, index, value))
+          }
+          case _        => {
+            expected(EQSIGN, LBRACKET)
+            None
+          }
+        }
+      )
 
       currentToken.kind match {
         case LPAREN  => parseBlock()
@@ -204,7 +202,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         case _       => {
           expected(LPAREN, IF, WHILE, PRINTLN, IDKIND)
           readToken()
-          new Block(Nil)
+          None
         }
       }
     }
