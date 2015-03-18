@@ -94,7 +94,43 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
     def parseClassDeclarations(): List[ClassDecl] = {
       def parseClassDeclaration(): Option[ClassDecl] = {
-        def parseMethodDeclarations(): List[MethodDecl] = ???
+        def parseMethodDeclarations(): List[MethodDecl] = {
+          def parseMethodDeclaration(): Option[MethodDecl] = {
+            eat(DEF)
+            eatIdentifier() map (id => {
+              eat(LPAREN)
+              val parameters = new ListBuffer[Formal]
+              while(currentToken.kind != RPAREN) {
+                if(parameters.length > 0) eat(COMMA)
+                parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
+              }
+              eat(RPAREN)
+              val returnType = parseType()
+              eat(EQSIGN)
+              eat(LBRACE)
+
+              val varDeclarations = parseVarDeclarations()
+
+              val statements = new ListBuffer[StatTree]
+              while(currentToken.kind != RETURN) {
+                statements += parseStatement()
+              }
+
+              eat(RETURN)
+              val returnExpression = parseExpression()
+              eat(SEMICOLON)
+              eat(RBRACE)
+              MethodDecl(returnType, id,
+                parameters.toList, varDeclarations.toList, statements.toList, returnExpression)
+            })
+          }
+
+          val methods = new ListBuffer[MethodDecl]
+          while(currentToken.kind == DEF) {
+            methods ++= parseMethodDeclaration()
+          }
+          methods.toList
+        }
 
         eat(CLASS)
         eatIdentifier() map (id => {
@@ -114,6 +150,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
     }
 
     def parseVarDeclarations(): List[VarDecl] = ???
+
+    def parseType(): TypeTree = {
+      eat(COLON)
+      ???
+    }
 
     def parseStatement(): StatTree = {
 
