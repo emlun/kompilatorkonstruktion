@@ -1,6 +1,8 @@
 package koolc
 package ast
 
+import scala.collection.mutable.ListBuffer
+
 import utils._
 import Trees._
 import lexer._
@@ -77,15 +79,15 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           eat(EQSIGN)
           eat(LBRACE)
 
-          var statementsStack: List[StatTree] = Nil
+          var statements = new ListBuffer[StatTree]
           while(currentToken.kind != RBRACE) {
-            statementsStack = parseStatement() :: statementsStack
+            statements += parseStatement()
           }
 
           eat(RBRACE)
           eat(RBRACE)
 
-          MainObject(id, statementsStack.reverse)
+          MainObject(id, statements.toList)
         }) orElse Some(MainObject(null, Nil))
       ).get
     }
