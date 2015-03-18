@@ -204,7 +204,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       )
 
       currentToken.kind match {
-        case LPAREN  => parseBlock()
+        case LBRACE  => parseBlock()
         case IF      => parseIf()
         case WHILE   => parseWhile()
         case PRINTLN => parsePrintln()
