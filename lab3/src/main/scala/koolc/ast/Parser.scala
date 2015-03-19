@@ -56,7 +56,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
      */
     def expected(kind: TokenKind, more: TokenKind*): Unit = {
       ctx.reporter.error(
-        "expected: " + (kind::more.toList).mkString(" or ") + ", found: " + currentToken,
+        s"expected: ${(kind::more.toList).mkString(" or ")}, found: ${currentToken}",
         currentToken
       )
     }
