@@ -292,14 +292,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       def parseNew(): ExprTree = {
         eat(NEW);
         if(currentToken is IDKIND) {
-          val result = new New(eatIdentifier().get)
+          val result = New(eatIdentifier().get)
           eat(LPAREN)
           eat(RPAREN)
           result
         } else {
           eat(INT)
           eat(LBRACKET)
-          val result = new NewIntArray(parseExpression())
+          val result = NewIntArray(parseExpression())
           eat(RBRACKET)
           result
         }
@@ -309,7 +309,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       def parseDot(expression: ExprTree): ExprTree = {
         if(currentToken is LENGTH) {
           eat(LENGTH);
-          return new ArrayLength(expression);
+          return ArrayLength(expression);
         } else {
           return parseMethodCall(expression);
         }
@@ -317,15 +317,15 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
       var negation: ExprTree = null;
       currentToken match {
-        case INTLIT(value) => { eat(INTLITKIND); negation = new IntLit(value) }
-        case STRLIT(value) => { eat(STRLITKIND); negation = new StringLit(value) }
-        case ID(value)     => { eat(IDKIND);     negation = new Identifier(value) }
+        case INTLIT(value) => { eat(INTLITKIND); negation = IntLit(value) }
+        case STRLIT(value) => { eat(STRLITKIND); negation = StringLit(value) }
+        case ID(value)     => { eat(IDKIND);     negation = Identifier(value) }
         case _             => currentToken.kind match {
           case TRUE        => { eat(TRUE); negation = new True }
           case FALSE       => { eat(FALSE); negation = new False }
           case THIS        => { eat(THIS); negation = new This }
           case NEW         => negation = parseNew()
-          case BANG        => { eat(BANG); negation = new Not(parseNegation()) }
+          case BANG        => { eat(BANG); negation = Not(parseNegation()) }
           case LPAREN      => { eat(LPAREN); negation = parseExpression(); eat(RPAREN)}
           case _           => ???
         }
@@ -336,7 +336,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
       if(currentToken is LBRACKET) {
         eat(LBRACKET);
-        negation = new ArrayRead(negation, parseExpression())
+        negation = ArrayRead(negation, parseExpression())
         eat(RBRACKET);
       }
       negation
@@ -346,8 +346,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       var factor = parseNegation()
       while((currentToken is TIMES) || (currentToken is DIV)) {
         currentToken.kind match {
-          case TIMES => { eat(TIMES); factor = new Times(factor, parseNegation()) }
-          case DIV   => { eat(DIV);   factor = new Div(factor, parseNegation()) }
+          case TIMES => { eat(TIMES); factor = Times(factor, parseNegation()) }
+          case DIV   => { eat(DIV);   factor = Div(factor, parseNegation()) }
           case _     => ???
         }
       }
@@ -358,8 +358,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       var term = parseFactor()
       while((currentToken is PLUS) || (currentToken is MINUS)) {
         currentToken.kind match {
-          case PLUS  => { eat(PLUS);  term = new Plus(term, parseTerm()) }
-          case MINUS => { eat(MINUS); term = new Minus(term, parseTerm()) }
+          case PLUS  => { eat(PLUS);  term = Plus(term, parseTerm()) }
+          case MINUS => { eat(MINUS); term = Minus(term, parseTerm()) }
           case _     => ???
         }
       }
@@ -371,8 +371,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       var compare = parseTerm()
       while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
         currentToken.kind match {
-          case LESSTHAN => { eat(LESSTHAN); compare = new LessThan(compare, parseCompare()) }
-          case EQUALS   => { eat(EQUALS);   compare = new Equals(compare, parseCompare()) }
+          case LESSTHAN => { eat(LESSTHAN); compare = LessThan(compare, parseCompare()) }
+          case EQUALS   => { eat(EQUALS);   compare = Equals(compare, parseCompare()) }
           case _        => ???
         }
       }
@@ -383,8 +383,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       var expression = parseCompare()
       while((currentToken is AND) || (currentToken is OR)) {
         currentToken.kind match {
-          case AND => { eat(AND); expression = new And(expression, parseExpression()) }
-          case OR  => { eat(OR);  expression = new Or(expression, parseExpression()) }
+          case AND => { eat(AND); expression = And(expression, parseExpression()) }
+          case OR  => { eat(OR);  expression = Or(expression, parseExpression()) }
           case _   => ???
         }
       }
