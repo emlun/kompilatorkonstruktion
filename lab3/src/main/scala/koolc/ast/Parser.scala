@@ -291,7 +291,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
       def parseNew(): ExprTree = {
         eat(NEW);
-        if(currentToken.kind == IDKIND) {
+        if(currentToken is IDKIND) {
           val result = new New(eatIdentifier().get)
           eat(LPAREN)
           eat(RPAREN)
@@ -330,11 +330,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           case _           => ???
         }
       }
-      if(currentToken.kind == DOT) {
+      if(currentToken is DOT) {
         eat(DOT);
         negation = parseDot(negation)
       }
-      if(currentToken.kind == LBRACKET) {
+      if(currentToken is LBRACKET) {
         eat(LBRACKET);
         negation = new ArrayRead(negation, parseExpression())
         eat(RBRACKET);
@@ -344,7 +344,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
     def parseFactor(): ExprTree = {
       var factor = parseNegation()
-      while(currentToken.kind == TIMES || currentToken.kind == DIV) {
+      while((currentToken is TIMES) || (currentToken is DIV)) {
         currentToken.kind match {
           case TIMES => { eat(TIMES); factor = new Times(factor, parseNegation()) }
           case DIV   => { eat(DIV);   factor = new Div(factor, parseNegation()) }
