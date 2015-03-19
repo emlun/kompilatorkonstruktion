@@ -104,7 +104,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
             eat(DEF)
             eatIdentifier() map (id => {
               eat(LPAREN)
-              val parameters = new ListBuffer[Formal]
+              var parameters = new ListBuffer[Formal]
               while(currentToken isnt RPAREN) {
                 if(parameters.length > 0) eat(COMMA)
                 parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
@@ -116,7 +116,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
               val varDeclarations = parseVarDeclarations()
 
-              val statements = new ListBuffer[StatTree]
+              var statements = new ListBuffer[StatTree]
               while(currentToken isnt RETURN) {
                 statements ++= parseStatement()
               }
@@ -130,7 +130,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
             })
           }
 
-          val methods = new ListBuffer[MethodDecl]
+          var methods = new ListBuffer[MethodDecl]
           while(currentToken is DEF) {
             methods ++= parseMethodDeclaration()
           }
@@ -147,7 +147,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         }) orElse None
       }
 
-      val classes = new ListBuffer[ClassDecl]
+      var classes = new ListBuffer[ClassDecl]
       while(currentToken is CLASS) {
         classes ++= parseClassDeclaration()
       }
@@ -164,7 +164,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         })
       }
 
-      val variables = new ListBuffer[VarDecl]
+      var variables = new ListBuffer[VarDecl]
       while(currentToken is VAR) {
         variables ++= parseVarDeclaration()
       }
@@ -196,7 +196,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
       def parseBlock(): Option[StatTree] = {
         eat(LBRACE)
-        val statements = new ListBuffer[StatTree]
+        var statements = new ListBuffer[StatTree]
         while(currentToken isnt RBRACE) {
           statements ++= parseStatement()
         }
