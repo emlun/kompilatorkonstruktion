@@ -50,9 +50,15 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
     }
 
-    /** Complains that what was found was not expected. The method accepts arbitrarily many arguments of type TokenKind */
+    /**
+     * Complains that what was found was not expected. The method accepts
+     * arbitrarily many arguments of type TokenKind.
+     */
     def expected(kind: TokenKind, more: TokenKind*): Unit = {
-      ctx.reporter.error("expected: " + (kind::more.toList).mkString(" or ") + ", found: " + currentToken, currentToken)
+      ctx.reporter.error(
+        "expected: " + (kind::more.toList).mkString(" or ") + ", found: " + currentToken,
+        currentToken
+      )
     }
 
     def parseGoal(): Option[Program] = parseMainObject() flatMap (main => {
@@ -267,13 +273,12 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         }
       }
     }
-    
+
     def parseMethodCall(obj: ExprTree): ExprTree = {
       val identifier = eatIdentifier().get;
       eat(LPAREN);
       var args = new ListBuffer[ExprTree];
-      while(currentToken.kind != RPAREN)
-      {
+      while(currentToken.kind != RPAREN) {
         args.append(parseExpression());
         if(currentToken is COMMA)
           eat(COMMA)
@@ -291,17 +296,16 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           eat(LPAREN)
           eat(RPAREN)
           result
-        }
-        else {
+        } else {
           eat(INT)
           eat(LBRACKET)
           val result = new NewIntArray(parseExpression())
           eat(RBRACKET)
           result
         }
-        
+
       }
-      
+
       def parseDot(expression: ExprTree): ExprTree = {
         if(currentToken is LENGTH) {
           eat(LENGTH);
@@ -310,7 +314,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           return parseMethodCall(expression);
         }
       }
-      
+
       var negation: ExprTree = null;
       currentToken match {
         case INTLIT(value) => { eat(INTLITKIND); negation = new IntLit(value) }
@@ -326,13 +330,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           case _           => ???
         }
       }
-      if(currentToken.kind == DOT)
-      {
+      if(currentToken.kind == DOT) {
         eat(DOT);
         negation = parseDot(negation)
       }
-      if(currentToken.kind == LBRACKET)
-      {
+      if(currentToken.kind == LBRACKET) {
         eat(LBRACKET);
         negation = new ArrayRead(negation, parseExpression())
         eat(RBRACKET);
@@ -342,14 +344,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
     def parseFactor(): ExprTree = {
       var factor = parseNegation()
-      while(currentToken.kind == TIMES || currentToken.kind == DIV)
-      {
+      while(currentToken.kind == TIMES || currentToken.kind == DIV) {
         currentToken.kind match {
-          case TIMES        => { eat(TIMES); 
-                                factor = new Times(factor, parseNegation() )}
-          case DIV        => { eat(DIV); 
-                                 factor = new Div(factor, parseNegation() )}
-          case _           => ???
+          case TIMES => { eat(TIMES); factor = new Times(factor, parseNegation()) }
+          case DIV   => { eat(DIV);   factor = new Div(factor, parseNegation()) }
+          case _     => ???
         }
       }
       factor
@@ -357,45 +356,36 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
     def parseTerm(): ExprTree = {
       var term = parseFactor()
-      while((currentToken is PLUS) || (currentToken is MINUS))
-      {
+      while((currentToken is PLUS) || (currentToken is MINUS)) {
         currentToken.kind match {
-          case PLUS        => { eat(PLUS); 
-                                term = new Plus(term, parseTerm() )}
-          case MINUS        => { eat(MINUS); 
-                                 term = new Minus(term, parseTerm() )}
-          case _           => ???
+          case PLUS  => { eat(PLUS);  term = new Plus(term, parseTerm()) }
+          case MINUS => { eat(MINUS); term = new Minus(term, parseTerm()) }
+          case _     => ???
         }
       }
       term
     }
-    
-    
+
+
     def parseCompare(): ExprTree = {
       var compare = parseTerm()
-      while((currentToken is LESSTHAN) || (currentToken is EQUALS))
-      {
+      while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
         currentToken.kind match {
-          case LESSTHAN        => { eat(LESSTHAN); 
-                                compare = new LessThan(compare, parseCompare() )}
-          case EQUALS        => { eat(EQUALS); 
-                                 compare = new Equals(compare, parseCompare() )}
-          case _           => ???
+          case LESSTHAN => { eat(LESSTHAN); compare = new LessThan(compare, parseCompare()) }
+          case EQUALS   => { eat(EQUALS);   compare = new Equals(compare, parseCompare()) }
+          case _        => ???
         }
       }
       compare
     }
-    
+
     def parseExpression(): ExprTree = {
       var expression = parseCompare()
-      while((currentToken is AND) || (currentToken is OR))
-      {
+      while((currentToken is AND) || (currentToken is OR)) {
         currentToken.kind match {
-          case AND        => { eat(AND); 
-                                expression = new And(expression, parseExpression() )}
-          case OR        => { eat(OR); 
-                                 expression = new Or(expression, parseExpression() )}
-          case _           => ???
+          case AND => { eat(AND); expression = new And(expression, parseExpression()) }
+          case OR  => { eat(OR);  expression = new Or(expression, parseExpression()) }
+          case _   => ???
         }
       }
       expression
