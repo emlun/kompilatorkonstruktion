@@ -131,7 +131,7 @@ object Tokens {
       case STRING    => "String"  startsWith prefix
       case EXTENDS   => "extends" startsWith prefix
       case INT       => "Int"     startsWith prefix
-      case BOOLEAN   => "Boolean" startsWith prefix
+      case BOOLEAN   => "Bool"    startsWith prefix
       case WHILE     => "while"   startsWith prefix
       case IF        => "if"      startsWith prefix
       case ELSE      => "else"    startsWith prefix
@@ -186,7 +186,7 @@ object Tokens {
       case STRING    => "String"  equals word
       case EXTENDS   => "extends" equals word
       case INT       => "Int"     equals word
-      case BOOLEAN   => "Boolean" equals word
+      case BOOLEAN   => "Bool"    equals word
       case WHILE     => "while"   equals word
       case IF        => "if"      equals word
       case ELSE      => "else"    equals word
