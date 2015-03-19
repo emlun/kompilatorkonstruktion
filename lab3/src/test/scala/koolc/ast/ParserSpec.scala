@@ -2,6 +2,7 @@ package koolc
 package ast
 
 import java.io.File
+import scala.io.Source
 
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
@@ -92,6 +93,39 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
         ))
       })
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(source.toIterator)
+    }
+
+    it("parses types correctly.") {
+      val source = """
+      object Main { def main(): Unit = {} }
+      class Foo {
+        var b: Bool;
+        var i: Int;
+        var a: Int[];
+        var s: String;
+        var f: Foo;
+      }
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program.get should be (Program(
+          main = MainObject(Identifier("Main"), Nil),
+          classes =
+            ClassDecl(
+              id = Identifier("Foo"), parent = None, methods = Nil,
+              vars =
+                VarDecl(new BooleanType, Identifier("b")) ::
+                VarDecl(new IntType, Identifier("i")) ::
+                VarDecl(new IntArrayType, Identifier("a")) ::
+                VarDecl(new StringType, Identifier("s")) ::
+                VarDecl(Identifier("Foo"), Identifier("f")) ::
+                Nil
+              ) ::
+            Nil
+        ))
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
     }
 
     it("parses a non-trivial program correctly.") {
