@@ -269,7 +269,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
     }
     
     def parseMethodCall(obj: ExprTree): ExprTree = {
-      var identifier = eatIdentifier().get;
+      val identifier = eatIdentifier().get;
       eat(LPAREN);
       var args = new ListBuffer[ExprTree];
       while(currentToken.kind != RPAREN)
