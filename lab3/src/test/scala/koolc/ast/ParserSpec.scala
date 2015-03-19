@@ -128,6 +128,27 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
     }
 
+    it("parses equal-priority operators left-associatively.") {
+      val source = """
+      object Main {
+        def main(): Unit = {
+          println(5 - 3 - 1);
+        }
+      }
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program.get should be (Program(
+          main = MainObject(Identifier("Main"),
+            Println(Minus(Minus(IntLit(5), IntLit(3)), IntLit(1))) ::
+            Nil),
+          classes = Nil
+        ))
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
     it("parses a non-trivial program correctly.") {
       val file = new File(getClass.getResource("/greeter.kool").toURI())
 
