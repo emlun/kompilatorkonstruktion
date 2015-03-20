@@ -56,6 +56,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
+    sealed case class DeferredTreeReturn[+T](val tree: T) {
+      def thenEat(eatKinds: TokenKind*) = {
+        eatSequence(eatKinds:_*)
+        tree
+      }
+    }
+    def firstReturn[T](returnTree: T) = DeferredTreeReturn[T](returnTree)
+
     /**
      * Complains that what was found was not expected. The method accepts
      * arbitrarily many arguments of type TokenKind.
@@ -126,9 +134,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         eatIdentifier() map (id => {
           val parentClass = if(currentToken is EXTENDS) { eat(EXTENDS); eatIdentifier() } else None
           eat(LBRACE);
-          val classDeclaration = ClassDecl(id, parentClass, parseVarDeclarations(), parseMethodDeclarations())
-          eat(RBRACE);
-          classDeclaration
+          firstReturn(ClassDecl(id, parentClass, parseVarDeclarations(), parseMethodDeclarations()))
+            .thenEat(RBRACE)
         }) orElse None
       }
 
@@ -139,9 +146,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       def parseVarDeclaration(): Option[VarDecl] = {
         eat(VAR)
         eatIdentifier() map (id => {
-          val variable = VarDecl(parseType(), id)
-          eat(SEMICOLON)
-          variable
+          firstReturn(VarDecl(parseType(), id)) thenEat(SEMICOLON)
         })
       }
 
@@ -200,25 +205,19 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
       def parsePrintln(): Option[Println] = {
         eatSequence(PRINTLN, LPAREN)
-        val expression = parseExpression()
-        eatSequence(RPAREN, SEMICOLON)
-        Some(Println(expression))
+        Some(Println(firstReturn(parseExpression()) thenEat(RPAREN, SEMICOLON)))
       }
 
       def parseAssignment(): Option[StatTree] = eatIdentifier() flatMap (assignId =>
         currentToken.kind match {
           case EQSIGN   => {
             eat(EQSIGN)
-            val value = parseExpression()
-            eat(SEMICOLON)
-            Some(Assign(assignId, value))
+            Some(Assign(assignId, firstReturn(parseExpression()) thenEat(SEMICOLON)))
           }
           case LBRACKET => {
             eat(LBRACKET)
-            val index = parseExpression()
-            eatSequence(RBRACKET, EQSIGN)
-            val value = parseExpression()
-            eat(SEMICOLON);
+            val index = firstReturn(parseExpression()) thenEat(RBRACKET, EQSIGN)
+            val value = firstReturn(parseExpression()) thenEat(SEMICOLON)
             Some(ArrayAssign(assignId, index, value))
           }
           case _        => {
@@ -260,16 +259,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       def parseNew(): ExprTree = {
         eat(NEW);
         if(currentToken is IDKIND) {
-          val result = New(eatIdentifier().get)
-          eatSequence(LPAREN, RPAREN)
-          result
+          firstReturn(New(eatIdentifier().get)) thenEat(LPAREN, RPAREN)
         } else {
           eatSequence(INT, LBRACKET)
-          val result = NewIntArray(parseExpression())
-          eat(RBRACKET)
-          result
+          firstReturn(NewIntArray(parseExpression())) thenEat(RBRACKET)
         }
-
       }
 
       def parseDot(expression: ExprTree): ExprTree = {
@@ -281,18 +275,17 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       }
 
-      var negation: ExprTree = null;
-      currentToken match {
-        case INTLIT(value) => { eat(INTLITKIND); negation = IntLit(value) }
-        case STRLIT(value) => { eat(STRLITKIND); negation = StringLit(value) }
-        case ID(value)     => { eat(IDKIND);     negation = Identifier(value) }
+      var negation: ExprTree = currentToken match {
+        case INTLIT(value) => { eat(INTLITKIND); IntLit(value) }
+        case STRLIT(value) => { eat(STRLITKIND); StringLit(value) }
+        case ID(value)     => { eat(IDKIND);     Identifier(value) }
         case _             => currentToken.kind match {
-          case TRUE        => { eat(TRUE); negation = new True }
-          case FALSE       => { eat(FALSE); negation = new False }
-          case THIS        => { eat(THIS); negation = new This }
-          case NEW         => negation = parseNew()
-          case BANG        => { eat(BANG); negation = Not(parseNegation()) }
-          case LPAREN      => { eat(LPAREN); negation = parseExpression(); eat(RPAREN)}
+          case TRUE        => { eat(TRUE); new True }
+          case FALSE       => { eat(FALSE); new False }
+          case THIS        => { eat(THIS); new This }
+          case NEW         => parseNew()
+          case BANG        => { eat(BANG); Not(parseNegation()) }
+          case LPAREN      => { eat(LPAREN); firstReturn(parseExpression()) thenEat(RPAREN) }
           case _           => ???
         }
       }
