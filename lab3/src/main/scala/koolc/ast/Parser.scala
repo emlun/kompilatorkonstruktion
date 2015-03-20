@@ -83,7 +83,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       eatIdentifier() map (id => {
         eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE)
 
-        val statements = accumulate(parseStatement) whileTrue(() => currentToken isnt RBRACE )
+        val statements = accumulate(parseStatement) whilst(() => currentToken isnt RBRACE )
 
         eatSequence(RBRACE, RBRACE)
 
@@ -109,7 +109,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
               val varDeclarations = parseVarDeclarations()
 
-              val statements = accumulate(parseStatement) whileTrue(() => currentToken isnt RETURN)
+              val statements = accumulate(parseStatement) whilst(() => currentToken isnt RETURN)
 
               eat(RETURN)
               val returnExpression = parseExpression()
@@ -119,7 +119,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
             })
           }
 
-          accumulate(parseMethodDeclaration) whileTrue(() => currentToken is DEF)
+          accumulate(parseMethodDeclaration) whilst(() => currentToken is DEF)
         }
 
         eat(CLASS)
@@ -132,7 +132,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }) orElse None
       }
 
-      accumulate(parseClassDeclaration) whileTrue(() => currentToken is CLASS)
+      accumulate(parseClassDeclaration) whilst(() => currentToken is CLASS)
     }
 
     def parseVarDeclarations(): List[VarDecl] = {
@@ -145,7 +145,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         })
       }
 
-      accumulate(parseVarDeclaration) whileTrue(() => currentToken is VAR)
+      accumulate(parseVarDeclaration) whilst(() => currentToken is VAR)
     }
 
     def parseType(): TypeTree = {
@@ -172,7 +172,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
       def parseBlock(): Option[StatTree] = {
         eat(LBRACE)
-        val statements = accumulate(parseStatement) whileTrue(() => currentToken isnt RBRACE)
+        val statements = accumulate(parseStatement) whilst(() => currentToken isnt RBRACE)
         eat(RBRACE)
         Some(Block(statements))
       }
