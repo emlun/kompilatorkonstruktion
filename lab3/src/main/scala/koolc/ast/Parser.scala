@@ -285,7 +285,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         } else expression
       }
 
-      val negation: ExprTree = currentToken match {
+      def parseExpressionBase() = currentToken match {
         case INTLIT(value) => { eat(INTLITKIND); IntLit(value) }
         case STRLIT(value) => { eat(STRLITKIND); StringLit(value) }
         case ID(value)     => { eat(IDKIND);     Identifier(value) }
@@ -299,7 +299,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           case _           => ???
         }
       }
-      (maybeParseDot _ andThen maybeParseArrayRead _)(negation)
+
+      maybeParseArrayRead(maybeParseDot(parseExpressionBase()))
     }
 
     def parseFactor(): ExprTree = {
