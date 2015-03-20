@@ -42,6 +42,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
     }
 
+    def eatSequence(kinds: TokenKind*): Seq[Token] = kinds.toList match {
+      case head :: tail => eat(head) ++: eatSequence(tail:_*)
+      case Nil          => Nil
+    }
+
     def eatIdentifier(): Option[Identifier] = eat(IDKIND) match {
       case Some(ID(value)) => Some(new Identifier(value))
       case _ => {
@@ -75,23 +80,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       eat(OBJECT)
 
       eatIdentifier() map (id => {
-        eat(LBRACE)
-        eat(DEF)
-        eat(MAIN)
-        eat(LPAREN)
-        eat(RPAREN)
-        eat(COLON)
-        eat(UNIT)
-        eat(EQSIGN)
-        eat(LBRACE)
+        eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE)
 
         var statements = new ListBuffer[StatTree]
         while(currentToken isnt RBRACE) {
           statements ++= parseStatement()
         }
 
-        eat(RBRACE)
-        eat(RBRACE)
+        eatSequence(RBRACE, RBRACE)
 
         MainObject(id, statements.toList)
       })
@@ -111,8 +107,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
               }
               eat(RPAREN)
               val returnType = parseType()
-              eat(EQSIGN)
-              eat(LBRACE)
+              eatSequence(EQSIGN, LBRACE)
 
               val varDeclarations = parseVarDeclarations()
 
@@ -123,8 +118,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
               eat(RETURN)
               val returnExpression = parseExpression()
-              eat(SEMICOLON)
-              eat(RBRACE)
+              eatSequence(SEMICOLON, RBRACE)
               MethodDecl(returnType, id,
                 parameters.toList, varDeclarations.toList, statements.toList, returnExpression)
             })
@@ -180,8 +174,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         case INT     => {
           eat(INT)
           if(currentToken is LBRACKET) {
-            eat(LBRACKET)
-            eat(RBRACKET)
+            eatSequence(LBRACKET, RBRACKET)
             new IntArrayType
           } else new IntType
         }
@@ -205,8 +198,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
 
       def parseIf(): Option[If] = {
-        eat(IF)
-        eat(LPAREN)
+        eatSequence(IF, LPAREN)
         val expression = parseExpression()
         eat(RPAREN)
         parseStatement() map (thenStatement => {
@@ -220,19 +212,16 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
 
       def parseWhile(): Option[While] = {
-        eat(WHILE)
-        eat(LPAREN)
+        eatSequence(WHILE, LPAREN)
         val expression = parseExpression()
         eat(RPAREN)
         parseStatement() map ( doStatement => While(expression, doStatement) )
       }
 
       def parsePrintln(): Option[Println] = {
-        eat(PRINTLN)
-        eat(LPAREN)
+        eatSequence(PRINTLN, LPAREN)
         val expression = parseExpression()
-        eat(RPAREN)
-        eat(SEMICOLON)
+        eatSequence(RPAREN, SEMICOLON)
         Some(Println(expression))
       }
 
@@ -247,8 +236,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           case LBRACKET => {
             eat(LBRACKET)
             val index = parseExpression()
-            eat(RBRACKET)
-            eat(EQSIGN)
+            eatSequence(RBRACKET, EQSIGN)
             val value = parseExpression()
             eat(SEMICOLON);
             Some(ArrayAssign(assignId, index, value))
@@ -293,12 +281,10 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         eat(NEW);
         if(currentToken is IDKIND) {
           val result = New(eatIdentifier().get)
-          eat(LPAREN)
-          eat(RPAREN)
+          eatSequence(LPAREN, RPAREN)
           result
         } else {
-          eat(INT)
-          eat(LBRACKET)
+          eatSequence(INT, LBRACKET)
           val result = NewIntArray(parseExpression())
           eat(RBRACKET)
           result
