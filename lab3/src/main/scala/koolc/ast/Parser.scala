@@ -344,8 +344,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       var term = parseFactor()
       while((currentToken is PLUS) || (currentToken is MINUS)) {
         currentToken.kind match {
-          case PLUS  => { eat(PLUS);  term = Plus(term, parseTerm()) }
-          case MINUS => { eat(MINUS); term = Minus(term, parseTerm()) }
+          case PLUS  => { eat(PLUS);  term = Plus(term, parseFactor()) }
+          case MINUS => { eat(MINUS); term = Minus(term, parseFactor()) }
           case _     => ???
         }
       }
@@ -357,8 +357,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       var compare = parseTerm()
       while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
         currentToken.kind match {
-          case LESSTHAN => { eat(LESSTHAN); compare = LessThan(compare, parseCompare()) }
-          case EQUALS   => { eat(EQUALS);   compare = Equals(compare, parseCompare()) }
+          case LESSTHAN => { eat(LESSTHAN); compare = LessThan(compare, parseTerm()) }
+          case EQUALS   => { eat(EQUALS);   compare = Equals(compare, parseTerm()) }
           case _        => ???
         }
       }
@@ -369,8 +369,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       var expression = parseCompare()
       while((currentToken is AND) || (currentToken is OR)) {
         currentToken.kind match {
-          case AND => { eat(AND); expression = And(expression, parseExpression()) }
-          case OR  => { eat(OR);  expression = Or(expression, parseExpression()) }
+          case AND => { eat(AND); expression = And(expression, parseCompare()) }
+          case OR  => { eat(OR);  expression = Or(expression, parseCompare()) }
           case _   => ???
         }
       }
