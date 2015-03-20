@@ -266,16 +266,26 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       }
 
-      def parseDot(expression: ExprTree): ExprTree = {
-        if(currentToken is LENGTH) {
-          eat(LENGTH);
-          return ArrayLength(expression);
-        } else {
-          return parseMethodCall(expression);
-        }
+      def maybeParseDot(expression: ExprTree): ExprTree = {
+        if(currentToken is DOT) {
+          eat(DOT);
+          if(currentToken is LENGTH) {
+            eat(LENGTH);
+            return ArrayLength(expression);
+          } else {
+            return parseMethodCall(expression);
+          }
+        } else expression
       }
 
-      var negation: ExprTree = currentToken match {
+      def maybeParseArrayRead(expression: ExprTree): ExprTree = {
+        if(currentToken is LBRACKET) {
+          eat(LBRACKET);
+          firstReturn(ArrayRead(expression, parseExpression())) thenEat(RBRACKET)
+        } else expression
+      }
+
+      val negation: ExprTree = currentToken match {
         case INTLIT(value) => { eat(INTLITKIND); IntLit(value) }
         case STRLIT(value) => { eat(STRLITKIND); StringLit(value) }
         case ID(value)     => { eat(IDKIND);     Identifier(value) }
@@ -289,16 +299,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           case _           => ???
         }
       }
-      if(currentToken is DOT) {
-        eat(DOT);
-        negation = parseDot(negation)
-      }
-      if(currentToken is LBRACKET) {
-        eat(LBRACKET);
-        negation = ArrayRead(negation, parseExpression())
-        eat(RBRACKET);
-      }
-      negation
+      (maybeParseDot _ andThen maybeParseArrayRead _)(negation)
     }
 
     def parseFactor(): ExprTree = {
