@@ -3,13 +3,14 @@ package ast
 
 import scala.collection.mutable.ListBuffer
 
+import dsl.ParserDsl
 import utils._
 import Trees._
 import lexer._
 import lexer.Tokens._
 
 
-object Parser extends Pipeline[Iterator[Token], Option[Program]] {
+object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl {
   def run(ctx: Context)(tokens: Iterator[Token]): Option[Program] = {
     /** Store the current token, as read from the lexer. */
     var currentToken: Token = new Token(BAD)
@@ -82,14 +83,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       eatIdentifier() map (id => {
         eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE)
 
-        var statements = new ListBuffer[StatTree]
-        while(currentToken isnt RBRACE) {
-          statements ++= parseStatement()
-        }
+        val statements = accumulate(parseStatement) whileTrue(() => currentToken isnt RBRACE )
 
         eatSequence(RBRACE, RBRACE)
 
-        MainObject(id, statements.toList)
+        MainObject(id, statements)
       })
     }
 
@@ -111,24 +109,17 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
               val varDeclarations = parseVarDeclarations()
 
-              var statements = new ListBuffer[StatTree]
-              while(currentToken isnt RETURN) {
-                statements ++= parseStatement()
-              }
+              val statements = accumulate(parseStatement) whileTrue(() => currentToken isnt RETURN)
 
               eat(RETURN)
               val returnExpression = parseExpression()
               eatSequence(SEMICOLON, RBRACE)
               MethodDecl(returnType, id,
-                parameters.toList, varDeclarations.toList, statements.toList, returnExpression)
+                parameters.toList, varDeclarations.toList, statements, returnExpression)
             })
           }
 
-          var methods = new ListBuffer[MethodDecl]
-          while(currentToken is DEF) {
-            methods ++= parseMethodDeclaration()
-          }
-          methods.toList
+          accumulate(parseMethodDeclaration) whileTrue(() => currentToken is DEF)
         }
 
         eat(CLASS)
@@ -141,11 +132,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         }) orElse None
       }
 
-      var classes = new ListBuffer[ClassDecl]
-      while(currentToken is CLASS) {
-        classes ++= parseClassDeclaration()
-      }
-      classes.toList
+      accumulate(parseClassDeclaration) whileTrue(() => currentToken is CLASS)
     }
 
     def parseVarDeclarations(): List[VarDecl] = {
@@ -158,11 +145,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         })
       }
 
-      var variables = new ListBuffer[VarDecl]
-      while(currentToken is VAR) {
-        variables ++= parseVarDeclaration()
-      }
-      variables.toList
+      accumulate(parseVarDeclaration) whileTrue(() => currentToken is VAR)
     }
 
     def parseType(): TypeTree = {
@@ -189,12 +172,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
       def parseBlock(): Option[StatTree] = {
         eat(LBRACE)
-        var statements = new ListBuffer[StatTree]
-        while(currentToken isnt RBRACE) {
-          statements ++= parseStatement()
-        }
+        val statements = accumulate(parseStatement) whileTrue(() => currentToken isnt RBRACE)
         eat(RBRACE)
-        Some(Block(statements.toList))
+        Some(Block(statements))
       }
 
       def parseIf(): Option[If] = {
