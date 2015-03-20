@@ -42,6 +42,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
     }
 
+    def eatSequence(kinds: TokenKind*): Seq[Token] = kinds.toList match {
+      case head :: tail => eat(head) ++: eatSequence(tail:_*)
+      case Nil          => Nil
+    }
+
     def eatIdentifier(): Option[Identifier] = eat(IDKIND) match {
       case Some(ID(value)) => Some(new Identifier(value))
       case _ => {
@@ -50,9 +55,15 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
     }
 
-    /** Complains that what was found was not expected. The method accepts arbitrarily many arguments of type TokenKind */
+    /**
+     * Complains that what was found was not expected. The method accepts
+     * arbitrarily many arguments of type TokenKind.
+     */
     def expected(kind: TokenKind, more: TokenKind*): Unit = {
-      ctx.reporter.error("expected: " + (kind::more.toList).mkString(" or ") + ", found: " + currentToken, currentToken)
+      ctx.reporter.error(
+        s"expected: ${(kind::more.toList).mkString(" or ")}, found: ${currentToken}",
+        currentToken
+      )
     }
 
     def parseGoal(): Option[Program] = parseMainObject() flatMap (main => {
@@ -69,23 +80,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       eat(OBJECT)
 
       eatIdentifier() map (id => {
-        eat(LBRACE)
-        eat(DEF)
-        eat(MAIN)
-        eat(LPAREN)
-        eat(RPAREN)
-        eat(COLON)
-        eat(UNIT)
-        eat(EQSIGN)
-        eat(LBRACE)
+        eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE)
 
         var statements = new ListBuffer[StatTree]
         while(currentToken isnt RBRACE) {
           statements ++= parseStatement()
         }
 
-        eat(RBRACE)
-        eat(RBRACE)
+        eatSequence(RBRACE, RBRACE)
 
         MainObject(id, statements.toList)
       })
@@ -98,33 +100,31 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
             eat(DEF)
             eatIdentifier() map (id => {
               eat(LPAREN)
-              val parameters = new ListBuffer[Formal]
+              var parameters = new ListBuffer[Formal]
               while(currentToken isnt RPAREN) {
                 if(parameters.length > 0) eat(COMMA)
                 parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
               }
               eat(RPAREN)
               val returnType = parseType()
-              eat(EQSIGN)
-              eat(LBRACE)
+              eatSequence(EQSIGN, LBRACE)
 
               val varDeclarations = parseVarDeclarations()
 
-              val statements = new ListBuffer[StatTree]
+              var statements = new ListBuffer[StatTree]
               while(currentToken isnt RETURN) {
                 statements ++= parseStatement()
               }
 
               eat(RETURN)
               val returnExpression = parseExpression()
-              eat(SEMICOLON)
-              eat(RBRACE)
+              eatSequence(SEMICOLON, RBRACE)
               MethodDecl(returnType, id,
                 parameters.toList, varDeclarations.toList, statements.toList, returnExpression)
             })
           }
 
-          val methods = new ListBuffer[MethodDecl]
+          var methods = new ListBuffer[MethodDecl]
           while(currentToken is DEF) {
             methods ++= parseMethodDeclaration()
           }
@@ -141,7 +141,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         }) orElse None
       }
 
-      val classes = new ListBuffer[ClassDecl]
+      var classes = new ListBuffer[ClassDecl]
       while(currentToken is CLASS) {
         classes ++= parseClassDeclaration()
       }
@@ -158,7 +158,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         })
       }
 
-      val variables = new ListBuffer[VarDecl]
+      var variables = new ListBuffer[VarDecl]
       while(currentToken is VAR) {
         variables ++= parseVarDeclaration()
       }
@@ -174,8 +174,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         case INT     => {
           eat(INT)
           if(currentToken is LBRACKET) {
-            eat(LBRACKET)
-            eat(RBRACKET)
+            eatSequence(LBRACKET, RBRACKET)
             new IntArrayType
           } else new IntType
         }
@@ -190,7 +189,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
       def parseBlock(): Option[StatTree] = {
         eat(LBRACE)
-        val statements = new ListBuffer[StatTree]
+        var statements = new ListBuffer[StatTree]
         while(currentToken isnt RBRACE) {
           statements ++= parseStatement()
         }
@@ -199,8 +198,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
 
       def parseIf(): Option[If] = {
-        eat(IF)
-        eat(LPAREN)
+        eatSequence(IF, LPAREN)
         val expression = parseExpression()
         eat(RPAREN)
         parseStatement() map (thenStatement => {
@@ -214,19 +212,16 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
       }
 
       def parseWhile(): Option[While] = {
-        eat(WHILE)
-        eat(LPAREN)
+        eatSequence(WHILE, LPAREN)
         val expression = parseExpression()
         eat(RPAREN)
         parseStatement() map ( doStatement => While(expression, doStatement) )
       }
 
       def parsePrintln(): Option[Println] = {
-        eat(PRINTLN)
-        eat(LPAREN)
+        eatSequence(PRINTLN, LPAREN)
         val expression = parseExpression()
-        eat(RPAREN)
-        eat(SEMICOLON)
+        eatSequence(RPAREN, SEMICOLON)
         Some(Println(expression))
       }
 
@@ -241,8 +236,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
           case LBRACKET => {
             eat(LBRACKET)
             val index = parseExpression()
-            eat(RBRACKET)
-            eat(EQSIGN)
+            eatSequence(RBRACKET, EQSIGN)
             val value = parseExpression()
             eat(SEMICOLON);
             Some(ArrayAssign(assignId, index, value))
@@ -267,13 +261,12 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
         }
       }
     }
-    
+
     def parseMethodCall(obj: ExprTree): ExprTree = {
-      var identifier = eatIdentifier().get;
+      val identifier = eatIdentifier().get;
       eat(LPAREN);
       var args = new ListBuffer[ExprTree];
-      while(currentToken.kind != RPAREN)
-      {
+      while(currentToken.kind != RPAREN) {
         args.append(parseExpression());
         if(currentToken is COMMA)
           eat(COMMA)
@@ -286,55 +279,50 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
       def parseNew(): ExprTree = {
         eat(NEW);
-        if(currentToken.kind == IDKIND) {
-          val result = new New(eatIdentifier().get)
-          eat(LPAREN)
-          eat(RPAREN)
+        if(currentToken is IDKIND) {
+          val result = New(eatIdentifier().get)
+          eatSequence(LPAREN, RPAREN)
           result
-        }
-        else {
-          eat(INT)
-          eat(LBRACKET)
-          val result = new NewIntArray(parseExpression())
+        } else {
+          eatSequence(INT, LBRACKET)
+          val result = NewIntArray(parseExpression())
           eat(RBRACKET)
           result
         }
-        
+
       }
-      
+
       def parseDot(expression: ExprTree): ExprTree = {
         if(currentToken is LENGTH) {
           eat(LENGTH);
-          return new ArrayLength(expression);
+          return ArrayLength(expression);
         } else {
           return parseMethodCall(expression);
         }
       }
-      
+
       var negation: ExprTree = null;
       currentToken match {
-        case INTLIT(value) => { eat(INTLITKIND); negation = new IntLit(value) }
-        case STRLIT(value) => { eat(STRLITKIND); negation = new StringLit(value) }
-        case ID(value)     => { eat(IDKIND);     negation = new Identifier(value) }
+        case INTLIT(value) => { eat(INTLITKIND); negation = IntLit(value) }
+        case STRLIT(value) => { eat(STRLITKIND); negation = StringLit(value) }
+        case ID(value)     => { eat(IDKIND);     negation = Identifier(value) }
         case _             => currentToken.kind match {
           case TRUE        => { eat(TRUE); negation = new True }
           case FALSE       => { eat(FALSE); negation = new False }
           case THIS        => { eat(THIS); negation = new This }
           case NEW         => negation = parseNew()
-          case BANG        => { eat(BANG); negation = new Not(parseNegation()) }
+          case BANG        => { eat(BANG); negation = Not(parseNegation()) }
           case LPAREN      => { eat(LPAREN); negation = parseExpression(); eat(RPAREN)}
           case _           => ???
         }
       }
-      if(currentToken.kind == DOT)
-      {
+      if(currentToken is DOT) {
         eat(DOT);
         negation = parseDot(negation)
       }
-      if(currentToken.kind == LBRACKET)
-      {
+      if(currentToken is LBRACKET) {
         eat(LBRACKET);
-        negation = new ArrayRead(negation, parseExpression())
+        negation = ArrayRead(negation, parseExpression())
         eat(RBRACKET);
       }
       negation
@@ -342,14 +330,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
     def parseFactor(): ExprTree = {
       var factor = parseNegation()
-      while(currentToken.kind == TIMES || currentToken.kind == DIV)
-      {
+      while((currentToken is TIMES) || (currentToken is DIV)) {
         currentToken.kind match {
-          case TIMES        => { eat(TIMES); 
-                                factor = new Times(factor, parseNegation() )}
-          case DIV        => { eat(DIV); 
-                                 factor = new Div(factor, parseNegation() )}
-          case _           => ???
+          case TIMES => { eat(TIMES); factor = Times(factor, parseNegation()) }
+          case DIV   => { eat(DIV);   factor = Div(factor, parseNegation()) }
+          case _     => ???
         }
       }
       factor
@@ -357,45 +342,36 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] {
 
     def parseTerm(): ExprTree = {
       var term = parseFactor()
-      while((currentToken is PLUS) || (currentToken is MINUS))
-      {
+      while((currentToken is PLUS) || (currentToken is MINUS)) {
         currentToken.kind match {
-          case PLUS        => { eat(PLUS); 
-                                term = new Plus(term, parseTerm() )}
-          case MINUS        => { eat(MINUS); 
-                                 term = new Minus(term, parseTerm() )}
-          case _           => ???
+          case PLUS  => { eat(PLUS);  term = Plus(term, parseTerm()) }
+          case MINUS => { eat(MINUS); term = Minus(term, parseTerm()) }
+          case _     => ???
         }
       }
       term
     }
-    
-    
+
+
     def parseCompare(): ExprTree = {
       var compare = parseTerm()
-      while((currentToken is LESSTHAN) || (currentToken is EQUALS))
-      {
+      while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
         currentToken.kind match {
-          case LESSTHAN        => { eat(LESSTHAN); 
-                                compare = new LessThan(compare, parseCompare() )}
-          case EQUALS        => { eat(EQUALS); 
-                                 compare = new Equals(compare, parseCompare() )}
-          case _           => ???
+          case LESSTHAN => { eat(LESSTHAN); compare = LessThan(compare, parseCompare()) }
+          case EQUALS   => { eat(EQUALS);   compare = Equals(compare, parseCompare()) }
+          case _        => ???
         }
       }
       compare
     }
-    
+
     def parseExpression(): ExprTree = {
       var expression = parseCompare()
-      while((currentToken is AND) || (currentToken is OR))
-      {
+      while((currentToken is AND) || (currentToken is OR)) {
         currentToken.kind match {
-          case AND        => { eat(AND); 
-                                expression = new And(expression, parseExpression() )}
-          case OR        => { eat(OR); 
-                                 expression = new Or(expression, parseExpression() )}
-          case _           => ???
+          case AND => { eat(AND); expression = And(expression, parseExpression()) }
+          case OR  => { eat(OR);  expression = Or(expression, parseExpression()) }
+          case _   => ???
         }
       }
       expression
