@@ -181,7 +181,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
                   stats =
                     Assign(Identifier("name"), Identifier("newName")) ::
                     Nil,
-                  retExpr = new This
+                  retExpr = new True
                 ) ::
                 Nil
             ) ::
