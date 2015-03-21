@@ -328,24 +328,24 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
 
-    def parseCompare(): ExprTree = {
-      var compare = parseSum()
+    def parseComparison(): ExprTree = {
+      var comparison = parseSum()
       while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
         currentToken.kind match {
-          case LESSTHAN => { eat(LESSTHAN); compare = LessThan(compare, parseSum()) }
-          case EQUALS   => { eat(EQUALS);   compare = Equals(compare, parseSum()) }
+          case LESSTHAN => { eat(LESSTHAN); comparison = LessThan(comparison, parseSum()) }
+          case EQUALS   => { eat(EQUALS);   comparison = Equals(comparison, parseSum()) }
           case _        => ???
         }
       }
-      compare
+      comparison
     }
 
     def parseExpression(): ExprTree = {
-      var expression = parseCompare()
+      var expression = parseComparison()
       while((currentToken is AND) || (currentToken is OR)) {
         currentToken.kind match {
-          case AND => { eat(AND); expression = And(expression, parseCompare()) }
-          case OR  => { eat(OR);  expression = Or(expression, parseCompare()) }
+          case AND => { eat(AND); expression = And(expression, parseComparison()) }
+          case OR  => { eat(OR);  expression = Or(expression, parseComparison()) }
           case _   => ???
         }
       }
