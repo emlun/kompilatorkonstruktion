@@ -303,17 +303,13 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       maybeParseArrayRead(maybeParseDot(parseExpressionBase()))
     }
 
-    def parseProduct(): ExprTree = {
-      var factor = parseNegation()
-      while((currentToken is TIMES) || (currentToken is DIV)) {
-        currentToken.kind match {
-          case TIMES => { eat(TIMES); factor = Times(factor, parseNegation()) }
-          case DIV   => { eat(DIV);   factor = Div(factor, parseNegation()) }
-          case _     => ???
-        }
-      }
-      factor
+    def maybeParseRightFactor(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case TIMES => { eat(TIMES); maybeParseRightFactor(Times(lhs, parseNegation())) }
+      case DIV   => { eat(DIV);   maybeParseRightFactor(Div(lhs, parseNegation())) }
+      case _     => lhs
     }
+
+    def parseProduct(): ExprTree = maybeParseRightFactor(parseNegation())
 
     def parseSum(): ExprTree = {
       var term = parseProduct()
