@@ -327,7 +327,6 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       term
     }
 
-
     def parseComparison(): ExprTree = {
       var comparison = parseSum()
       while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
