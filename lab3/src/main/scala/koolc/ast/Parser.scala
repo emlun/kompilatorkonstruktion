@@ -315,7 +315,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       factor
     }
 
-    def parseTerm(): ExprTree = {
+    def parseSum(): ExprTree = {
       var term = parseProduct()
       while((currentToken is PLUS) || (currentToken is MINUS)) {
         currentToken.kind match {
@@ -329,11 +329,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
 
     def parseCompare(): ExprTree = {
-      var compare = parseTerm()
+      var compare = parseSum()
       while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
         currentToken.kind match {
-          case LESSTHAN => { eat(LESSTHAN); compare = LessThan(compare, parseTerm()) }
-          case EQUALS   => { eat(EQUALS);   compare = Equals(compare, parseTerm()) }
+          case LESSTHAN => { eat(LESSTHAN); compare = LessThan(compare, parseSum()) }
+          case EQUALS   => { eat(EQUALS);   compare = Equals(compare, parseSum()) }
           case _        => ???
         }
       }
