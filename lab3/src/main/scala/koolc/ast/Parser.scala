@@ -308,20 +308,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       case DIV   => { eat(DIV);   maybeParseRightFactor(Div(lhs, parseNegation())) }
       case _     => lhs
     }
-
     def parseProduct(): ExprTree = maybeParseRightFactor(parseNegation())
 
-    def parseSum(): ExprTree = {
-      var term = parseProduct()
-      while((currentToken is PLUS) || (currentToken is MINUS)) {
-        currentToken.kind match {
-          case PLUS  => { eat(PLUS);  term = Plus(term, parseProduct()) }
-          case MINUS => { eat(MINUS); term = Minus(term, parseProduct()) }
-          case _     => ???
-        }
-      }
-      term
+    def maybeParseRightTerm(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case PLUS  => { eat(PLUS);  maybeParseRightTerm(Plus(lhs, parseProduct())) }
+      case MINUS => { eat(MINUS); maybeParseRightTerm(Minus(lhs, parseProduct())) }
+      case _     => lhs
     }
+    def parseSum(): ExprTree = maybeParseRightTerm(parseProduct())
 
     def parseComparison(): ExprTree = {
       var comparison = parseSum()
