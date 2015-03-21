@@ -317,17 +317,12 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
     def parseSum(): ExprTree = maybeParseRightTerm(parseProduct())
 
-    def parseComparison(): ExprTree = {
-      var comparison = parseSum()
-      while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
-        currentToken.kind match {
-          case LESSTHAN => { eat(LESSTHAN); comparison = LessThan(comparison, parseSum()) }
-          case EQUALS   => { eat(EQUALS);   comparison = Equals(comparison, parseSum()) }
-          case _        => ???
-        }
-      }
-      comparison
+    def maybeParseRightComparee(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case LESSTHAN => { eat(LESSTHAN); maybeParseRightComparee(LessThan(lhs, parseSum())) }
+      case EQUALS   => { eat(EQUALS);   maybeParseRightComparee(Equals(lhs, parseSum())) }
+      case _        => lhs
     }
+    def parseComparison(): ExprTree = maybeParseRightComparee(parseSum())
 
     def parseExpression(): ExprTree = {
       var expression = parseComparison()
