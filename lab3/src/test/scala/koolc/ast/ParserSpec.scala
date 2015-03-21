@@ -132,7 +132,10 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       val source = """
       object Main {
         def main(): Unit = {
-          println(5 - 3 - 1);
+          println(10 - 9 + 8 - 7 + 6 - 5 + 4 - 3 + 2 - 1);
+          println(10 / 9 * 8 / 7 * 6 / 5 * 4 / 3 * 2 / 1);
+          println(10 == 9 < 8 == 7 < 6 == 5 < 4 == 3 < 2 == 1);
+          println(10 && 9 || 8 && 7 || 6 && 5 || 4 && 3 || 2 && 1);
         }
       }
       """
@@ -141,7 +144,50 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
         ctx.reporter shouldBe errorless
         program.get should be (Program(
           main = MainObject(Identifier("Main"),
-            Println(Minus(Minus(IntLit(5), IntLit(3)), IntLit(1))) ::
+            Println(Minus(Plus(Minus(Plus(Minus(Plus(Minus(Plus(Minus(
+                              IntLit(10), IntLit(9)),
+                            IntLit(8)),
+                          IntLit(7)),
+                        IntLit(6)),
+                      IntLit(5)),
+                    IntLit(4)),
+                  IntLit(3)),
+                IntLit(2)),
+              IntLit(1))
+            ) ::
+            Println(Div(Times(Div(Times(Div(Times(Div(Times(Div(
+                              IntLit(10), IntLit(9)),
+                            IntLit(8)),
+                          IntLit(7)),
+                        IntLit(6)),
+                      IntLit(5)),
+                    IntLit(4)),
+                  IntLit(3)),
+                IntLit(2)),
+              IntLit(1))
+            ) ::
+            Println(Equals(LessThan(Equals(LessThan(Equals(LessThan(Equals(LessThan(Equals(
+                              IntLit(10), IntLit(9)),
+                            IntLit(8)),
+                          IntLit(7)),
+                        IntLit(6)),
+                      IntLit(5)),
+                    IntLit(4)),
+                  IntLit(3)),
+                IntLit(2)),
+              IntLit(1))
+            ) ::
+            Println(And(Or(And(Or(And(Or(And(Or(And(
+                              IntLit(10), IntLit(9)),
+                            IntLit(8)),
+                          IntLit(7)),
+                        IntLit(6)),
+                      IntLit(5)),
+                    IntLit(4)),
+                  IntLit(3)),
+                IntLit(2)),
+              IntLit(1))
+            ) ::
             Nil),
           classes = Nil
         ))
