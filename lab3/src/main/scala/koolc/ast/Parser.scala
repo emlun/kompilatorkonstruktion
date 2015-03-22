@@ -266,16 +266,26 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       }
 
-      def parseDot(expression: ExprTree): ExprTree = {
-        if(currentToken is LENGTH) {
-          eat(LENGTH);
-          return ArrayLength(expression);
-        } else {
-          return parseMethodCall(expression);
-        }
+      def maybeParseDot(expression: ExprTree): ExprTree = {
+        if(currentToken is DOT) {
+          eat(DOT);
+          if(currentToken is LENGTH) {
+            eat(LENGTH);
+            return ArrayLength(expression);
+          } else {
+            return parseMethodCall(expression);
+          }
+        } else expression
       }
 
-      var negation: ExprTree = currentToken match {
+      def maybeParseArrayRead(expression: ExprTree): ExprTree = {
+        if(currentToken is LBRACKET) {
+          eat(LBRACKET);
+          firstReturn(ArrayRead(expression, parseExpression())) thenEat(RBRACKET)
+        } else expression
+      }
+
+      def parseExpressionBase() = currentToken match {
         case INTLIT(value) => { eat(INTLITKIND); IntLit(value) }
         case STRLIT(value) => { eat(STRLITKIND); StringLit(value) }
         case ID(value)     => { eat(IDKIND);     Identifier(value) }
@@ -289,66 +299,37 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           case _           => ???
         }
       }
-      if(currentToken is DOT) {
-        eat(DOT);
-        negation = parseDot(negation)
-      }
-      if(currentToken is LBRACKET) {
-        eat(LBRACKET);
-        negation = ArrayRead(negation, parseExpression())
-        eat(RBRACKET);
-      }
-      negation
+
+      maybeParseArrayRead(maybeParseDot(parseExpressionBase()))
     }
 
-    def parseFactor(): ExprTree = {
-      var factor = parseNegation()
-      while((currentToken is TIMES) || (currentToken is DIV)) {
-        currentToken.kind match {
-          case TIMES => { eat(TIMES); factor = Times(factor, parseNegation()) }
-          case DIV   => { eat(DIV);   factor = Div(factor, parseNegation()) }
-          case _     => ???
-        }
-      }
-      factor
+    def maybeParseRightFactor(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case TIMES => { eat(TIMES); maybeParseRightFactor(Times(lhs, parseNegation())) }
+      case DIV   => { eat(DIV);   maybeParseRightFactor(Div(lhs, parseNegation())) }
+      case _     => lhs
     }
+    def parseProduct(): ExprTree = maybeParseRightFactor(parseNegation())
 
-    def parseTerm(): ExprTree = {
-      var term = parseFactor()
-      while((currentToken is PLUS) || (currentToken is MINUS)) {
-        currentToken.kind match {
-          case PLUS  => { eat(PLUS);  term = Plus(term, parseFactor()) }
-          case MINUS => { eat(MINUS); term = Minus(term, parseFactor()) }
-          case _     => ???
-        }
-      }
-      term
+    def maybeParseRightTerm(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case PLUS  => { eat(PLUS);  maybeParseRightTerm(Plus(lhs, parseProduct())) }
+      case MINUS => { eat(MINUS); maybeParseRightTerm(Minus(lhs, parseProduct())) }
+      case _     => lhs
     }
+    def parseSum(): ExprTree = maybeParseRightTerm(parseProduct())
 
-
-    def parseCompare(): ExprTree = {
-      var compare = parseTerm()
-      while((currentToken is LESSTHAN) || (currentToken is EQUALS)) {
-        currentToken.kind match {
-          case LESSTHAN => { eat(LESSTHAN); compare = LessThan(compare, parseTerm()) }
-          case EQUALS   => { eat(EQUALS);   compare = Equals(compare, parseTerm()) }
-          case _        => ???
-        }
-      }
-      compare
+    def maybeParseRightComparee(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case LESSTHAN => { eat(LESSTHAN); maybeParseRightComparee(LessThan(lhs, parseSum())) }
+      case EQUALS   => { eat(EQUALS);   maybeParseRightComparee(Equals(lhs, parseSum())) }
+      case _        => lhs
     }
+    def parseComparison(): ExprTree = maybeParseRightComparee(parseSum())
 
-    def parseExpression(): ExprTree = {
-      var expression = parseCompare()
-      while((currentToken is AND) || (currentToken is OR)) {
-        currentToken.kind match {
-          case AND => { eat(AND); expression = And(expression, parseCompare()) }
-          case OR  => { eat(OR);  expression = Or(expression, parseCompare()) }
-          case _   => ???
-        }
-      }
-      expression
+    def maybeParseRightExpression(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case AND => { eat(AND); maybeParseRightExpression(And(lhs, parseComparison())) }
+      case OR  => { eat(OR);  maybeParseRightExpression(Or(lhs, parseComparison())) }
+      case _   => lhs
     }
+    def parseExpression(): ExprTree = maybeParseRightExpression(parseComparison())
 
     readToken()
     parseGoal()
