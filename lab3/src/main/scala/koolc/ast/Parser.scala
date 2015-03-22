@@ -246,9 +246,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       eat(LPAREN);
       var args = new ListBuffer[ExprTree];
       while(currentToken.kind != RPAREN) {
+        if(args.length > 0) eat(COMMA)
         args.append(parseExpression());
-        if(currentToken is COMMA)
-          eat(COMMA)
       }
       eat(RPAREN);
       MethodCall(obj, identifier, args.toList)
@@ -296,7 +295,10 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           case NEW         => parseNew()
           case BANG        => { eat(BANG); Not(parseNegation()) }
           case LPAREN      => { eat(LPAREN); firstReturn(parseExpression()) thenEat(RPAREN) }
-          case _           => ???
+          case _           => {
+            expected(INTLITKIND, STRLITKIND, IDKIND, TRUE, FALSE, THIS, NEW, BANG, LPAREN)
+            null
+          }
         }
       }
 
