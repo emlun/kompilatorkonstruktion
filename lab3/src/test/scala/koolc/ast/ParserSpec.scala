@@ -314,5 +314,21 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(file)))(file)
     }
 
+    it("fails if comma in method call is not followed by an argument.") {
+      val source = """
+      object Main {
+        def main(): Unit = {
+          result = foo.bar("someArg",);
+        }
+      }
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
   }
 }
