@@ -174,7 +174,7 @@ object Trees {
     override def print(level: Int = 0): String = value.toString
   }
   case class StringLit(value: String) extends ExprTree {
-    override def print(level: Int = 0): String = value
+    override def print(level: Int = 0): String = '"' + value + '"'
   }
 
   case class True() extends ExprTree {
