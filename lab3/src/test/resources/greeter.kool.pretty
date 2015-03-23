@@ -1,7 +1,7 @@
 object HelloWorld {
  def main() : Unit = {
   greeter = new Greeter();
-  result = greeter.greet ( World );
+  result = greeter.greet ( "World" );
  }
 }
 
@@ -15,7 +15,7 @@ class Named {
 class Greeter extends Named {
  def greet ( greetee : String) : Bool = {
   var message : String;
-  message = Hello,  + greetee +  from  + name + !;
+  message = "Hello, " + greetee + " from " + name + "!";
   println( message );
   return true;
  }
@@ -31,7 +31,7 @@ class Greeter extends Named {
    }
   while ( i < years.length )
    {
-    allSucceeded = allSucceeded && this.greet ( Year  + years [ i ] );
+    allSucceeded = allSucceeded && this.greet ( "Year " + years [ i ] );
     i = i + 1;
    }
   return allSucceeded;
