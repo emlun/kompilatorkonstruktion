@@ -46,16 +46,7 @@ ${this.indent(level)}}
       stats: List[StatTree],
       retExpr: ExprTree) extends Tree {
     override def print(level: Int = 0): String = {
-      var arg: String = ""
-      // Pattern match
-      args match {
-        case first :: second :: rest  =>
-          arg = first.print() + ", " + second.print()
-          rest.foreach (arg += ", " + _.print())
-        case first :: rest =>
-          arg = first.print()
-        case _ => arg = ""
-      }
+      val arg = args map (_.print()) mkString ", "
       var vari: String = ""
       vars.foreach (vari += this.indent(level + 1) + _.print(level + 1) + "\n")
       var stmt: String = ""
