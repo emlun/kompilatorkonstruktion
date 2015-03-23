@@ -16,8 +16,11 @@ object Trees {
     override def print(level: Int = 0): String = {
       var statments: String = ""
       stats.foreach (statments += "\n" + this.indent(level + 1) + _.print(1))
-      "object " + id.print() + " {\n" + this.indent(level) + "def main() : Unit = {" +
-      statments + "\n" + this.indent(level) + "}\n}\n"
+      s"""object ${id.print()} {
+${this.indent(level)}def main() : Unit = {${statments}
+${this.indent(level)}}
+}
+"""
     }
   }
   case class ClassDecl(
