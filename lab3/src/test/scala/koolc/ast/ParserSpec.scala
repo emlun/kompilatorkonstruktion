@@ -195,6 +195,37 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
     }
 
+    it("enforces operator priority.") {
+      val source = """
+      object Main {
+        def main(): Unit = {
+          println(9 && 8 || 7 < 6 == 5 + 4 - 3 * 2 / !1);
+        }
+      }
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program.get should be (Program(
+          main = MainObject(Identifier("Main"),
+            Println(
+              Or(
+                And(IntLit(9), IntLit(8)),
+                Equals(
+                  LessThan(IntLit(7), IntLit(6)),
+                  Minus(
+                    Plus(IntLit(5), IntLit(4)),
+                    Div(
+                      Times(IntLit(3), IntLit(2)),
+                      Not(IntLit(1))
+            ))))) ::
+            Nil),
+          classes = Nil
+        ))
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
     it("does not succeed on empty input.") {
       val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
         ctx.reporter should not be errorless
