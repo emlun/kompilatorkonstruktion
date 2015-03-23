@@ -305,6 +305,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
                     Nil,
                   stats =
                     Assign(Identifier("i"), IntLit(0)) ::
+                    If(new True, Block(Nil), None) ::
                     While(LessThan(Identifier("i"), ArrayLength(Identifier("years"))), Block(
                       Assign(Identifier("allSucceeded"), And(
                         Identifier("allSucceeded"),

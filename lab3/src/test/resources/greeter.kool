@@ -27,6 +27,7 @@ class Greeter extends Named {
     var i: Int;
     var allSucceeded: Bool;
     i = 0;
+    if(true) {}
     while((i < years.length)) {
       allSucceeded = allSucceeded && this.greet("Year " + years[i]);
       i = i + 1;
