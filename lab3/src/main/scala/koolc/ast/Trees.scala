@@ -5,8 +5,8 @@ import utils._
 
 object Trees {
   sealed trait Tree extends Positioned {
-    def print(level: Int = 0): String = { "\n>>>\nTODO " + toString + "\n<<<\n\n" }
-    def ident(times: Int): String = { " " * times }
+    def print(level: Int = 0): String = "\n>>>\nTODO " + toString + "\n<<<\n\n"
+    def ident(times: Int): String = " " * times
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
@@ -44,7 +44,7 @@ object Trees {
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree {
-    override def print(level: Int = 0): String = { "var " + id.print() + " : " + tpe.print() + ";" }
+    override def print(level: Int = 0): String = "var " + id.print() + " : " + tpe.print() + ";"
   }
   case class MethodDecl(
       retType: TypeTree,
@@ -74,21 +74,21 @@ object Trees {
     }
   }
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree {
-    override def print(level: Int = 0): String = {id.print() + " : " + tpe.print()}
+    override def print(level: Int = 0): String = id.print() + " : " + tpe.print()
   }
 
   sealed trait TypeTree extends Tree
   case class IntArrayType() extends TypeTree {
-    override def print(level: Int = 0): String = { "Int[ ]" }
+    override def print(level: Int = 0): String = "Int[ ]"
   }
   case class IntType() extends TypeTree {
-    override def print(level: Int = 0): String = { "Int" }
+    override def print(level: Int = 0): String = "Int"
   }
   case class BooleanType() extends TypeTree {
-    override def print(level: Int = 0): String = { "Bool" }
+    override def print(level: Int = 0): String = "Bool"
   }
   case class StringType() extends TypeTree {
-    override def print(level: Int = 0): String = { "String" }
+    override def print(level: Int = 0): String = "String"
   }
 
   sealed trait StatTree extends Tree
@@ -115,45 +115,45 @@ object Trees {
     }
   }
   case class Println(expr: ExprTree) extends StatTree {
-    override def print(level: Int = 0): String = { "println( " + expr.print() + " );" }
+    override def print(level: Int = 0): String = "println( " + expr.print() + " );"
   }
   case class Assign(id: Identifier, expr: ExprTree) extends StatTree {
-    override def print(level: Int = 0): String = { id.print() + " = " + expr.print() + ";" }
+    override def print(level: Int = 0): String = id.print() + " = " + expr.print() + ";"
   }
   case class ArrayAssign(id: Identifier, index: ExprTree, expr: ExprTree) extends StatTree {
-    override def print(level: Int = 0): String = { id.print() + "[ " + index.print() + " ] = " + expr.print() + ";" }
+    override def print(level: Int = 0): String = id.print() + "[ " + index.print() + " ] = " + expr.print() + ";"
   }
 
   sealed trait ExprTree extends Tree
   case class And(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { lhs.print() + " && " + rhs.print() }
+    override def print(level: Int = 0): String = lhs.print() + " && " + rhs.print()
   }
   case class Or(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { lhs.print() + " || " + rhs.print() }
+    override def print(level: Int = 0): String = lhs.print() + " || " + rhs.print()
   }
   case class Plus(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { lhs.print() + " + " + rhs.print() }
+    override def print(level: Int = 0): String = lhs.print() + " + " + rhs.print()
   }
   case class Minus(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { lhs.print() + " - " + rhs.print() }
+    override def print(level: Int = 0): String = lhs.print() + " - " + rhs.print()
   }
   case class Times(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { lhs.print() + " * " + rhs.print() }
+    override def print(level: Int = 0): String = lhs.print() + " * " + rhs.print()
   }
   case class Div(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { lhs.print() + " / " + rhs.print() }
+    override def print(level: Int = 0): String = lhs.print() + " / " + rhs.print()
   }
   case class LessThan(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { lhs.print() + " < " + rhs.print() }
+    override def print(level: Int = 0): String = lhs.print() + " < " + rhs.print()
   }
   case class Equals(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { lhs.print() + " == " + rhs.print() }
+    override def print(level: Int = 0): String = lhs.print() + " == " + rhs.print()
   }
   case class ArrayRead(arr: ExprTree, index: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { arr.print() + " [ " + index.print() + " ]" }
+    override def print(level: Int = 0): String = arr.print() + " [ " + index.print() + " ]"
   }
   case class ArrayLength(arr: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { arr.print() + ".length" }
+    override def print(level: Int = 0): String = arr.print() + ".length"
   }
   case class MethodCall(obj: ExprTree, meth: Identifier, args: List[ExprTree]) extends ExprTree {
     override def print(level: Int = 0): String = {
@@ -171,33 +171,33 @@ object Trees {
     }
   }
   case class IntLit(value: Int) extends ExprTree {
-    override def print(level: Int = 0): String = { value.toString }
+    override def print(level: Int = 0): String = value.toString
   }
   case class StringLit(value: String) extends ExprTree {
-    override def print(level: Int = 0): String = { value }
+    override def print(level: Int = 0): String = value
   }
 
   case class True() extends ExprTree {
-    override def print(level: Int = 0): String = { "true" }
+    override def print(level: Int = 0): String = "true"
   }
   case class False() extends ExprTree {
-    override def print(level: Int = 0): String = { "false" }
+    override def print(level: Int = 0): String = "false"
   }
   case class Identifier(value: String) extends TypeTree with ExprTree {
-    override def print(level: Int = 0): String = { value }
+    override def print(level: Int = 0): String = value
   }
 
   case class This() extends ExprTree {
-    override def print(level: Int = 0): String = { "this" }
+    override def print(level: Int = 0): String = "this"
   }
   case class NewIntArray(size: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { "new Int [ " + size.print() + " ] " }
+    override def print(level: Int = 0): String = "new Int [ " + size.print() + " ] "
   }
   case class New(tpe: Identifier) extends ExprTree {
-    override def print(level: Int = 0): String = { "new " + tpe.print() + "()" }
+    override def print(level: Int = 0): String = "new " + tpe.print() + "()"
   }
 
   case class Not(expr: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = { "!" + expr.print() }
+    override def print(level: Int = 0): String = "!" + expr.print()
   }
 }
