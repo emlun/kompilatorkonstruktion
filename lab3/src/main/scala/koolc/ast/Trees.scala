@@ -47,13 +47,12 @@ ${this.indent(level)}}
       retExpr: ExprTree) extends Tree {
     override def print(level: Int = 0): String = {
       val arg = args map (_.print()) mkString ", "
-      var vari: String = ""
-      vars.foreach (vari += this.indent(level + 1) + _.print(level + 1) + "\n")
-      var stmt: String = ""
-      stats.foreach (stmt += this.indent(level + 1) + _.print(level + 1) + "\n")
-      "def " + id.print() + " ( " + arg + ") : " + retType.print() + " = {\n" +
-        vari + stmt + this.indent(level + 1) + "return " + retExpr.print() + ";\n" +
-        this.indent(level) + "}"
+      val vari = vars map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
+      val stmt = stats map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
+      "def " + id.print() + " ( " + arg + ") : " + retType.print() + " = {" +
+        vari + stmt + "\n" +
+        indent(level + 1) + "return " + retExpr.print() + ";\n" +
+        indent(level) + "}"
     }
   }
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree {
