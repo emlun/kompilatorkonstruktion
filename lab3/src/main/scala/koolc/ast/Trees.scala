@@ -4,9 +4,9 @@ package ast
 import utils._
 
 object Trees {
-  sealed trait Tree extends Positioned{
-  def print(level: Int = 0): String = {"\n>>>\nTODO " + toString + "\n<<<\n\n" }
-  def ident(times: Int): String = { " " * times }
+  sealed trait Tree extends Positioned {
+    def print(level: Int = 0): String = { "\n>>>\nTODO " + toString + "\n<<<\n\n" }
+    def ident(times: Int): String = { " " * times }
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
@@ -28,7 +28,7 @@ object Trees {
       id: Identifier,
       parent: Option[Identifier],
       vars: List[VarDecl],
-      methods: List[MethodDecl]) extends Tree{
+      methods: List[MethodDecl]) extends Tree {
     override def print(level: Int = 0): String = {
       var extend = "";
       parent match {
@@ -52,7 +52,7 @@ object Trees {
       args: List[Formal],
       vars: List[VarDecl],
       stats: List[StatTree],
-      retExpr: ExprTree) extends Tree{
+      retExpr: ExprTree) extends Tree {
     override def print(level: Int = 0): String = {
       var arg: String = ""
       // Pattern match
@@ -93,7 +93,6 @@ object Trees {
 
   sealed trait StatTree extends Tree
   case class Block(stats: List[StatTree]) extends StatTree {
-
     override def print(level: Int = 0): String = {
       var statments: String = ""
       stats.foreach (statments += "\n" + this.ident(level + 1) + _.print(level + 1))
@@ -188,7 +187,7 @@ object Trees {
     override def print(level: Int = 0): String = { value }
   }
 
-  case class This() extends ExprTree{
+  case class This() extends ExprTree {
     override def print(level: Int = 0): String = { "this" }
   }
   case class NewIntArray(size: ExprTree) extends ExprTree {
