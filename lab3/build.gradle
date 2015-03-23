@@ -45,3 +45,28 @@ task runRef(type: JavaExec) {
   executable 'scala'
   main 'koolc.Main'
 }
+
+task makePrettyPrinterSnapshots(type: Copy) {
+  from("${buildDir}/tmp") {
+    include '**/*.kool.pretty'
+  }
+  into 'src/test/resources'
+}
+
+fileTree('src/test/resources/') {
+  include '**/*.kool'
+}.visit { f ->
+  if(!f.isDirectory()) {
+    def t = task("makePrettyPrinterSnapshot${f.name.replace('.kool', '').capitalize()}", type: JavaExec) {
+      classpath sourceSets.main.runtimeClasspath
+      executable 'scala'
+      main 'koolc.Main'
+      args "src/test/resources/${f.relativePath}"
+
+      def outputFile = file("${buildDir}/tmp/${f.relativePath}.pretty")
+      outputFile.parentFile.mkdirs()
+      standardOutput = new FileOutputStream(outputFile)
+    }
+    makePrettyPrinterSnapshots.dependsOn t
+  }
+}
