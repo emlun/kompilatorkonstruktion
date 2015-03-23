@@ -6,7 +6,7 @@ import utils._
 object Trees {
   sealed trait Tree extends Positioned {
     def print(level: Int = 0): String = "\n>>>\nTODO " + toString + "\n<<<\n\n"
-    def ident(times: Int): String = " " * times
+    def indent(times: Int): String = " " * times
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
@@ -19,9 +19,9 @@ object Trees {
   case class MainObject(id: Identifier, stats: List[StatTree]) extends Tree {
     override def print(level: Int = 0): String = {
       var statments: String = ""
-      stats.foreach (statments += "\n" + this.ident(level + 1) + _.print(1))
-      "object " + id.print() + " {\n" + this.ident(level) + "def main() : Unit = {" +
-      statments + "\n" + this.ident(level) + "}\n}\n"
+      stats.foreach (statments += "\n" + this.indent(level + 1) + _.print(1))
+      "object " + id.print() + " {\n" + this.indent(level) + "def main() : Unit = {" +
+      statments + "\n" + this.indent(level) + "}\n}\n"
     }
   }
   case class ClassDecl(
@@ -36,11 +36,11 @@ object Trees {
         case None        => extend = "";
       }
       var vari: String = ""
-      vars.foreach (vari += this.ident(level + 1) + _.print(level + 1) + "\n")
+      vars.foreach (vari += this.indent(level + 1) + _.print(level + 1) + "\n")
       var meti: String = ""
-      methods.foreach (meti += this.ident(level + 1) + _.print(level + 1) + "\n")
+      methods.foreach (meti += this.indent(level + 1) + _.print(level + 1) + "\n")
 
-      this.ident(level) + "class " + id.print() + extend + " {\n" + vari + meti + this.ident(level) + "}"
+      this.indent(level) + "class " + id.print() + extend + " {\n" + vari + meti + this.indent(level) + "}"
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree {
@@ -65,12 +65,12 @@ object Trees {
         case _ => arg = ""
       }
       var vari: String = ""
-      vars.foreach (vari += this.ident(level + 1) + _.print(level + 1) + "\n")
+      vars.foreach (vari += this.indent(level + 1) + _.print(level + 1) + "\n")
       var stmt: String = ""
-      stats.foreach (stmt += this.ident(level + 1) + _.print(level + 1) + "\n")
+      stats.foreach (stmt += this.indent(level + 1) + _.print(level + 1) + "\n")
       "def " + id.print() + " ( " + arg + ") : " + retType.print() + " = {\n" +
-        vari + stmt + this.ident(level + 1) + "return " + retExpr.print() + ";\n" +
-        this.ident(level) + "}"
+        vari + stmt + this.indent(level + 1) + "return " + retExpr.print() + ";\n" +
+        this.indent(level) + "}"
     }
   }
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree {
@@ -95,23 +95,23 @@ object Trees {
   case class Block(stats: List[StatTree]) extends StatTree {
     override def print(level: Int = 0): String = {
       var statments: String = ""
-      stats.foreach (statments += "\n" + this.ident(level + 1) + _.print(level + 1))
-      "{" + statments + "\n" + this.ident(level) + "}"
+      stats.foreach (statments += "\n" + this.indent(level + 1) + _.print(level + 1))
+      "{" + statments + "\n" + this.indent(level) + "}"
     }
   }
   case class If(expr: ExprTree, thn: StatTree, els: Option[StatTree]) extends StatTree {
     override def print(level: Int = 0): String = {
       var addElse = "";
       els match {
-        case Some(value) => addElse = "\n" + this.ident(level) + "else \n" + this.ident(level + 1) + value.print(level + 1);
+        case Some(value) => addElse = "\n" + this.indent(level) + "else \n" + this.indent(level + 1) + value.print(level + 1);
         case None        => addElse = "";
       }
-      "if ( " + expr.print() + " )\n" + this.ident(level + 1) + thn.print(level + 1) + addElse
+      "if ( " + expr.print() + " )\n" + this.indent(level + 1) + thn.print(level + 1) + addElse
     }
   }
   case class While(expr: ExprTree, stat: StatTree) extends StatTree {
     override def print(level: Int = 0): String = {
-      "while ( " + expr.print() + " )\n" + this.ident(level + 1) + stat.print(level + 1)
+      "while ( " + expr.print() + " )\n" + this.indent(level + 1) + stat.print(level + 1)
     }
   }
   case class Println(expr: ExprTree) extends StatTree {
