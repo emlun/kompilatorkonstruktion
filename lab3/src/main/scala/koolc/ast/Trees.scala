@@ -5,7 +5,7 @@ import utils._
 
 object Trees {
   sealed trait Tree extends Positioned {
-    def print(level: Int = 0): String = "\n>>>\nTODO " + toString + "\n<<<\n\n"
+    def print(level: Int = 0): String = ???
     def indent(times: Int): String = " " * times
   }
 
