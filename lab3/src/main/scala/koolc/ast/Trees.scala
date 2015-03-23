@@ -36,7 +36,7 @@ ${this.indent(level)}}
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree {
-    override def print(level: Int = 0): String = "var " + id.print() + " : " + tpe.print() + ";"
+    override def print(level: Int = 0): String = s"var ${id.print()} : ${tpe.print()};"
   }
   case class MethodDecl(
       retType: TypeTree,
