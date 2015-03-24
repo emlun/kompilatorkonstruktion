@@ -6,7 +6,6 @@ import utils._
 sealed class Token(val kind: TokenKind) extends Positioned {
   override def toString = kind.toString
   def is(kinds: TokenKind*): Boolean = kinds contains this.kind
-  def isnt(kinds: TokenKind*): Boolean = !(this is(kinds:_*))
 }
 
 sealed trait TokenKind;
