@@ -301,17 +301,18 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       }
 
-      def maybeParseDot(expression: ExprTree): ExprTree = {
+      def maybeParseDot(expression: ExprTree): Option[ExprTree] =
         if(currentToken is DOT) {
-          eat(DOT);
-          if(currentToken is LENGTH) {
-            eat(LENGTH);
-            maybeParseDot(ArrayLength(expression))
-          } else {
-            parseMethodCall(expression) map (call => maybeParseDot(call)) getOrElse null
-          }
-        } else expression
-      }
+          eat(DOT) flatMap (_ =>
+            if(currentToken is LENGTH) {
+              eat(LENGTH) flatMap (_ =>
+                maybeParseDot(ArrayLength(expression))
+              )
+            } else {
+              parseMethodCall(expression) flatMap maybeParseDot
+            }
+          )
+        } else Some(expression)
 
       def maybeParseArrayRead(expression: ExprTree): ExprTree = {
         if(currentToken is LBRACKET) {
@@ -338,7 +339,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       }
 
-      maybeParseArrayRead(maybeParseDot(parseExpressionBase()))
+      maybeParseDot(parseExpressionBase()) map (dot => maybeParseArrayRead(dot)) getOrElse null
     }
 
     def maybeParseRightFactor(lhs: ExprTree): ExprTree = currentToken.kind match {
