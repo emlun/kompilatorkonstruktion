@@ -11,6 +11,10 @@ import lexer.Tokens._
 
 
 object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl {
+
+  val BEGIN_STATEMENT = List(LBRACE, IF, WHILE, PRINTLN, IDKIND)
+  val BEGIN_EXPRESSION = List(INTLITKIND, STRLITKIND, TRUE, FALSE, IDKIND, THIS, NEW, BANG, LPAREN)
+
   def run(ctx: Context)(tokens: Iterator[Token]): Option[Program] = {
     /** Store the current token, as read from the lexer. */
     var currentToken: Token = new Token(BAD)
@@ -68,9 +72,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
      * Complains that what was found was not expected. The method accepts
      * arbitrarily many arguments of type TokenKind.
      */
-    def expected(kind: TokenKind, more: TokenKind*): Unit = {
+    def expected(kinds: TokenKind*): Unit = {
       ctx.reporter.error(
-        s"expected: ${(kind::more.toList).mkString(" or ")}, found: ${currentToken}",
+        s"expected: ${kinds.toList.mkString(" or ")}, found: ${currentToken}",
         currentToken
       )
     }
@@ -91,7 +95,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       eatIdentifier() map (id => {
         eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE)
 
-        val statements = accumulate(parseStatement) whilst(() => (currentToken isnt RBRACE) && (currentToken isnt EOF))
+        val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
 
         eatSequence(RBRACE, RBRACE)
 
@@ -107,9 +111,12 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
             eatIdentifier() map (id => {
               eat(LPAREN)
               var parameters = new ListBuffer[Formal]
-              while((currentToken isnt RPAREN) && (currentToken isnt EOF)) {
-                if(parameters.length > 0) eat(COMMA)
+              if(currentToken is IDKIND) {
                 parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
+                while(currentToken is COMMA) {
+                  eat(COMMA)
+                  parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
+                }
               }
               eat(RPAREN)
               val returnType = parseType()
@@ -117,7 +124,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
               val varDeclarations = parseVarDeclarations()
 
-              val statements = accumulate(parseStatement) whilst(() => (currentToken isnt RETURN) && (currentToken isnt EOF))
+              val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
 
               eat(RETURN)
               val returnExpression = parseExpression()
@@ -177,7 +184,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
       def parseBlock(): Option[StatTree] = {
         eat(LBRACE)
-        val statements = accumulate(parseStatement) whilst(() => (currentToken isnt RBRACE) && (currentToken isnt EOF))
+        val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
         eat(RBRACE)
         Some(Block(statements))
       }
@@ -236,7 +243,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         case IDKIND  => parseAssignment()
         case EOF     => null
         case _       => {
-          expected(LPAREN, IF, WHILE, PRINTLN, IDKIND)
+          expected(BEGIN_STATEMENT:_*)
           readToken()
           None
         }
@@ -247,9 +254,12 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       val identifier = eatIdentifier().get;
       eat(LPAREN);
       var args = new ListBuffer[ExprTree];
-      while(currentToken.kind != RPAREN) {
-        if(args.length > 0) eat(COMMA)
+      if(currentToken is (BEGIN_EXPRESSION:_*)) {
         args.append(parseExpression());
+        while(currentToken is COMMA) {
+          eat(COMMA)
+          args.append(parseExpression());
+        }
       }
       eat(RPAREN);
       MethodCall(obj, identifier, args.toList)
@@ -298,7 +308,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           case BANG        => { eat(BANG); Not(parseNegation()) }
           case LPAREN      => { eat(LPAREN); firstReturn(parseExpression()) thenEat(RPAREN) }
           case _           => {
-            expected(INTLITKIND, STRLITKIND, IDKIND, TRUE, FALSE, THIS, NEW, BANG, LPAREN)
+            expected(BEGIN_EXPRESSION:_*)
             null
           }
         }
