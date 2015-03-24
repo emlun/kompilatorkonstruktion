@@ -89,14 +89,28 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         current = current + next
       }
     }
-    return (
-      current.trim match {
-        case "" => None
-        case _  => Some(makeToken(current, ALL_TOKEN_KINDS filter Tokens.isPrefix(current), ctx, currentPos))
-      },
-      "",
-      source.pos
-    )
+    //If we get here and are still trying to eat a block comment, something
+    //is wrong in the programfile.
+    if(eatingBlockComment){
+      val token = new Token(BAD)
+      token.setPos(ctx.file, currentPos)
+      ctx.reporter.error(s"unterminated block comment", token)
+      return (
+        None,
+        "",
+        source.pos
+      )
+    }
+    else{
+      return (
+        current.trim match {
+          case "" => None
+          case _  => Some(makeToken(current, ALL_TOKEN_KINDS filter Tokens.isPrefix(current), ctx, currentPos))
+        },
+        "",
+        source.pos
+      )
+    }
   }
 
   override def run(ctx: Context)(source: Source): Iterator[Token] = {
