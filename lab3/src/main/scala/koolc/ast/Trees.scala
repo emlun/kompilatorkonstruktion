@@ -82,11 +82,7 @@ ${this.indent(level)}}
   }
   case class If(expr: ExprTree, thn: StatTree, els: Option[StatTree]) extends StatTree {
     override def print(level: Int = 0): String = {
-      var addElse = "";
-      els match {
-        case Some(value) => addElse = "\n" + this.indent(level) + "else \n" + this.indent(level + 1) + value.print(level + 1);
-        case None        => addElse = "";
-      }
+      val addElse = els map ("\n" + indent(level) + "else \n" + indent(level + 1) + _.print(level + 1)) getOrElse "";
       "if ( " + expr.print() + " )\n" + this.indent(level + 1) + thn.print(level + 1) + addElse
     }
   }
