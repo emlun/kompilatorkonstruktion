@@ -32,7 +32,7 @@ ${this.indent(level)}}
       val vari = vars.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
       val meti = methods.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
 
-      this.indent(level) + "class " + id.print() + extend + " {\n" + vari + meti + this.indent(level) + "}"
+      this.indent(level) + "class " + id.print() + extend + " {\n" + vari + meti + this.indent(level) + "}\n"
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree {

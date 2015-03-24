@@ -12,6 +12,7 @@ class Named {
   return true;
  }
 }
+
 class Greeter extends Named {
  def greet ( greetee : String) : Bool = {
   var message : String;

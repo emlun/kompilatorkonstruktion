@@ -27,6 +27,7 @@ class firstClass {
   return input1 [ input2 ];
  }
 }
+
 class secondClass extends firstClass {
  def secondMethod ( ) : Boolean = {
   println( this );
