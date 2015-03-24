@@ -266,7 +266,6 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         case WHILE   => parseWhile()
         case PRINTLN => parsePrintln()
         case IDKIND  => parseAssignment()
-        case EOF     => null
         case _       => {
           expected(BEGIN_STATEMENT:_*)
           readToken()
