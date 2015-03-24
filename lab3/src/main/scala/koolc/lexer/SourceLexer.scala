@@ -52,7 +52,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
       if(eatingLineComment) {
         if(current == "\n") {
           eatingLineComment = false
-          current = ""
+          current = next.toString
           currentPos = source.pos
         } else {
           current = next.toString
