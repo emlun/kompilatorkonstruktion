@@ -282,9 +282,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           eat(DOT);
           if(currentToken is LENGTH) {
             eat(LENGTH);
-            return ArrayLength(expression);
+            maybeParseDot(ArrayLength(expression))
           } else {
-            return parseMethodCall(expression);
+            maybeParseDot(parseMethodCall(expression))
           }
         } else expression
       }
