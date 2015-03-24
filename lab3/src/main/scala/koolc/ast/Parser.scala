@@ -338,12 +338,18 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
     def parseComparison(): ExprTree = maybeParseRightComparee(parseSum())
 
-    def maybeParseRightExpression(lhs: ExprTree): ExprTree = currentToken.kind match {
-      case AND => { eat(AND); maybeParseRightExpression(And(lhs, parseComparison())) }
-      case OR  => { eat(OR);  maybeParseRightExpression(Or(lhs, parseComparison())) }
+    def maybeParseRightAnd(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case AND => { eat(AND); maybeParseRightAnd(And(lhs, parseComparison())) }
       case _   => lhs
     }
-    def parseExpression(): ExprTree = maybeParseRightExpression(parseComparison())
+
+    def parseAnd(): ExprTree = maybeParseRightAnd(parseComparison())
+
+    def maybeParseRightOr(lhs: ExprTree): ExprTree = currentToken.kind match {
+      case OR  => { eat(OR);  maybeParseRightOr(Or(lhs, parseAnd())) }
+      case _   => lhs
+    }
+    def parseExpression(): ExprTree = maybeParseRightOr(parseAnd())
 
     readToken()
     parseGoal()

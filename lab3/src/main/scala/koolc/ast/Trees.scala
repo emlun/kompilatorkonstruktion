@@ -6,7 +6,7 @@ import utils._
 object Trees {
   sealed trait Tree extends Positioned {
     def print(level: Int = 0): String
-    def indent(times: Int): String = " " * times
+    def indent(times: Int): String = "  " * times
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
@@ -103,28 +103,28 @@ ${this.indent(level)}}
 
   sealed trait ExprTree extends Tree
   case class And(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = lhs.print() + " && " + rhs.print()
+    override def print(level: Int = 0): String = "(" + lhs.print() + " && " + rhs.print() +")"
   }
   case class Or(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = lhs.print() + " || " + rhs.print()
+    override def print(level: Int = 0): String = "(" + lhs.print() + " || " + rhs.print() +")"
   }
   case class Plus(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = lhs.print() + " + " + rhs.print()
+    override def print(level: Int = 0): String = "(" + lhs.print() + " + " + rhs.print() +")"
   }
   case class Minus(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = lhs.print() + " - " + rhs.print()
+    override def print(level: Int = 0): String = "(" + lhs.print() + " - " + rhs.print() +")"
   }
   case class Times(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = lhs.print() + " * " + rhs.print()
+    override def print(level: Int = 0): String = "(" + lhs.print() + " * " + rhs.print() +")"
   }
   case class Div(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = lhs.print() + " / " + rhs.print()
+    override def print(level: Int = 0): String = "(" + lhs.print() + " / " + rhs.print() +")"
   }
   case class LessThan(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = lhs.print() + " < " + rhs.print()
+    override def print(level: Int = 0): String = "(" + lhs.print() + " < " + rhs.print() +")"
   }
   case class Equals(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = lhs.print() + " == " + rhs.print()
+    override def print(level: Int = 0): String = "(" + lhs.print() + " == " + rhs.print() +")"
   }
   case class ArrayRead(arr: ExprTree, index: ExprTree) extends ExprTree {
     override def print(level: Int = 0): String = arr.print() + " [ " + index.print() + " ]"
