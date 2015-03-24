@@ -55,6 +55,7 @@ task makePrettyPrinterSnapshots(type: Copy) {
 
 fileTree('src/test/resources/') {
   include '**/*.kool'
+  exclude '**/invalid/**'
 }.visit { f ->
   if(!f.isDirectory()) {
     def t = task("makePrettyPrinterSnapshot${f.name.replace('.kool', '').capitalize()}", type: JavaExec) {
