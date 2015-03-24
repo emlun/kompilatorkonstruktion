@@ -1,1 +1,45 @@
-Failed to parse input.
+object NinetyNineBottles {
+ def main() : Unit = {
+  if ( new DrunkPirate().sing (  ) )
+  {
+   println( "Done!" );
+  }
+ }
+}
+
+class DrunkPirate {
+ def sing (  ) : Bool = {
+  var value : Int;
+  value = this.verse ( 99 );
+  return true;
+ }
+ def verse ( number : Int ) : Int = {
+  var value : Int;
+  value = 0;
+  println( this.bottles ( number ) + " of beer on the wall, take one down, pass it around, " + this.bottles ( number - 1 ) + " of beer on the wall." );
+  if ( 1 < number )
+   {
+    value = this.verse ( number - 1 );
+   }
+  return value;
+ }
+ def bottles ( number : Int ) : String = {
+  var value : String;
+  if ( number == 0 )
+   {
+    value = "no more bottles";
+   }
+  else 
+   {
+    if ( number == 1 )
+     {
+      value = "1 bottle";
+     }
+    else 
+     {
+      value = number + " bottles";
+     }
+   }
+  return value;
+ }
+}
