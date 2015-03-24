@@ -179,7 +179,8 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
           println(10 - 9 + 8 - 7 + 6 - 5 + 4 - 3 + 2 - 1);
           println(10 / 9 * 8 / 7 * 6 / 5 * 4 / 3 * 2 / 1);
           println(10 == 9 < 8 == 7 < 6 == 5 < 4 == 3 < 2 == 1);
-          println(10 && 9 || 8 && 7 || 6 && 5 || 4 && 3 || 2 && 1);
+          println(1 && 2 && 3);
+          println(1 || 2 || 3);
         }
       }
       """
@@ -221,17 +222,8 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
                 IntLit(2)),
               IntLit(1))
             ) ::
-            Println(And(Or(And(Or(And(Or(And(Or(And(
-                              IntLit(10), IntLit(9)),
-                            IntLit(8)),
-                          IntLit(7)),
-                        IntLit(6)),
-                      IntLit(5)),
-                    IntLit(4)),
-                  IntLit(3)),
-                IntLit(2)),
-              IntLit(1))
-            ) ::
+            Println(And(And(IntLit(1), IntLit(2)), IntLit(3))) ::
+            Println(Or(Or(IntLit(1), IntLit(2)), IntLit(3))) ::
             Nil),
           classes = Nil
         ))
@@ -243,7 +235,7 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       val source = """
       object Main {
         def main(): Unit = {
-          println(9 && 8 || 7 < 6 == 5 + 4 - 3 * 2 / !1);
+          println(9 || 8 && 7 < 6 == 5 + 4 - 3 * 2 / !1);
         }
       }
       """
@@ -253,16 +245,16 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
         program.get should be (Program(
           main = MainObject(Identifier("Main"),
             Println(
-              Or(
-                And(IntLit(9), IntLit(8)),
-                Equals(
-                  LessThan(IntLit(7), IntLit(6)),
-                  Minus(
-                    Plus(IntLit(5), IntLit(4)),
-                    Div(
-                      Times(IntLit(3), IntLit(2)),
-                      Not(IntLit(1))
-            ))))) ::
+              Or(IntLit(9),
+                And(IntLit(8),
+                  Equals(
+                    LessThan(IntLit(7), IntLit(6)),
+                    Minus(
+                      Plus(IntLit(5), IntLit(4)),
+                      Div(
+                        Times(IntLit(3), IntLit(2)),
+                        Not(IntLit(1))
+            )))))) ::
             Nil),
           classes = Nil
         ))
