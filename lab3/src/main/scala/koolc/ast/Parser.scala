@@ -61,14 +61,6 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    sealed case class DeferredTreeReturn[+T](val tree: T) {
-      def thenEat(eatKinds: TokenKind*) = {
-        eatSequence(eatKinds:_*)
-        tree
-      }
-    }
-    def firstReturn[T](returnTree: T) = DeferredTreeReturn[T](returnTree)
-
     /**
      * Complains that what was found was not expected. The method accepts
      * arbitrarily many arguments of type TokenKind.
