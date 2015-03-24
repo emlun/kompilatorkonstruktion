@@ -14,8 +14,7 @@ object Trees {
   }
   case class MainObject(id: Identifier, stats: List[StatTree]) extends Tree {
     override def print(level: Int = 0): String = {
-      var statments: String = ""
-      stats.foreach (statments += "\n" + this.indent(level + 1) + _.print(1))
+      val statments = stats map ("\n" + indent(level + 1) + _.print(1)) mkString ""
       s"""object ${id.print()} {
 ${this.indent(level)}def main() : Unit = {${statments}
 ${this.indent(level)}}
