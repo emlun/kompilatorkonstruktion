@@ -230,10 +230,13 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           )
         })
 
-      def parsePrintln(): Option[Println] = {
-        eatSequence(PRINTLN, LPAREN)
-        Some(Println(firstReturn(parseExpression()) thenEat(RPAREN, SEMICOLON)))
-      }
+      def parsePrintln(): Option[Println] =
+        eatSequence(PRINTLN, LPAREN) flatMap (_ => {
+          val expression = parseExpression()
+          eatSequence(RPAREN, SEMICOLON) map (_ =>
+            Println(expression)
+          )
+        })
 
       def parseAssignment(): Option[StatTree] = eatIdentifier() flatMap (assignId =>
         currentToken.kind match {
