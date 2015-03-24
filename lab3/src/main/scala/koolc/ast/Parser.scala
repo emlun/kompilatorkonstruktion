@@ -222,12 +222,13 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           )
         })
 
-      def parseWhile(): Option[While] = {
-        eatSequence(WHILE, LPAREN)
-        val expression = parseExpression()
-        eat(RPAREN)
-        parseStatement() map ( doStatement => While(expression, doStatement) )
-      }
+      def parseWhile(): Option[While] =
+        eatSequence(WHILE, LPAREN) flatMap (_ => {
+          val expression = parseExpression()
+          eat(RPAREN) flatMap (_ =>
+            parseStatement() map ( doStatement => While(expression, doStatement) )
+          )
+        })
 
       def parsePrintln(): Option[Println] = {
         eatSequence(PRINTLN, LPAREN)
