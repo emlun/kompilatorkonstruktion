@@ -111,13 +111,19 @@ class SourceLexerSpec extends FunSpec with Matchers with TokenMatchers {
 
     it("ignores comments") {
       val source = """
+// This is a comment
+b
+
+// This is a comment
+// This is a comment
+
       println// This is a comment - skip this
       a/*
         This is also a comment - skip this too
         * // /*
-        */pa(
+        */p/**//* */a(
       """
-      lexed(source) should beKinds (PRINTLN :: IDKIND :: IDKIND :: LPAREN :: EOF :: Nil)
+      lexed(source) should beKinds (IDKIND :: PRINTLN :: IDKIND :: IDKIND :: IDKIND :: LPAREN :: EOF :: Nil)
     }
 
     it("does not support nested block comments") {
