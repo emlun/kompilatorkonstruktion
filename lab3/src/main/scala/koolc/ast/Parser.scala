@@ -162,10 +162,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
     def parseVarDeclarations(): List[VarDecl] = {
       def parseVarDeclaration(): Option[VarDecl] = {
-        eat(VAR)
-        eatIdentifier() map (id => {
-          firstReturn(VarDecl(parseType(), id)) thenEat(SEMICOLON)
-        })
+        eat(VAR) flatMap (_ =>
+          eatIdentifier() map (id => {
+            firstReturn(VarDecl(parseType(), id)) thenEat(SEMICOLON)
+          })
+        )
       }
 
       accumulate(parseVarDeclaration) whilst(() => currentToken is VAR)
