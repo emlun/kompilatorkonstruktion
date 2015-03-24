@@ -124,7 +124,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
                           parseExpression() flatMap (returnExpression =>
                             eatSequence(SEMICOLON, RBRACE) map (_ =>
                               MethodDecl(returnType, id,
-                                parameters.toList, varDeclarations.toList, statements, returnExpression)
+                                parameters, varDeclarations, statements, returnExpression)
                             )
                           )
                         )
@@ -285,7 +285,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
               eat(COMMA) flatMap (_ => parseExpression())
             ) whilst(() => currentToken is COMMA))
 
-          eat(RPAREN) map (_ => MethodCall(obj, identifier, args.toList))
+          eat(RPAREN) map (_ => MethodCall(obj, identifier, args))
         })
       )
 
