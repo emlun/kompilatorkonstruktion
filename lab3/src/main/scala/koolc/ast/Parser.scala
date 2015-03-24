@@ -240,19 +240,21 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
       def parseAssignment(): Option[StatTree] = eatIdentifier() flatMap (assignId =>
         currentToken.kind match {
-          case EQSIGN   => {
-            eat(EQSIGN)
-            Some(Assign(assignId, firstReturn(parseExpression()) thenEat(SEMICOLON)))
-          }
-          case LBRACKET => {
-            eat(LBRACKET)
-            val index = firstReturn(parseExpression()) thenEat(RBRACKET, EQSIGN)
-            val value = firstReturn(parseExpression()) thenEat(SEMICOLON)
-            Some(ArrayAssign(assignId, index, value))
-          }
+          case EQSIGN   => eat(EQSIGN) flatMap (_ => {
+              val expression = parseExpression()
+              eat(SEMICOLON) map (_ =>
+                Assign(assignId, expression)
+              )
+            })
+          case LBRACKET => eat(LBRACKET) flatMap (_ => {
+            val index = parseExpression()
+            eatSequence(RBRACKET, EQSIGN) flatMap (_ => {
+              val value = parseExpression()
+              eat(SEMICOLON) map (_ => ArrayAssign(assignId, index, value))
+            })
+          })
           case _        => {
             expected(EQSIGN, LBRACKET)
-            readToken()
             None
           }
         }
