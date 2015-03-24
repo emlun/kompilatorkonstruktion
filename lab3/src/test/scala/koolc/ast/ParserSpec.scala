@@ -402,6 +402,44 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
     }
 
+    it("parses chained dot operators correctly.") {
+      val source = """
+      object Main {
+        def main(): Unit = {
+          result = foo.bar("someArg").length.doSomething().doAnotherThing(true, "two", 3);
+        }
+      }
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program should be (Some(Program(
+          main = MainObject(Identifier("Main"),
+            Assign(Identifier("result"),
+              MethodCall(
+                MethodCall(
+                  ArrayLength(
+                    MethodCall(
+                      Identifier("foo"),
+                      Identifier("bar"),
+                      List(StringLit("someArg"))
+                    )
+                  ),
+                  Identifier("doSomething"),
+                  Nil
+                ),
+                Identifier("doAnotherThing"),
+                List(new True, StringLit("two"), IntLit(3))
+              )
+            ) ::
+            Nil
+          ),
+          classes = Nil
+        )))
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
     it("fails if comma in method call is not followed by an argument.") {
       val source = """
       object Main {
