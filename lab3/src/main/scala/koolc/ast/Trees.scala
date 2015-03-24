@@ -10,11 +10,7 @@ object Trees {
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
-    override def print(level: Int = 0): String = {
-      var classImpl: String = ""
-      classes.foreach (classImpl += "\n" + _.print())
-      main.print(1) + classImpl
-    }
+    override def print(level: Int = 0): String = main.print(1) + (classes map ("\n" + _.print()) mkString "")
   }
   case class MainObject(id: Identifier, stats: List[StatTree]) extends Tree {
     override def print(level: Int = 0): String = {
