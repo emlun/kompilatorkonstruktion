@@ -352,6 +352,12 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
     }
 
+    it("does not enter an infinite loop if a method call is missing its parentheses.") {
+      val source = "object Main { def main(): Unit = { foo.bar; } }"
+      val pipeline = SourceLexer andThen Parser
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
     it("fails if comma in method call is not followed by an argument.") {
       val source = """
       object Main {
