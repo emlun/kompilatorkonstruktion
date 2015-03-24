@@ -90,19 +90,17 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         Some(program)
     })
 
-    def parseMainObject(): Option[MainObject] = {
-      eat(OBJECT)
-
-      eatIdentifier() map (id => {
-        eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE)
-
-        val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
-
-        eatSequence(RBRACE, RBRACE)
-
-        MainObject(id, statements)
-      })
-    }
+    def parseMainObject(): Option[MainObject] =
+      eat(OBJECT) flatMap (_ =>
+        eatIdentifier() flatMap (id =>
+          eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE) flatMap (_ => {
+            val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
+            eatSequence(RBRACE, RBRACE) map (_ =>
+              MainObject(id, statements)
+            )
+          })
+        )
+      )
 
     def parseClassDeclarations(): List[ClassDecl] = {
       def parseClassDeclaration(): Option[ClassDecl] = {
