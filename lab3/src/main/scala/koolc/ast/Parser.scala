@@ -198,12 +198,13 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
     def parseStatement(): Option[StatTree] = {
 
-      def parseBlock(): Option[StatTree] = {
-        eat(LBRACE)
-        val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
-        eat(RBRACE)
-        Some(Block(statements))
-      }
+      def parseBlock(): Option[StatTree] =
+        eat(LBRACE) flatMap (_ => {
+          val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
+          eat(RBRACE) map (_ =>
+            Block(statements)
+          )
+      })
 
       def parseIf(): Option[If] = {
         eatSequence(IF, LPAREN)
