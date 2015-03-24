@@ -134,16 +134,7 @@ ${this.indent(level)}}
   }
   case class MethodCall(obj: ExprTree, meth: Identifier, args: List[ExprTree]) extends ExprTree {
     override def print(level: Int = 0): String = {
-      var arg: String = ""
-      // Pattern match
-      args match {
-        case first :: second :: rest  =>
-          arg = first.print() + ", " + second.print()
-          rest.foreach (arg += ", " + _.print())
-        case first :: rest =>
-          arg = first.print()
-        case _ => arg = ""
-      }
+      val arg = args map (_.print()) mkString ", "
       obj.print() + "." + meth.print() + " ( " + arg + " )"
     }
   }
