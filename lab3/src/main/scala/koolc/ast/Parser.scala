@@ -273,20 +273,21 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    def parseMethodCall(obj: ExprTree): ExprTree = {
-      val identifier = eatIdentifier().get;
-      eat(LPAREN);
-      var args = new ListBuffer[ExprTree];
-      if(currentToken is (BEGIN_EXPRESSION:_*)) {
-        args.append(parseExpression());
-        while(currentToken is COMMA) {
-          eat(COMMA)
-          args.append(parseExpression());
-        }
-      }
-      eat(RPAREN);
-      MethodCall(obj, identifier, args.toList)
-    }
+    def parseMethodCall(obj: ExprTree): Option[ExprTree] =
+      eatIdentifier() flatMap (identifier =>
+        eat(LPAREN) flatMap (_ => {
+          val args = (if(currentToken is (BEGIN_EXPRESSION:_*)) {
+            Some(parseExpression())
+          } else None) ++: (
+            accumulate(() =>
+              eat(COMMA) map (_ =>
+                parseExpression()
+              )
+            ) whilst(() => currentToken is COMMA))
+
+          eat(RPAREN) map (_ => MethodCall(obj, identifier, args.toList))
+        })
+      )
 
     def parseNegation(): ExprTree = {
 
@@ -307,7 +308,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
             eat(LENGTH);
             maybeParseDot(ArrayLength(expression))
           } else {
-            maybeParseDot(parseMethodCall(expression))
+            parseMethodCall(expression) map (call => maybeParseDot(call)) getOrElse null
           }
         } else expression
       }
