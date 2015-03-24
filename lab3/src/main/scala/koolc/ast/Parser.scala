@@ -47,9 +47,10 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    def eatSequence(kinds: TokenKind*): Seq[Token] = kinds.toList match {
-      case head :: tail => eat(head) ++: eatSequence(tail:_*)
-      case Nil          => Nil
+    def eatSequence(kinds: TokenKind*): Option[Token] = kinds.toList match {
+      case head :: Nil  => eat(head)
+      case head :: tail => eat(head) flatMap (_ => eatSequence(tail:_*))
+      case Nil          => None
     }
 
     def eatIdentifier(): Option[Identifier] = eat(IDKIND) match {
