@@ -448,6 +448,23 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
     }
 
+    it("fails if there are trailing characters after the last class declaration.") {
+      val source = """
+      object Main {
+        def main(): Unit = {
+          result = foo.bar("someArg",);
+        }
+      }
+      a
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
     describe("successfully parses") {
       VALID_TEST_FILES foreach ((path: String) => {
         it(path) {
