@@ -73,3 +73,30 @@ fileTree('src/test/resources/') {
     makePrettyPrinterSnapshots.dependsOn t
   }
 }
+
+task makeExpectedAstFiles(type: Copy) {
+  from("${buildDir}/tmp") {
+    include '**/*.kool.ast'
+  }
+  into 'src/test/resources'
+}
+
+fileTree('src/test/resources/') {
+  include '**/lab3/valid/**/*.kool'
+}.visit { f ->
+  if(!f.isDirectory()) {
+    def t = task("make${f.name.replace('.kool', '').capitalize()}ExpectedAst", type: JavaExec) {
+      classpath fileTree('lib')
+      executable 'scala'
+      main 'koolc.Main'
+      args "src/test/resources/${f.relativePath}"
+      args '--ast'
+      args '-d', "${buildDir}/tmp"
+
+      def outputFile = file("${buildDir}/tmp/${f.relativePath}.ast")
+      outputFile.parentFile.mkdirs()
+      standardOutput = new FileOutputStream(outputFile)
+    }
+    makeExpectedAstFiles.dependsOn t
+  }
+}
