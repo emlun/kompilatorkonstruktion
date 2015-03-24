@@ -13,43 +13,48 @@ import Trees._
 
 class PrettyPrinterSpec extends FunSpec with Matchers {
 
+  val TEST_FILES =
+    "/helloworld.kool" ::
+    "/greeter.kool" ::
+    "/noop.kool" ::
+    "/plundahl.kool" ::
+    "/printed.kool" ::
+    "/testprograms/lab3/valid/99bottles.kool" ::
+    "/testprograms/lab3/valid/BinarySearch.kool" ::
+    "/testprograms/lab3/valid/Calendar.kool" ::
+    "/testprograms/lab3/valid/ComplexNumbers.kool" ::
+    "/testprograms/lab3/valid/DrawStuff.kool" ::
+    "/testprograms/lab3/valid/Factorial.kool" ::
+    "/testprograms/lab3/valid/GCD.kool" ::
+    "/testprograms/lab3/valid/HeapSort.kool" ::
+    "/testprograms/lab3/valid/Life.kool" ::
+    "/testprograms/lab3/valid/Multiplicator.kool" ::
+    "/testprograms/lab3/valid/NewtonsMethod.kool" ::
+    "/testprograms/lab3/valid/OptimalChange.kool" ::
+    "/testprograms/lab3/valid/Polymorphism.kool" ::
+    "/testprograms/lab3/valid/PrimeTest.kool" ::
+    "/testprograms/lab3/valid/QuickSort.kool" ::
+    "/testprograms/lab3/valid/ScalarProduct.kool" ::
+    "/testprograms/lab3/valid/Simple.kool" ::
+    "/testprograms/lab3/valid/Sudoku.kool" ::
+    "/testprograms/lab3/valid/VehicleRent.kool" ::
+    Nil
+
   private object PrinterPipeline extends Pipeline[Option[Tree], String] {
     def run(ctx: Context)(tree: Option[Tree]): String = tree map Printer getOrElse "<empty program>"
   }
 
   describe("The pretty printer") {
 
-    it("outputs the expected result for helloworld.kool.") {
-      val expected = (Source fromURL getClass.getResource("/helloworld.kool.pretty")).mkString
-      val input = new File(getClass.getResource("/helloworld.kool").toURI())
-      val pipeline = Lexer andThen Parser andThen PrinterPipeline
-      val output = pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
-      output should be (expected)
-    }
-
-    it("outputs the expected result for greeter.kool.") {
-      val expected = (Source fromURL getClass.getResource("/greeter.kool.pretty")).mkString
-      val input = new File(getClass.getResource("/greeter.kool").toURI())
-      val pipeline = Lexer andThen Parser andThen PrinterPipeline
-      val output = pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
-      output should be (expected)
-    }
-
-    it("outputs the expected result for plundahl.kool.") {
-      val expected = (Source fromURL getClass.getResource("/plundahl.kool.pretty")).mkString
-      val input = new File(getClass.getResource("/plundahl.kool").toURI())
-      val pipeline = Lexer andThen Parser andThen PrinterPipeline
-      val output = pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
-      output should be (expected)
-    }
-
-    it("outputs the expected result for noop.kool.") {
-      val expected = (Source fromURL getClass.getResource("/noop.kool.pretty")).mkString
-      val input = new File(getClass.getResource("/noop.kool").toURI())
-      val pipeline = Lexer andThen Parser andThen PrinterPipeline
-      val output = pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
-      output should be (expected)
-    }
+    TEST_FILES foreach ((path: String) => {
+      it(s"outputs the expected result for ${path}.") {
+        val expected = (Source fromURL getClass.getResource(path + ".pretty")).mkString
+        val input = new File(getClass.getResource(path).toURI())
+        val pipeline = Lexer andThen Parser andThen PrinterPipeline
+        val output = pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+        output should be (expected)
+      }
+    })
 
     it("outputs the same thing if run on its own output.") {
       val input = new File(getClass.getResource("/greeter.kool").toURI())
