@@ -106,31 +106,36 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       def parseClassDeclaration(): Option[ClassDecl] = {
         def parseMethodDeclarations(): List[MethodDecl] = {
           def parseMethodDeclaration(): Option[MethodDecl] = {
-            eat(DEF)
-            eatIdentifier() map (id => {
-              eat(LPAREN)
-              var parameters = new ListBuffer[Formal]
-              if(currentToken is IDKIND) {
-                parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
-                while(currentToken is COMMA) {
-                  eat(COMMA)
-                  parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
-                }
-              }
-              eat(RPAREN)
-              val returnType = parseType()
-              eatSequence(EQSIGN, LBRACE)
+            eat(DEF) flatMap (_ =>
+              eatIdentifier() flatMap (id =>
+                eat(LPAREN) flatMap (_ => {
+                  val parameters = (if(currentToken is IDKIND) {
+                    eatIdentifier() map (paramId => Formal(parseType(), paramId))
+                  } else None) ++: (
+                    accumulate(() =>
+                      eat(COMMA) flatMap (_ =>
+                        eatIdentifier() map (paramId => Formal(parseType(), paramId))
+                      )
+                    ) whilst(() => currentToken is COMMA))
 
-              val varDeclarations = parseVarDeclarations()
+                  eat(RPAREN) flatMap (_ => {
+                    val returnType = parseType()
+                    eatSequence(EQSIGN, LBRACE) flatMap (_ => {
+                      val varDeclarations = parseVarDeclarations()
+                      val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
 
-              val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
-
-              eat(RETURN)
-              val returnExpression = parseExpression()
-              eatSequence(SEMICOLON, RBRACE)
-              MethodDecl(returnType, id,
-                parameters.toList, varDeclarations.toList, statements, returnExpression)
-            })
+                      eat(RETURN) flatMap (_ => {
+                        val returnExpression = parseExpression()
+                        eatSequence(SEMICOLON, RBRACE) map (_ => {
+                          MethodDecl(returnType, id,
+                            parameters.toList, varDeclarations.toList, statements, returnExpression)
+                        })
+                      })
+                    })
+                  })
+                })
+              )
+            )
           }
 
           accumulate(parseMethodDeclaration) whilst(() => currentToken is DEF)
