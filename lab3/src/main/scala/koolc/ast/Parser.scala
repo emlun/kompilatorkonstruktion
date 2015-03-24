@@ -289,7 +289,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         })
       )
 
-    def parseNegation(): ExprTree = {
+    def parseNegation(): Option[ExprTree] = {
 
       def parseNew(): Option[ExprTree] =
         eat(NEW) flatMap (_ =>
@@ -318,40 +318,44 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           )
         } else Some(expression)
 
-      def maybeParseArrayRead(expression: ExprTree): ExprTree = {
+      def maybeParseArrayRead(expression: ExprTree): Option[ExprTree] =
         if(currentToken is LBRACKET) {
-          eat(LBRACKET);
-          firstReturn(ArrayRead(expression, parseExpression())) thenEat(RBRACKET)
-        } else expression
-      }
+          eat(LBRACKET) flatMap (_ => {
+            val index = parseExpression()
+            eat(RBRACKET) map (_ => ArrayRead(expression, index))
+          })
+        } else Some(expression)
 
-      def parseExpressionBase() = currentToken match {
-        case INTLIT(value) => { eat(INTLITKIND); IntLit(value) }
-        case STRLIT(value) => { eat(STRLITKIND); StringLit(value) }
-        case ID(value)     => { eat(IDKIND);     Identifier(value) }
+      def parseExpressionBase(): Option[ExprTree] = currentToken match {
+        case INTLIT(value) => eat(INTLITKIND) map (_ => IntLit(value))
+        case STRLIT(value) => eat(STRLITKIND) map (_ => StringLit(value))
+        case ID(value)     => eat(IDKIND)     map (_ => Identifier(value))
         case _             => currentToken.kind match {
-          case TRUE        => { eat(TRUE); new True }
-          case FALSE       => { eat(FALSE); new False }
-          case THIS        => { eat(THIS); new This }
-          case NEW         => parseNew().orNull
-          case BANG        => { eat(BANG); Not(parseNegation()) }
-          case LPAREN      => { eat(LPAREN); firstReturn(parseExpression()) thenEat(RPAREN) }
+          case TRUE        => eat(TRUE)  map (_ => new True)
+          case FALSE       => eat(FALSE) map (_ => new False)
+          case THIS        => eat(THIS)  map (_ => new This)
+          case NEW         => parseNew()
+          case BANG        => eat(BANG) flatMap (_ => parseNegation()) map Not
+          case LPAREN      => eat(LPAREN) flatMap(_ => {
+            val expression = parseExpression()
+            eat(RPAREN) map (_ => expression)
+          })
           case _           => {
             expected(BEGIN_EXPRESSION:_*)
-            null
+            None
           }
         }
       }
 
-      maybeParseDot(parseExpressionBase()) map (dot => maybeParseArrayRead(dot)) getOrElse null
+      parseExpressionBase() flatMap maybeParseDot flatMap maybeParseArrayRead
     }
 
     def maybeParseRightFactor(lhs: ExprTree): ExprTree = currentToken.kind match {
-      case TIMES => { eat(TIMES); maybeParseRightFactor(Times(lhs, parseNegation())) }
-      case DIV   => { eat(DIV);   maybeParseRightFactor(Div(lhs, parseNegation())) }
+      case TIMES => { eat(TIMES); maybeParseRightFactor(Times(lhs, parseNegation().orNull)) }
+      case DIV   => { eat(DIV);   maybeParseRightFactor(Div(lhs, parseNegation().orNull)) }
       case _     => lhs
     }
-    def parseProduct(): ExprTree = maybeParseRightFactor(parseNegation())
+    def parseProduct(): ExprTree = maybeParseRightFactor(parseNegation().orNull)
 
     def maybeParseRightTerm(lhs: ExprTree): ExprTree = currentToken.kind match {
       case PLUS  => { eat(PLUS);  maybeParseRightTerm(Plus(lhs, parseProduct())) }
