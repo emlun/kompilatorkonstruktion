@@ -55,7 +55,7 @@ object Main {
     } else if(printAST){
       val pipeline = Lexer andThen Parser
 
-      print(
+      println(
         pipeline.run(ctx)(ctx.file.get)
           map PrintAST getOrElse "Failed to parse input."
       )
@@ -65,7 +65,7 @@ object Main {
 
       print(
         pipeline.run(ctx)(ctx.file.get)
-          map Printer getOrElse "Failed to parse input."
+          map Printer getOrElse "Failed to parse input.\n"
       )
     }
 
