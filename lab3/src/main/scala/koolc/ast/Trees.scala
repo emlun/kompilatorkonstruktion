@@ -29,10 +29,8 @@ ${this.indent(level)}}
       methods: List[MethodDecl]) extends Tree {
     override def print(level: Int = 0): String = {
       val extend = parent map (" extends " + _.print()) getOrElse ""
-      var vari: String = ""
-      vars.foreach (vari += this.indent(level + 1) + _.print(level + 1) + "\n")
-      var meti: String = ""
-      methods.foreach (meti += this.indent(level + 1) + _.print(level + 1) + "\n")
+      val vari = vars.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
+      val meti = methods.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
 
       this.indent(level) + "class " + id.print() + extend + " {\n" + vari + meti + this.indent(level) + "}"
     }
