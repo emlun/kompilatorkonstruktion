@@ -49,7 +49,7 @@ ${this.indent(level)}}
       val arg = args map (_.print()) mkString ", "
       val vari = vars map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
       val stmt = stats map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
-      "def " + id.print() + " ( " + arg + ") : " + retType.print() + " = {" +
+      "def " + id.print() + " ( " + arg + " ) : " + retType.print() + " = {" +
         vari + stmt + "\n" +
         indent(level + 1) + "return " + retExpr.print() + ";\n" +
         indent(level) + "}"
