@@ -109,4 +109,3 @@ class CalendarImpl {
     return (i - ((i / j) * j));
   }
 }
-

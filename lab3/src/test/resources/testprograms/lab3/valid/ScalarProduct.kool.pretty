@@ -53,4 +53,3 @@ class Vector4 {
     return vect [ i ];
   }
 }
-

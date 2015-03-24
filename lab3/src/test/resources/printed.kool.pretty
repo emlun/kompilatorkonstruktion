@@ -44,4 +44,3 @@ class secondClass extends firstClass {
     return false;
   }
 }
-

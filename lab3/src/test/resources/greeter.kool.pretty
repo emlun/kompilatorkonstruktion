@@ -38,4 +38,3 @@ class Greeter extends Named {
     return allSucceeded;
   }
 }
-

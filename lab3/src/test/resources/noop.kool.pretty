@@ -2,4 +2,3 @@ object HelloWorld {
   def main() : Unit = {
   }
 }
-

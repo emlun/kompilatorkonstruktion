@@ -168,4 +168,3 @@ class Cross extends Drawable {
     return "Another cool pattern!";
   }
 }
-

@@ -14,4 +14,3 @@ class Fact {
     return num_aux;
   }
 }
-

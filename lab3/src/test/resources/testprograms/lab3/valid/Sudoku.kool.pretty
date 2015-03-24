@@ -210,4 +210,3 @@ class SudokuGrid {
     return (i - ((i / j) * j));
   }
 }
-

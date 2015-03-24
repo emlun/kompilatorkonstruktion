@@ -50,4 +50,3 @@ class GreatestCommonDivisor {
     return r;
   }
 }
-

@@ -160,4 +160,3 @@ class Truck extends Vehicle {
     return maxWeight;
   }
 }
-
