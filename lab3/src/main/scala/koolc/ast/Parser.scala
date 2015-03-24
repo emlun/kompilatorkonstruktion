@@ -43,6 +43,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         current
       } else {
         expected(kind)
+        readToken()
         None
       }
     }
