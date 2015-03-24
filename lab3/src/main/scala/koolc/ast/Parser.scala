@@ -86,7 +86,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       eat(OBJECT) flatMap (_ =>
         eatIdentifier() flatMap (id =>
           eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE) flatMap (_ => {
-            val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
+            val statements = parseStatements()
             eatSequence(RBRACE, RBRACE) map (_ =>
               MainObject(id, statements)
             )
@@ -118,7 +118,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
                     parseType() flatMap (returnType =>
                       eatSequence(EQSIGN, LBRACE) flatMap (_ => {
                         val varDeclarations = parseVarDeclarations()
-                        val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
+                        val statements = parseStatements()
 
                         eat(RETURN) flatMap (_ =>
                           parseExpression() flatMap (returnExpression =>
@@ -193,7 +193,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
       def parseBlock(): Option[StatTree] =
         eat(LBRACE) flatMap (_ => {
-          val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
+          val statements = parseStatements()
           eat(RBRACE) map (_ =>
             Block(statements)
           )
@@ -271,6 +271,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       }
     }
+
+    def parseStatements(): List[StatTree] =
+      accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
 
     def parseMethodCall(obj: ExprTree): Option[ExprTree] =
       eatIdentifier() flatMap (identifier =>
