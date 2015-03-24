@@ -5,6 +5,6 @@ import Trees._
 
 object Printer extends (Tree => String) {
   def apply(t: Tree): String = {
-    t.print()
+    t.print() + "\n"
   }
 }
