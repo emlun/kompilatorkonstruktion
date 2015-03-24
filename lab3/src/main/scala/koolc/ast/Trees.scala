@@ -10,18 +10,16 @@ object Trees {
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
-    override def print(level: Int = 0): String = {
-      var classImpl: String = ""
-      classes.foreach (classImpl += "\n" + _.print())
-      main.print(1) + classImpl
-    }
+    override def print(level: Int = 0): String = main.print(1) + (classes map ("\n" + _.print()) mkString "")
   }
   case class MainObject(id: Identifier, stats: List[StatTree]) extends Tree {
     override def print(level: Int = 0): String = {
-      var statments: String = ""
-      stats.foreach (statments += "\n" + this.indent(level + 1) + _.print(1))
-      "object " + id.print() + " {\n" + this.indent(level) + "def main() : Unit = {" +
-      statments + "\n" + this.indent(level) + "}\n}\n"
+      val statments = stats map ("\n" + indent(level + 1) + _.print(1)) mkString ""
+      s"""object ${id.print()} {
+${this.indent(level)}def main() : Unit = {${statments}
+${this.indent(level)}}
+}
+"""
     }
   }
   case class ClassDecl(
@@ -30,21 +28,15 @@ object Trees {
       vars: List[VarDecl],
       methods: List[MethodDecl]) extends Tree {
     override def print(level: Int = 0): String = {
-      var extend = "";
-      parent match {
-        case Some(value) => extend = " extends " + value.print();
-        case None        => extend = "";
-      }
-      var vari: String = ""
-      vars.foreach (vari += this.indent(level + 1) + _.print(level + 1) + "\n")
-      var meti: String = ""
-      methods.foreach (meti += this.indent(level + 1) + _.print(level + 1) + "\n")
+      val extend = parent map (" extends " + _.print()) getOrElse ""
+      val vari = vars.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
+      val meti = methods.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
 
       this.indent(level) + "class " + id.print() + extend + " {\n" + vari + meti + this.indent(level) + "}"
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree {
-    override def print(level: Int = 0): String = "var " + id.print() + " : " + tpe.print() + ";"
+    override def print(level: Int = 0): String = s"var ${id.print()} : ${tpe.print()};"
   }
   case class MethodDecl(
       retType: TypeTree,
@@ -54,23 +46,13 @@ object Trees {
       stats: List[StatTree],
       retExpr: ExprTree) extends Tree {
     override def print(level: Int = 0): String = {
-      var arg: String = ""
-      // Pattern match
-      args match {
-        case first :: second :: rest  =>
-          arg = first.print() + ", " + second.print()
-          rest.foreach (arg += ", " + _.print())
-        case first :: rest =>
-          arg = first.print()
-        case _ => arg = ""
-      }
-      var vari: String = ""
-      vars.foreach (vari += this.indent(level + 1) + _.print(level + 1) + "\n")
-      var stmt: String = ""
-      stats.foreach (stmt += this.indent(level + 1) + _.print(level + 1) + "\n")
-      "def " + id.print() + " ( " + arg + ") : " + retType.print() + " = {\n" +
-        vari + stmt + this.indent(level + 1) + "return " + retExpr.print() + ";\n" +
-        this.indent(level) + "}"
+      val arg = args map (_.print()) mkString ", "
+      val vari = vars map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
+      val stmt = stats map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
+      "def " + id.print() + " ( " + arg + ") : " + retType.print() + " = {" +
+        vari + stmt + "\n" +
+        indent(level + 1) + "return " + retExpr.print() + ";\n" +
+        indent(level) + "}"
     }
   }
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree {
@@ -94,18 +76,13 @@ object Trees {
   sealed trait StatTree extends Tree
   case class Block(stats: List[StatTree]) extends StatTree {
     override def print(level: Int = 0): String = {
-      var statments: String = ""
-      stats.foreach (statments += "\n" + this.indent(level + 1) + _.print(level + 1))
-      "{" + statments + "\n" + this.indent(level) + "}"
+      val statments = stats map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
+      "{" + statments + "\n" + indent(level) + "}"
     }
   }
   case class If(expr: ExprTree, thn: StatTree, els: Option[StatTree]) extends StatTree {
     override def print(level: Int = 0): String = {
-      var addElse = "";
-      els match {
-        case Some(value) => addElse = "\n" + this.indent(level) + "else \n" + this.indent(level + 1) + value.print(level + 1);
-        case None        => addElse = "";
-      }
+      val addElse = els map ("\n" + indent(level) + "else \n" + indent(level + 1) + _.print(level + 1)) getOrElse "";
       "if ( " + expr.print() + " )\n" + this.indent(level + 1) + thn.print(level + 1) + addElse
     }
   }
@@ -157,16 +134,7 @@ object Trees {
   }
   case class MethodCall(obj: ExprTree, meth: Identifier, args: List[ExprTree]) extends ExprTree {
     override def print(level: Int = 0): String = {
-      var arg: String = ""
-      // Pattern match
-      args match {
-        case first :: second :: rest  =>
-          arg = first.print() + ", " + second.print()
-          rest.foreach (arg += ", " + _.print())
-        case first :: rest =>
-          arg = first.print()
-        case _ => arg = ""
-      }
+      val arg = args map (_.print()) mkString ", "
       obj.print() + "." + meth.print() + " ( " + arg + " )"
     }
   }
