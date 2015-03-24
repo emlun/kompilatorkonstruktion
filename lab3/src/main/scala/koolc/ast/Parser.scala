@@ -136,13 +136,20 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           accumulate(parseMethodDeclaration) whilst(() => currentToken is DEF)
         }
 
-        eat(CLASS)
-        eatIdentifier() map (id => {
-          val parentClass = if(currentToken is EXTENDS) { eat(EXTENDS); eatIdentifier() } else None
-          eat(LBRACE);
-          firstReturn(ClassDecl(id, parentClass, parseVarDeclarations(), parseMethodDeclarations()))
-            .thenEat(RBRACE)
-        }) orElse None
+        eat(CLASS) flatMap (_ =>
+          eatIdentifier() flatMap (id => {
+            val parentClass = if(currentToken is EXTENDS) {
+              eat(EXTENDS) flatMap (_ =>
+                eatIdentifier()
+              )
+            } else None
+            eat(LBRACE) flatMap (_ => {
+              val vars = parseVarDeclarations()
+              val methods = parseMethodDeclarations()
+              eat(RBRACE) map (_ => ClassDecl(id, parentClass, vars, methods))
+            })
+          })
+        )
       }
 
       accumulate(parseClassDeclaration) whilst(() => currentToken is CLASS)
