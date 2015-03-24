@@ -73,15 +73,16 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       )
     }
 
-    def parseGoal(): Option[Program] = parseMainObject() flatMap (main => {
-      val program = Program(main, parseClassDeclarations())
-      eat(EOF)
-
-      if(ctx.reporter.hasErrors)
-        None
-      else
-        Some(program)
-    })
+    def parseGoal(): Option[Program] =
+      parseMainObject() flatMap (main => {
+        val classes = parseClassDeclarations()
+        eat(EOF) flatMap (_ =>
+          if(ctx.reporter.hasErrors)
+            None
+          else
+            Some(Program(main, classes))
+        )
+      })
 
     def parseMainObject(): Option[MainObject] =
       eat(OBJECT) flatMap (_ =>
