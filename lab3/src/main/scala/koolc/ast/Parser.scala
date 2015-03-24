@@ -91,7 +91,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       eatIdentifier() map (id => {
         eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE)
 
-        val statements = accumulate(parseStatement) whilst(() => currentToken isnt RBRACE )
+        val statements = accumulate(parseStatement) whilst(() => (currentToken isnt RBRACE) && (currentToken isnt EOF))
 
         eatSequence(RBRACE, RBRACE)
 
@@ -107,7 +107,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
             eatIdentifier() map (id => {
               eat(LPAREN)
               var parameters = new ListBuffer[Formal]
-              while(currentToken isnt RPAREN) {
+              while((currentToken isnt RPAREN) && (currentToken isnt EOF)) {
                 if(parameters.length > 0) eat(COMMA)
                 parameters ++= eatIdentifier() map ( paramId => Formal(parseType(), paramId) )
               }
@@ -117,7 +117,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
               val varDeclarations = parseVarDeclarations()
 
-              val statements = accumulate(parseStatement) whilst(() => currentToken isnt RETURN)
+              val statements = accumulate(parseStatement) whilst(() => (currentToken isnt RETURN) && (currentToken isnt EOF))
 
               eat(RETURN)
               val returnExpression = parseExpression()
@@ -177,7 +177,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
       def parseBlock(): Option[StatTree] = {
         eat(LBRACE)
-        val statements = accumulate(parseStatement) whilst(() => currentToken isnt RBRACE)
+        val statements = accumulate(parseStatement) whilst(() => (currentToken isnt RBRACE) && (currentToken isnt EOF))
         eat(RBRACE)
         Some(Block(statements))
       }
@@ -222,6 +222,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           }
           case _        => {
             expected(EQSIGN, LBRACKET)
+            readToken()
             None
           }
         }
@@ -233,6 +234,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         case WHILE   => parseWhile()
         case PRINTLN => parsePrintln()
         case IDKIND  => parseAssignment()
+        case EOF     => null
         case _       => {
           expected(LPAREN, IF, WHILE, PRINTLN, IDKIND)
           readToken()
