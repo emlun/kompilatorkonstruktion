@@ -76,9 +76,8 @@ ${this.indent(level)}}
   sealed trait StatTree extends Tree
   case class Block(stats: List[StatTree]) extends StatTree {
     override def print(level: Int = 0): String = {
-      var statments: String = ""
-      stats.foreach (statments += "\n" + this.indent(level + 1) + _.print(level + 1))
-      "{" + statments + "\n" + this.indent(level) + "}"
+      val statments = stats map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
+      "{" + statments + "\n" + indent(level) + "}"
     }
   }
   case class If(expr: ExprTree, thn: StatTree, els: Option[StatTree]) extends StatTree {
