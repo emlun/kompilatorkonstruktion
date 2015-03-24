@@ -291,15 +291,19 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
     def parseNegation(): ExprTree = {
 
-      def parseNew(): ExprTree = {
-        eat(NEW);
-        if(currentToken is IDKIND) {
-          firstReturn(New(eatIdentifier().get)) thenEat(LPAREN, RPAREN)
-        } else {
-          eatSequence(INT, LBRACKET)
-          firstReturn(NewIntArray(parseExpression())) thenEat(RBRACKET)
-        }
-      }
+      def parseNew(): Option[ExprTree] =
+        eat(NEW) flatMap (_ =>
+          if(currentToken is IDKIND) {
+            eatIdentifier() flatMap (id =>
+              eatSequence(LPAREN, RPAREN) map (_ => New(id))
+            )
+          } else {
+            eatSequence(INT, LBRACKET) flatMap (_ => {
+              val expression = parseExpression()
+              eat(RBRACKET) map (_ => NewIntArray(expression))
+            })
+          }
+        )
 
       def maybeParseDot(expression: ExprTree): Option[ExprTree] =
         if(currentToken is DOT) {
@@ -329,7 +333,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           case TRUE        => { eat(TRUE); new True }
           case FALSE       => { eat(FALSE); new False }
           case THIS        => { eat(THIS); new This }
-          case NEW         => parseNew()
+          case NEW         => parseNew().orNull
           case BANG        => { eat(BANG); Not(parseNegation()) }
           case LPAREN      => { eat(LPAREN); firstReturn(parseExpression()) thenEat(RPAREN) }
           case _           => {
