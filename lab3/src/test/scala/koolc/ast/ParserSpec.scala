@@ -29,6 +29,50 @@ trait ParseMatchers {
 
 class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
 
+  val VALID_TEST_FILES =
+    "/helloworld.kool" ::
+    "/greeter.kool" ::
+    "/noop.kool" ::
+    "/plundahl.kool" ::
+    "/printed.kool" ::
+    "/testprograms/lab3/valid/99bottles.kool" ::
+    "/testprograms/lab3/valid/BinarySearch.kool" ::
+    "/testprograms/lab3/valid/Calendar.kool" ::
+    "/testprograms/lab3/valid/ComplexNumbers.kool" ::
+    "/testprograms/lab3/valid/DrawStuff.kool" ::
+    "/testprograms/lab3/valid/Factorial.kool" ::
+    "/testprograms/lab3/valid/GCD.kool" ::
+    "/testprograms/lab3/valid/HeapSort.kool" ::
+    "/testprograms/lab3/valid/Life.kool" ::
+    "/testprograms/lab3/valid/Multiplicator.kool" ::
+    "/testprograms/lab3/valid/NewtonsMethod.kool" ::
+    "/testprograms/lab3/valid/OptimalChange.kool" ::
+    "/testprograms/lab3/valid/Polymorphism.kool" ::
+    "/testprograms/lab3/valid/PrimeTest.kool" ::
+    "/testprograms/lab3/valid/QuickSort.kool" ::
+    "/testprograms/lab3/valid/ScalarProduct.kool" ::
+    "/testprograms/lab3/valid/Simple.kool" ::
+    "/testprograms/lab3/valid/Sudoku.kool" ::
+    "/testprograms/lab3/valid/VehicleRent.kool" ::
+    Nil
+
+  val INVALID_TEST_FILES =
+    "/testprograms/lab2/invalid/002.kool" ::
+    "/testprograms/lab2/invalid/005.kool" ::
+    "/testprograms/lab2/invalid/007.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail02.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail05.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail08.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail10.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail12.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail15.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail18.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail24.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail33.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail36.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail39.kool" ::
+    Nil
+
   def checkResult(body: (Context, Option[Program]) => Unit) = new Pipeline[Option[Program], Unit] {
     def run(ctx: Context)(program: Option[Program]) = body(ctx, program)
   }
@@ -372,6 +416,32 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
         program should be (None)
       })
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
+    describe("successfully parses") {
+      VALID_TEST_FILES foreach ((path: String) => {
+        it(path) {
+          val input = new File(getClass.getResource(path).toURI())
+          val pipeline = Lexer andThen Parser andThen checkResult((ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be (None)
+          })
+          pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+        }
+      })
+    }
+
+    describe("does not successfully parse") {
+      INVALID_TEST_FILES foreach ((path: String) => {
+        it(path) {
+          val input = new File(getClass.getResource(path).toURI())
+          val pipeline = Lexer andThen Parser andThen checkResult((ctx, program) => {
+            ctx.reporter should not be errorless
+            program should be (None)
+          })
+          pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+        }
+      })
     }
 
   }
