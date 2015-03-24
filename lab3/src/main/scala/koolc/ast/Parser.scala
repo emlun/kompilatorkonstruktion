@@ -110,29 +110,34 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
               eatIdentifier() flatMap (id =>
                 eat(LPAREN) flatMap (_ => {
                   val parameters = (if(currentToken is IDKIND) {
-                    eatIdentifier() map (paramId => Formal(parseType(), paramId))
+                    eatIdentifier() flatMap (paramId =>
+                      parseType() map (Formal(_, paramId))
+                    )
                   } else None) ++: (
                     accumulate(() =>
                       eat(COMMA) flatMap (_ =>
-                        eatIdentifier() map (paramId => Formal(parseType(), paramId))
+                        eatIdentifier() flatMap (paramId =>
+                          parseType() map (Formal(_, paramId))
+                        )
                       )
                     ) whilst(() => currentToken is COMMA))
 
-                  eat(RPAREN) flatMap (_ => {
-                    val returnType = parseType()
-                    eatSequence(EQSIGN, LBRACE) flatMap (_ => {
-                      val varDeclarations = parseVarDeclarations()
-                      val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
+                  eat(RPAREN) flatMap (_ =>
+                    parseType() flatMap (returnType =>
+                      eatSequence(EQSIGN, LBRACE) flatMap (_ => {
+                        val varDeclarations = parseVarDeclarations()
+                        val statements = accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
 
-                      eat(RETURN) flatMap (_ => {
-                        val returnExpression = parseExpression()
-                        eatSequence(SEMICOLON, RBRACE) map (_ => {
-                          MethodDecl(returnType, id,
-                            parameters.toList, varDeclarations.toList, statements, returnExpression)
+                        eat(RETURN) flatMap (_ => {
+                          val returnExpression = parseExpression()
+                          eatSequence(SEMICOLON, RBRACE) map (_ =>
+                            MethodDecl(returnType, id,
+                              parameters.toList, varDeclarations.toList, statements, returnExpression)
+                          )
                         })
                       })
-                    })
-                  })
+                    )
+                  )
                 })
               )
             )
@@ -161,36 +166,35 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def parseVarDeclarations(): List[VarDecl] = {
-      def parseVarDeclaration(): Option[VarDecl] = {
+      def parseVarDeclaration(): Option[VarDecl] =
         eat(VAR) flatMap (_ =>
-          eatIdentifier() map (id => {
-            firstReturn(VarDecl(parseType(), id)) thenEat(SEMICOLON)
-          })
+          eatIdentifier() flatMap (id =>
+            parseType() map (tpe => VarDecl(tpe, id)) flatMap (varDecl =>
+              eat(SEMICOLON) map (_ => varDecl)
+            )
+          )
         )
-      }
 
       accumulate(parseVarDeclaration) whilst(() => currentToken is VAR)
     }
 
-    def parseType(): TypeTree = {
-      eat(COLON)
-      currentToken.kind match {
-        case BOOLEAN => { eat(BOOLEAN); new BooleanType }
-        case STRING  => { eat(STRING);  new StringType }
-        case IDKIND  => eatIdentifier().get
-        case INT     => {
-          eat(INT)
-          if(currentToken is LBRACKET) {
-            eatSequence(LBRACKET, RBRACKET)
-            new IntArrayType
-          } else new IntType
+    def parseType(): Option[TypeTree] =
+      eat(COLON) flatMap (_ =>
+        currentToken.kind match {
+          case BOOLEAN => eat(BOOLEAN) map (_ => new BooleanType)
+          case STRING  => eat(STRING) map (_ =>  new StringType)
+          case IDKIND  => eatIdentifier()
+          case INT     => eat(INT) flatMap (_ =>
+              if(currentToken is LBRACKET) {
+                eatSequence(LBRACKET, RBRACKET) map (_ => new IntArrayType)
+              } else Some(new IntType)
+            )
+          case _ => {
+            expected(BOOLEAN, STRING, IDKIND, INT)
+            None
+          }
         }
-        case _ => {
-          expected(BOOLEAN, STRING, IDKIND, INT)
-          null
-        }
-      }
-    }
+      )
 
     def parseStatement(): Option[StatTree] = {
 
