@@ -268,7 +268,6 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         case IDKIND  => parseAssignment()
         case _       => {
           expected(BEGIN_STATEMENT:_*)
-          readToken()
           None
         }
       }
