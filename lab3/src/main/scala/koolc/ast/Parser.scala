@@ -206,19 +206,21 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           )
       })
 
-      def parseIf(): Option[If] = {
-        eatSequence(IF, LPAREN)
-        val expression = parseExpression()
-        eat(RPAREN)
-        parseStatement() map (thenStatement => {
-          val elseStatement = if(currentToken is ELSE) {
-            eat(ELSE)
-            parseStatement()
-          } else None
+      def parseIf(): Option[If] =
+        eatSequence(IF, LPAREN) flatMap (_ => {
+          val expression = parseExpression()
+          eat(RPAREN) flatMap (_ =>
+            parseStatement() map (thenStatement => {
+              val elseStatement = if(currentToken is ELSE) {
+                eat(ELSE) flatMap (_ =>
+                  parseStatement()
+                )
+              } else None
 
-          If(expression, thenStatement, elseStatement)
+              If(expression, thenStatement, elseStatement)
+            })
+          )
         })
-      }
 
       def parseWhile(): Option[While] = {
         eatSequence(WHILE, LPAREN)
