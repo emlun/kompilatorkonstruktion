@@ -94,7 +94,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     if(eatingBlockComment) {
       val token = new Token(BAD)
       token.setPos(ctx.file, currentPos)
-      ctx.reporter.error(s"unterminated block comment", token)
+      ctx.reporter.error("unterminated block comment", token)
       return (
         None,
         "",
