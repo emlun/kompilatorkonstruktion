@@ -91,7 +91,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     }
     //If we get here and are still trying to eat a block comment, something
     //is wrong in the programfile.
-    if(eatingBlockComment){
+    if(eatingBlockComment) {
       val token = new Token(BAD)
       token.setPos(ctx.file, currentPos)
       ctx.reporter.error(s"unterminated block comment", token)
@@ -100,8 +100,7 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
         "",
         source.pos
       )
-    }
-    else{
+    } else {
       return (
         current.trim match {
           case "" => None
