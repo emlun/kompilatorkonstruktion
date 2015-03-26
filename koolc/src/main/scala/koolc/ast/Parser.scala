@@ -119,19 +119,19 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
                 eat(LPAREN) {
                   val parameters = (if(currentToken is IDKIND) {
                     eatIdentifier(paramId =>
-                      parseType() map (Formal(_, paramId))
+                      parseType(tpe => Some(Formal(tpe, paramId)))
                     )
                   } else None) ++: (
                     accumulate(() =>
                       eat(COMMA) {
                         eatIdentifier(paramId =>
-                          parseType() map (Formal(_, paramId))
+                          parseType(tpe => Some(Formal(tpe, paramId)))
                         )
                       }
                     ) whilst(() => currentToken is COMMA))
 
                   eat(RPAREN) {
-                    parseType() flatMap (returnType =>
+                    parseType(returnType =>
                       eat(EQSIGN, LBRACE) {
                         val varDeclarations = parseVarDeclarations()
                         val statements = parseStatements()
@@ -178,7 +178,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       def parseVarDeclaration(): Option[VarDecl] =
         eat(VAR) {
           eatIdentifier(id =>
-            parseType() map (tpe => VarDecl(tpe, id)) flatMap (varDecl =>
+            parseType(tpe => Some(VarDecl(tpe, id))) flatMap (varDecl =>
               eat(SEMICOLON) {
                 Some(varDecl)
               }
@@ -189,7 +189,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       accumulate(parseVarDeclaration) whilst(() => currentToken is VAR)
     }
 
-    def parseType(): Option[TypeTree] =
+    def parseType[T](thenn: TypeTree => Option[T] = Some[TypeTree](_)): Option[T] =
       eat(COLON) {
         currentToken.kind match {
           case BOOLEAN => eat(BOOLEAN) { Some(new BooleanType) }
@@ -205,7 +205,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
             None
           }
         }
-      }
+      } flatMap thenn
 
     def parseStatement[T](thenn: StatTree => Option[T] = Some[StatTree](_)): Option[T] = {
 
