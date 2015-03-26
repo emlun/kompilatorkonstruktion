@@ -178,9 +178,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       def parseVarDeclaration(): Option[VarDecl] =
         eat(VAR) {
           eatIdentifier(id =>
-            parseType(tpe => Some(VarDecl(tpe, id))) flatMap (varDecl =>
+            parseType(tpe =>
               eat(SEMICOLON) {
-                Some(varDecl)
+                Some(VarDecl(tpe, id))
               }
             )
           )
