@@ -207,7 +207,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       }
 
-    def parseStatement(): Option[StatTree] = {
+    def parseStatement[T](thenn: StatTree => Option[T] = Some[StatTree](_)): Option[T] = {
 
       def parseBlock(): Option[StatTree] =
         eat(LBRACE) {
@@ -221,14 +221,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         eat(IF, LPAREN) {
           parseExpression(expression =>
             eat(RPAREN) {
-              parseStatement() map (thenStatement => {
+              parseStatement(thenStatement => {
                 val elseStatement = if(currentToken is ELSE) {
                   eat(ELSE) {
                     parseStatement()
                   }
                 } else None
 
-                If(expression, thenStatement, elseStatement)
+                Some(If(expression, thenStatement, elseStatement))
               })
             }
           )
@@ -238,7 +238,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         eat(WHILE, LPAREN) {
           parseExpression(expression =>
             eat(RPAREN) {
-              parseStatement() map ( doStatement => While(expression, doStatement) )
+              parseStatement(doStatement => Some(While(expression, doStatement)))
             }
           )
         }
@@ -277,7 +277,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       )
 
-      currentToken.kind match {
+      (currentToken.kind match {
         case LBRACE  => parseBlock()
         case IF      => parseIf()
         case WHILE   => parseWhile()
@@ -287,11 +287,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           expected(BEGIN_STATEMENT:_*)
           None
         }
-      }
+      }) flatMap thenn
     }
 
     def parseStatements(): List[StatTree] =
-      accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
+      accumulate(() => parseStatement()) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
 
     def parseMethodCall(obj: ExprTree): Option[ExprTree] =
       eatIdentifier(identifier =>
