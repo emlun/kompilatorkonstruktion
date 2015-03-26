@@ -1,3 +1,9 @@
+/***
+Authors:
+Emil Lundberg
+Petter Lundahl
+***/
+
 package koolc
 package ast
 
