@@ -41,8 +41,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    /** ''Eats'' the expected token, or terminates with an error. */
-    def eat(kind: TokenKind): Option[Token] = {
+    def eatInternal(kind: TokenKind): Option[Token] = {
       if (currentToken.kind == kind) {
         val current = Some(currentToken)
         readToken
@@ -54,13 +53,21 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    def eatSequence(kinds: TokenKind*): Option[Token] = kinds.toList match {
-      case head :: Nil  => eat(head)
-      case head :: tail => eat(head) flatMap (_ => eatSequence(tail:_*))
-      case Nil          => None
+    def eat[T](kind: TokenKind, moreKinds: TokenKind*): (Option[T] => Option[T]) = {
+      sealed class EatTokenResult[T](val token: Option[Token]) extends (Option[T] => Option[T]) {
+        def apply(thenn: Option[T]): Option[T] = token flatMap (_ => thenn)
+      }
+
+      moreKinds.toList match {
+        case Nil          => new EatTokenResult(eatInternal(kind))
+        case head :: tail => eatInternal(kind) match {
+          case Some(_) => eat(head, tail:_*)
+          case None        => (_ => None)
+        }
+      }
     }
 
-    def eatIdentifier(): Option[Identifier] = eat(IDKIND) match {
+    def eatIdentifier(): Option[Identifier] = eatInternal(IDKIND) match {
       case Some(ID(value)) => Some(new Identifier(value))
       case _ => {
         expected(IDKIND)
@@ -82,85 +89,87 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     def parseGoal(): Option[Program] =
       parseMainObject() flatMap (main => {
         val classes = parseClassDeclarations()
-        eat(EOF) flatMap (_ =>
+        eat(EOF) {
           if(ctx.reporter.hasErrors)
             None
           else
             Some(Program(main, classes))
-        )
+        }
       })
 
     def parseMainObject(): Option[MainObject] =
-      eat(OBJECT) flatMap (_ =>
+      eat(OBJECT) {
         eatIdentifier() flatMap (id =>
-          eatSequence(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE) flatMap (_ => {
+          eat(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE) {
             val statements = parseStatements()
-            eatSequence(RBRACE, RBRACE) map (_ =>
-              MainObject(id, statements)
-            )
-          })
+            eat(RBRACE, RBRACE) {
+              Some(MainObject(id, statements))
+            }
+          }
         )
-      )
+      }
 
     def parseClassDeclarations(): List[ClassDecl] = {
       def parseClassDeclaration(): Option[ClassDecl] = {
         def parseMethodDeclarations(): List[MethodDecl] = {
-          def parseMethodDeclaration(): Option[MethodDecl] = {
-            eat(DEF) flatMap (_ =>
+          def parseMethodDeclaration(): Option[MethodDecl] =
+            eat(DEF) {
               eatIdentifier() flatMap (id =>
-                eat(LPAREN) flatMap (_ => {
+                eat(LPAREN) {
                   val parameters = (if(currentToken is IDKIND) {
                     eatIdentifier() flatMap (paramId =>
                       parseType() map (Formal(_, paramId))
                     )
                   } else None) ++: (
                     accumulate(() =>
-                      eat(COMMA) flatMap (_ =>
+                      eat(COMMA) {
                         eatIdentifier() flatMap (paramId =>
                           parseType() map (Formal(_, paramId))
                         )
-                      )
+                      }
                     ) whilst(() => currentToken is COMMA))
 
-                  eat(RPAREN) flatMap (_ =>
+                  eat(RPAREN) {
                     parseType() flatMap (returnType =>
-                      eatSequence(EQSIGN, LBRACE) flatMap (_ => {
+                      eat(EQSIGN, LBRACE) {
                         val varDeclarations = parseVarDeclarations()
                         val statements = parseStatements()
 
-                        eat(RETURN) flatMap (_ =>
+                        eat(RETURN) {
                           parseExpression() flatMap (returnExpression =>
-                            eatSequence(SEMICOLON, RBRACE) map (_ =>
-                              MethodDecl(returnType, id,
+                            eat(SEMICOLON, RBRACE) {
+                              Some(MethodDecl(returnType, id,
                                 parameters, varDeclarations, statements, returnExpression)
-                            )
+                              )
+                            }
                           )
-                        )
-                      })
+                        }
+                      }
                     )
-                  )
-                })
+                  }
+                }
               )
-            )
-          }
+            }
 
           accumulate(parseMethodDeclaration) whilst(() => currentToken is DEF)
         }
 
-        eat(CLASS) flatMap (_ =>
+        eat(CLASS) {
           eatIdentifier() flatMap (id => {
             val parentClass = if(currentToken is EXTENDS) {
-              eat(EXTENDS) flatMap (_ =>
+              eat(EXTENDS) {
                 eatIdentifier()
-              )
+              }
             } else None
-            eat(LBRACE) flatMap (_ => {
+            eat(LBRACE) {
               val vars = parseVarDeclarations()
               val methods = parseMethodDeclarations()
-              eat(RBRACE) map (_ => ClassDecl(id, parentClass, vars, methods))
-            })
+              eat(RBRACE) {
+                Some(ClassDecl(id, parentClass, vars, methods))
+              }
+            }
           })
-        )
+        }
       }
 
       accumulate(parseClassDeclaration) whilst(() => currentToken is CLASS)
@@ -168,98 +177,100 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
     def parseVarDeclarations(): List[VarDecl] = {
       def parseVarDeclaration(): Option[VarDecl] =
-        eat(VAR) flatMap (_ =>
+        eat(VAR) {
           eatIdentifier() flatMap (id =>
             parseType() map (tpe => VarDecl(tpe, id)) flatMap (varDecl =>
-              eat(SEMICOLON) map (_ => varDecl)
+              eat(SEMICOLON) {
+                Some(varDecl)
+              }
             )
           )
-        )
+        }
 
       accumulate(parseVarDeclaration) whilst(() => currentToken is VAR)
     }
 
     def parseType(): Option[TypeTree] =
-      eat(COLON) flatMap (_ =>
+      eat(COLON) {
         currentToken.kind match {
-          case BOOLEAN => eat(BOOLEAN) map (_ => new BooleanType)
-          case STRING  => eat(STRING) map (_ =>  new StringType)
+          case BOOLEAN => eat(BOOLEAN) { Some(new BooleanType) }
+          case STRING  => eat(STRING) { Some(new StringType) }
           case IDKIND  => eatIdentifier()
-          case INT     => eat(INT) flatMap (_ =>
+          case INT     => eat(INT) {
               if(currentToken is LBRACKET) {
-                eatSequence(LBRACKET, RBRACKET) map (_ => new IntArrayType)
+                eat(LBRACKET, RBRACKET) { Some(new IntArrayType) }
               } else Some(new IntType)
-            )
+            }
           case _ => {
             expected(BOOLEAN, STRING, IDKIND, INT)
             None
           }
         }
-      )
+      }
 
     def parseStatement(): Option[StatTree] = {
 
       def parseBlock(): Option[StatTree] =
-        eat(LBRACE) flatMap (_ => {
+        eat(LBRACE) {
           val statements = parseStatements()
-          eat(RBRACE) map (_ =>
-            Block(statements)
-          )
-      })
+          eat(RBRACE) {
+            Some(Block(statements))
+          }
+        }
 
       def parseIf(): Option[If] =
-        eatSequence(IF, LPAREN) flatMap (_ =>
+        eat(IF, LPAREN) {
           parseExpression() flatMap (expression =>
-            eat(RPAREN) flatMap (_ =>
+            eat(RPAREN) {
               parseStatement() map (thenStatement => {
                 val elseStatement = if(currentToken is ELSE) {
-                  eat(ELSE) flatMap (_ =>
+                  eat(ELSE) {
                     parseStatement()
-                  )
+                  }
                 } else None
 
                 If(expression, thenStatement, elseStatement)
               })
-            )
+            }
           )
-        )
+        }
 
       def parseWhile(): Option[While] =
-        eatSequence(WHILE, LPAREN) flatMap (_ =>
+        eat(WHILE, LPAREN) {
           parseExpression() flatMap (expression =>
-            eat(RPAREN) flatMap (_ =>
+            eat(RPAREN) {
               parseStatement() map ( doStatement => While(expression, doStatement) )
-            )
+            }
           )
-        )
+        }
 
       def parsePrintln(): Option[Println] =
-        eatSequence(PRINTLN, LPAREN) flatMap (_ =>
+        eat(PRINTLN, LPAREN) {
           parseExpression() flatMap (expression =>
-            eatSequence(RPAREN, SEMICOLON) map (_ =>
-              Println(expression)
-            )
+            eat(RPAREN, SEMICOLON) {
+              Some(Println(expression))
+            }
           )
-        )
+        }
 
       def parseAssignment(): Option[StatTree] = eatIdentifier() flatMap (assignId =>
         currentToken.kind match {
-          case EQSIGN   => eat(EQSIGN) flatMap (_ =>
+          case EQSIGN   => eat(EQSIGN) {
             parseExpression() flatMap (expression =>
-              eat(SEMICOLON) map (_ =>
-                Assign(assignId, expression)
-              )
+              eat(SEMICOLON) {
+                Some(Assign(assignId, expression))
+              }
             )
-          )
-          case LBRACKET => eat(LBRACKET) flatMap (_ =>
+          }
+          case LBRACKET => eat(LBRACKET) {
             parseExpression() flatMap (index =>
-              eatSequence(RBRACKET, EQSIGN) flatMap (_ =>
+              eat(RBRACKET, EQSIGN) {
                 parseExpression() flatMap (value =>
-                  eat(SEMICOLON) map (_ => ArrayAssign(assignId, index, value))
+                  eat(SEMICOLON) { Some(ArrayAssign(assignId, index, value)) }
                 )
-              )
+              }
             )
-          )
+          }
           case _        => {
             expected(EQSIGN, LBRACKET)
             None
@@ -285,72 +296,72 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
     def parseMethodCall(obj: ExprTree): Option[ExprTree] =
       eatIdentifier() flatMap (identifier =>
-        eat(LPAREN) flatMap (_ => {
+        eat(LPAREN) {
           val args = (if(currentToken is (BEGIN_EXPRESSION:_*)) {
             parseExpression()
           } else None) ++: (
             accumulate(() =>
-              eat(COMMA) flatMap (_ => parseExpression())
+              eat(COMMA) { parseExpression() }
             ) whilst(() => currentToken is COMMA))
 
-          eat(RPAREN) map (_ => MethodCall(obj, identifier, args))
-        })
+          eat(RPAREN) { Some(MethodCall(obj, identifier, args)) }
+        }
       )
 
     def parseNegation(): Option[ExprTree] = {
 
       def parseNew(): Option[ExprTree] =
-        eat(NEW) flatMap (_ =>
+        eat(NEW) {
           if(currentToken is IDKIND) {
             eatIdentifier() flatMap (id =>
-              eatSequence(LPAREN, RPAREN) map (_ => New(id))
+              eat(LPAREN, RPAREN) { Some(New(id)) }
             )
           } else {
-            eatSequence(INT, LBRACKET) flatMap (_ =>
+            eat(INT, LBRACKET) {
               parseExpression() flatMap (expression =>
-                eat(RBRACKET) map (_ => NewIntArray(expression))
+                eat(RBRACKET) { Some(NewIntArray(expression)) }
               )
-            )
+            }
           }
-        )
+        }
 
       def maybeParseDot(expression: ExprTree): Option[ExprTree] =
         if(currentToken is DOT) {
-          eat(DOT) flatMap (_ =>
+          eat(DOT) {
             if(currentToken is LENGTH) {
-              eat(LENGTH) flatMap (_ =>
+              eat(LENGTH) {
                 maybeParseDot(ArrayLength(expression))
-              )
+              }
             } else {
               parseMethodCall(expression) flatMap maybeParseDot
             }
-          )
+          }
         } else Some(expression)
 
       def maybeParseArrayRead(expression: ExprTree): Option[ExprTree] =
         if(currentToken is LBRACKET) {
-          eat(LBRACKET) flatMap (_ =>
+          eat(LBRACKET) {
             parseExpression() flatMap (index =>
-              eat(RBRACKET) map (_ => ArrayRead(expression, index))
+              eat(RBRACKET) { Some(ArrayRead(expression, index)) }
             )
-          )
+          }
         } else Some(expression)
 
       def parseExpressionBase(): Option[ExprTree] = currentToken match {
-        case INTLIT(value) => eat(INTLITKIND) map (_ => IntLit(value))
-        case STRLIT(value) => eat(STRLITKIND) map (_ => StringLit(value))
-        case ID(value)     => eat(IDKIND)     map (_ => Identifier(value))
+        case INTLIT(value) => eat(INTLITKIND) { Some(IntLit(value))     }
+        case STRLIT(value) => eat(STRLITKIND) { Some(StringLit(value))  }
+        case ID(value)     => eat(IDKIND)     { Some(Identifier(value)) }
         case _             => currentToken.kind match {
-          case TRUE        => eat(TRUE)  map (_ => new True)
-          case FALSE       => eat(FALSE) map (_ => new False)
-          case THIS        => eat(THIS)  map (_ => new This)
+          case TRUE        => eat(TRUE)  { Some(new True)  }
+          case FALSE       => eat(FALSE) { Some(new False) }
+          case THIS        => eat(THIS)  { Some(new This)  }
           case NEW         => parseNew()
-          case BANG        => eat(BANG) flatMap (_ => parseNegation()) map Not
-          case LPAREN      => eat(LPAREN) flatMap(_ =>
+          case BANG        => eat(BANG) { parseNegation() map Not }
+          case LPAREN      => eat(LPAREN) {
             parseExpression() flatMap (expression =>
-              eat(RPAREN) map (_ => expression)
+              eat(RPAREN) { Some(expression) }
             )
-          )
+          }
           case _           => {
             expected(BEGIN_EXPRESSION:_*)
             None
@@ -362,50 +373,34 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def maybeParseRightFactor(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-      case TIMES => eat(TIMES) flatMap (_ =>
-        parseNegation() flatMap (rhs => maybeParseRightFactor(Times(lhs, rhs)))
-      )
-      case DIV   => eat(DIV) flatMap (_ =>
-        parseNegation() flatMap (rhs => maybeParseRightFactor(Div(lhs, rhs)))
-      )
+      case TIMES => eat(TIMES) { parseNegation() flatMap (rhs => maybeParseRightFactor(Times(lhs, rhs))) }
+      case DIV   => eat(DIV)   { parseNegation() flatMap (rhs => maybeParseRightFactor(Div(lhs, rhs)))   }
       case _     => Some(lhs)
     }
     def parseProduct(): Option[ExprTree] = parseNegation() flatMap maybeParseRightFactor
 
     def maybeParseRightTerm(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-      case PLUS  => eat(PLUS) flatMap (_ =>
-        parseProduct() flatMap (rhs => maybeParseRightTerm(Plus(lhs, rhs)))
-      )
-      case MINUS => eat(MINUS) flatMap (_ =>
-        parseProduct() flatMap (rhs => maybeParseRightTerm(Minus(lhs, rhs)))
-      )
+      case PLUS  => eat(PLUS)  { parseProduct() flatMap (rhs => maybeParseRightTerm(Plus(lhs, rhs)))  }
+      case MINUS => eat(MINUS) { parseProduct() flatMap (rhs => maybeParseRightTerm(Minus(lhs, rhs))) }
       case _     => Some(lhs)
     }
     def parseSum(): Option[ExprTree] = parseProduct() flatMap maybeParseRightTerm
 
     def maybeParseRightComparee(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-      case LESSTHAN => eat(LESSTHAN) flatMap (_ =>
-        parseSum() flatMap (rhs => maybeParseRightComparee(LessThan(lhs, rhs)))
-      )
-      case EQUALS   => eat(EQUALS) flatMap (_ =>
-        parseSum() flatMap (rhs => maybeParseRightComparee(Equals(lhs, rhs)))
-      )
+      case LESSTHAN => eat(LESSTHAN) { parseSum() flatMap (rhs => maybeParseRightComparee(LessThan(lhs, rhs))) }
+      case EQUALS   => eat(EQUALS)   { parseSum() flatMap (rhs => maybeParseRightComparee(Equals(lhs, rhs)))   }
       case _        => Some(lhs)
     }
     def parseComparison(): Option[ExprTree] = parseSum() flatMap maybeParseRightComparee
 
     def maybeParseRightAnd(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-      case AND => eat(AND) flatMap (_ =>
-        parseComparison() flatMap (rhs => maybeParseRightAnd(And(lhs, rhs)))
-      )
+      case AND => eat(AND) { parseComparison() flatMap (rhs => maybeParseRightAnd(And(lhs, rhs))) }
       case _   => Some(lhs)
     }
     def parseAnd(): Option[ExprTree] = parseComparison() flatMap maybeParseRightAnd
 
     def maybeParseRightOr(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-      case OR  => eat(OR) flatMap (_ =>
-        parseAnd() flatMap (rhs => maybeParseRightOr(Or(lhs, rhs)))
-      )
+      case OR  => eat(OR) { parseAnd() flatMap (rhs => maybeParseRightOr(Or(lhs, rhs))) }
       case _   => Some(lhs)
     }
     def parseExpression(): Option[ExprTree] = parseAnd() flatMap maybeParseRightOr
