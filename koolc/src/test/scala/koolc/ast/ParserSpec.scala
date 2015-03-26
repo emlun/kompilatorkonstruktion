@@ -6,7 +6,6 @@ import scala.io.Source
 
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
-import org.scalatest.Inside
 
 import utils._
 import lexer._
@@ -27,7 +26,7 @@ trait ParseMatchers {
   def errorless = new ReporterShouldBeErrorlessMatcher
 }
 
-class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
+class ParserSpec extends FunSpec with Matchers with ParseMatchers {
 
   val VALID_TEST_FILES =
     "/helloworld.kool" ::
