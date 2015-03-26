@@ -309,7 +309,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           }
         )
 
-      def parseNegation(): Option[ExprTree] = {
+      def parseNegation(thenn: ExprTree => Option[ExprTree] = Some(_)): Option[ExprTree] = {
         def parseNew(): Option[ExprTree] =
           eat(NEW) {
             if(currentToken is IDKIND) {
@@ -369,38 +369,42 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           }
         }
 
-        parseExpressionBase() flatMap maybeParseDot flatMap maybeParseArrayRead
+        parseExpressionBase() flatMap maybeParseDot flatMap maybeParseArrayRead flatMap thenn
       }
 
       def maybeParseRightFactor(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-        case TIMES => eat(TIMES) { parseNegation() flatMap (rhs => maybeParseRightFactor(Times(lhs, rhs))) }
-        case DIV   => eat(DIV)   { parseNegation() flatMap (rhs => maybeParseRightFactor(Div(lhs, rhs)))   }
+        case TIMES => eat(TIMES) { parseNegation(rhs => maybeParseRightFactor(Times(lhs, rhs))) }
+        case DIV   => eat(DIV)   { parseNegation(rhs => maybeParseRightFactor(Div(lhs, rhs)))   }
         case _     => Some(lhs)
       }
-      def parseProduct(): Option[ExprTree] = parseNegation() flatMap maybeParseRightFactor
+      def parseProduct(thenn: ExprTree => Option[ExprTree] = Some(_)): Option[ExprTree] =
+        parseNegation() flatMap maybeParseRightFactor flatMap thenn
 
       def maybeParseRightTerm(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-        case PLUS  => eat(PLUS)  { parseProduct() flatMap (rhs => maybeParseRightTerm(Plus(lhs, rhs)))  }
-        case MINUS => eat(MINUS) { parseProduct() flatMap (rhs => maybeParseRightTerm(Minus(lhs, rhs))) }
+        case PLUS  => eat(PLUS)  { parseProduct(rhs => maybeParseRightTerm(Plus(lhs, rhs)))  }
+        case MINUS => eat(MINUS) { parseProduct(rhs => maybeParseRightTerm(Minus(lhs, rhs))) }
         case _     => Some(lhs)
       }
-      def parseSum(): Option[ExprTree] = parseProduct() flatMap maybeParseRightTerm
+      def parseSum(thenn: ExprTree => Option[ExprTree] = Some(_)): Option[ExprTree] =
+        parseProduct() flatMap maybeParseRightTerm flatMap thenn
 
       def maybeParseRightComparee(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-        case LESSTHAN => eat(LESSTHAN) { parseSum() flatMap (rhs => maybeParseRightComparee(LessThan(lhs, rhs))) }
-        case EQUALS   => eat(EQUALS)   { parseSum() flatMap (rhs => maybeParseRightComparee(Equals(lhs, rhs)))   }
+        case LESSTHAN => eat(LESSTHAN) { parseSum(rhs => maybeParseRightComparee(LessThan(lhs, rhs))) }
+        case EQUALS   => eat(EQUALS)   { parseSum(rhs => maybeParseRightComparee(Equals(lhs, rhs)))   }
         case _        => Some(lhs)
       }
-      def parseComparison(): Option[ExprTree] = parseSum() flatMap maybeParseRightComparee
+      def parseComparison(thenn: ExprTree => Option[ExprTree] = Some(_)): Option[ExprTree] =
+        parseSum() flatMap maybeParseRightComparee flatMap thenn
 
       def maybeParseRightAnd(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-        case AND => eat(AND) { parseComparison() flatMap (rhs => maybeParseRightAnd(And(lhs, rhs))) }
+        case AND => eat(AND) { parseComparison(rhs => maybeParseRightAnd(And(lhs, rhs))) }
         case _   => Some(lhs)
       }
-      def parseAnd(): Option[ExprTree] = parseComparison() flatMap maybeParseRightAnd
+      def parseAnd(thenn: ExprTree => Option[ExprTree] = Some(_)): Option[ExprTree] =
+        parseComparison() flatMap maybeParseRightAnd flatMap thenn
 
       def maybeParseRightOr(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-        case OR  => eat(OR) { parseAnd() flatMap (rhs => maybeParseRightOr(Or(lhs, rhs))) }
+        case OR  => eat(OR) { parseAnd(rhs => maybeParseRightOr(Or(lhs, rhs))) }
         case _   => Some(lhs)
       }
 
