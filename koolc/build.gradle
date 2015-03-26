@@ -4,6 +4,8 @@ plugins {
 apply plugin: 'scala'
 apply plugin: 'eclipse'
 
+version = '0.3.0'
+
 task wrapper(type: Wrapper) {
   gradleVersion = '2.2'
 }
