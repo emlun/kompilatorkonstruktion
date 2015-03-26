@@ -67,13 +67,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    def eatIdentifier(): Option[Identifier] = eatInternal(IDKIND) match {
-      case Some(ID(value)) => Some(new Identifier(value))
-      case _ => {
-        expected(IDKIND)
-        None
+    def eatIdentifier[T](thenn: Identifier => Option[T] = Some[Identifier](_)): Option[T] =
+      eatInternal(IDKIND) match {
+        case Some(ID(value)) => thenn(new Identifier(value))
+        case _               => {
+          expected(IDKIND)
+          None
+        }
       }
-    }
 
     /**
      * Complains that what was found was not expected. The method accepts
@@ -99,7 +100,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
     def parseMainObject(): Option[MainObject] =
       eat(OBJECT) {
-        eatIdentifier() flatMap (id =>
+        eatIdentifier(id =>
           eat(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE) {
             val statements = parseStatements()
             eat(RBRACE, RBRACE) {
@@ -114,16 +115,16 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         def parseMethodDeclarations(): List[MethodDecl] = {
           def parseMethodDeclaration(): Option[MethodDecl] =
             eat(DEF) {
-              eatIdentifier() flatMap (id =>
+              eatIdentifier(id =>
                 eat(LPAREN) {
                   val parameters = (if(currentToken is IDKIND) {
-                    eatIdentifier() flatMap (paramId =>
+                    eatIdentifier(paramId =>
                       parseType() map (Formal(_, paramId))
                     )
                   } else None) ++: (
                     accumulate(() =>
                       eat(COMMA) {
-                        eatIdentifier() flatMap (paramId =>
+                        eatIdentifier(paramId =>
                           parseType() map (Formal(_, paramId))
                         )
                       }
@@ -155,11 +156,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
 
         eat(CLASS) {
-          eatIdentifier() flatMap (id => {
+          eatIdentifier(id => {
             val parentClass = if(currentToken is EXTENDS) {
-              eat(EXTENDS) {
-                eatIdentifier()
-              }
+              eat(EXTENDS) { eatIdentifier() }
             } else None
             eat(LBRACE) {
               val vars = parseVarDeclarations()
@@ -178,7 +177,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     def parseVarDeclarations(): List[VarDecl] = {
       def parseVarDeclaration(): Option[VarDecl] =
         eat(VAR) {
-          eatIdentifier() flatMap (id =>
+          eatIdentifier(id =>
             parseType() map (tpe => VarDecl(tpe, id)) flatMap (varDecl =>
               eat(SEMICOLON) {
                 Some(varDecl)
@@ -253,7 +252,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           )
         }
 
-      def parseAssignment(): Option[StatTree] = eatIdentifier() flatMap (assignId =>
+      def parseAssignment(): Option[StatTree] = eatIdentifier(assignId =>
         currentToken.kind match {
           case EQSIGN   => eat(EQSIGN) {
             parseExpression() flatMap (expression =>
@@ -295,7 +294,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       accumulate(parseStatement) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
 
     def parseMethodCall(obj: ExprTree): Option[ExprTree] =
-      eatIdentifier() flatMap (identifier =>
+      eatIdentifier(identifier =>
         eat(LPAREN) {
           val args = (if(currentToken is (BEGIN_EXPRESSION:_*)) {
             parseExpression()
@@ -313,7 +312,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       def parseNew(): Option[ExprTree] =
         eat(NEW) {
           if(currentToken is IDKIND) {
-            eatIdentifier() flatMap (id =>
+            eatIdentifier(id =>
               eat(LPAREN, RPAREN) { Some(New(id)) }
             )
           } else {
