@@ -28,6 +28,20 @@ tasks.withType(ScalaCompile) {
   scalaCompileOptions.additionalParameters = ['-feature']
 }
 
+jar {
+  manifest {
+    attributes([
+      'Main-Class': 'koolc.Main',
+      'Specification-Vendor': 'koolc',
+      'Specification-Title': 'koolc',
+      'Specification-Version': '1.2',
+      'Implementation-Title': "emlun & plundahl's KOOL parser",
+      'Implementation-Vendor': 'emlun & plundahl',
+      'Implementation-Version': project.version,
+    ])
+  }
+}
+
 task runLexer(type: JavaExec) {
   classpath sourceSets.main.runtimeClasspath
   executable 'scala'
