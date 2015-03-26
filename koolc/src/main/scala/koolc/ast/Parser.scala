@@ -88,7 +88,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def parseGoal(): Option[Program] =
-      parseMainObject() flatMap (main => {
+      parseMainObject(main => {
         val classes = parseClassDeclarations()
         eat(EOF) {
           if(ctx.reporter.hasErrors)
@@ -98,7 +98,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       })
 
-    def parseMainObject(): Option[MainObject] =
+    def parseMainObject[T](thenn: MainObject => Option[T] = Some[MainObject](_)): Option[T] =
       eat(OBJECT) {
         eatIdentifier(id =>
           eat(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE) {
@@ -108,7 +108,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
             }
           }
         )
-      }
+      } flatMap thenn
 
     def parseClassDeclarations(): List[ClassDecl] = {
       def parseClassDeclaration(): Option[ClassDecl] = {
