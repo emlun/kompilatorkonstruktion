@@ -465,6 +465,47 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
     }
 
+    it("binds else statements to the closest if statement.") {
+      val source = """
+      object Main {
+        def main(): Unit = {
+          if(true)
+          if(false) {
+            println("This statement is false.");
+          } else
+            println("This statement is true.");
+
+          if(false) {
+            if(true)
+              println("This statement is true.");
+          } else
+            println("This statement is false.");
+        }
+      }
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program.get should be (Program(
+          main = MainObject(Identifier("Main"),
+            If(True(),
+              If(False(),
+                Block(List(Println(StringLit("This statement is false.")))),
+                Some(Println(StringLit("This statement is true.")))
+              ),
+              None
+            ) ::
+            If(False(),
+              Block(List(If(True(), Println(StringLit("This statement is true.")), None))),
+              Some(Println(StringLit("This statement is false.")))
+            ) ::
+            Nil),
+          classes = Nil
+        ))
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
     describe("successfully parses") {
       VALID_TEST_FILES foreach ((path: String) => {
         it(path) {
