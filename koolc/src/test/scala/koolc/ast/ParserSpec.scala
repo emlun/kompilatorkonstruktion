@@ -100,15 +100,13 @@ class ParserSpec extends FunSpec with Matchers with Inside with ParseMatchers {
       val pipeline = Parser andThen checkResult((ctx, program) => {
         ctx.reporter shouldBe errorless
 
-        program map (inside(_) { case Program(main, classes) =>
-          classes should be ('empty)
-
-          inside(main) { case MainObject(id, statements) =>
-            id.value should be ("foo")
-
-            statements should be (Println(StringLit("Hello, World!")) :: Nil)
-          }
-        }) orElse fail("Expected program to be defined.")
+        program should be (Some(Program(
+          main = MainObject(Identifier("foo"),
+            Println(StringLit("Hello, World!")) ::
+            Nil
+          ),
+          classes = Nil
+        )))
       })
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(source.toIterator)
     }
