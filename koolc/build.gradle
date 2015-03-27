@@ -5,6 +5,7 @@ apply plugin: 'scala'
 apply plugin: 'eclipse'
 
 version = '0.3.0'
+ext.appendix = 'emlun_plundahl'
 
 task wrapper(type: Wrapper) {
   gradleVersion = '2.2'
@@ -41,6 +42,7 @@ jar {
       'Implementation-Version': project.version,
     ])
   }
+  appendix = project.appendix
 }
 
 task makePrettyPrinterSnapshots(type: Copy) {
