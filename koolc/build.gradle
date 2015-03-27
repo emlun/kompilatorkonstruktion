@@ -15,6 +15,10 @@ repositories {
   mavenCentral()
 }
 
+configurations {
+  submission
+}
+
 dependencies {
   compile(
     'org.scala-lang:scala-library:2.+',
@@ -43,6 +47,23 @@ jar {
     ])
   }
   appendix = project.appendix
+}
+
+task zip(type: Zip) {
+  into(project.name) {
+    from(sourceSets.main.allScala) { into 'src/main/scala' }
+    from('gradle') { into 'gradle' }
+    from 'build.gradle'
+    from 'gradlew'
+    from('project/plugins.sbt') { into 'project' }
+    from 'build.sbt'
+    from 'README.md'
+    appendix = project.appendix
+  }
+}
+
+artifacts {
+  submission zip
 }
 
 task makePrettyPrinterSnapshots(type: Copy) {
