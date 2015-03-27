@@ -42,26 +42,6 @@ jar {
   }
 }
 
-task runLexer(type: JavaExec) {
-  classpath sourceSets.main.runtimeClasspath
-  executable 'scala'
-  main 'koolc.Main'
-  args 'src/test/resources/koolc/lexer/bad.kool', '--tokens'
-}
-
-task runParser(type: JavaExec) {
-  classpath sourceSets.main.runtimeClasspath
-  executable 'scala'
-  main 'koolc.Main'
-  args 'src/test/resources/helloworld.kool'
-}
-
-task runRef(type: JavaExec) {
-  classpath fileTree('lib')
-  executable 'scala'
-  main 'koolc.Main'
-}
-
 task makePrettyPrinterSnapshots(type: Copy) {
   from("${buildDir}/tmp") {
     include '**/*.kool.pretty'
