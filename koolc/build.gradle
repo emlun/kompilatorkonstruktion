@@ -36,7 +36,8 @@ jar {
       'Specification-Title': 'koolc',
       'Specification-Version': '1.2',
       'Implementation-Title': "emlun & plundahl's KOOL parser",
-      'Implementation-Vendor': 'emlun & plundahl',
+      'Implementation-Vendor-Id': 'emlun & plundahl',
+      'Implementation-Vendor': 'Petter Lundahl and Emil Lundberg',
       'Implementation-Version': project.version,
     ])
   }
