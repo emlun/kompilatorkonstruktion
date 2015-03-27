@@ -1,2 +1,17 @@
-/*/project/
-/*/target/
+# SBT
+
+/project/
+!/project/plugins.sbt
+/target/
+
+# Gradle
+
+/.gradle/
+
+# Eclipse
+
+/.classpath
+/.project
+/.pydevproject
+/.settings/
+/bin/
