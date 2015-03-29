@@ -11,10 +11,9 @@ import utils._
 import ast.Trees._
 import Symbols._
 
-object NameAnalysis extends Pipeline[Program, Program] {
+object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
-  def run(ctx: Context)(prog: Program): Program = {
-    import ctx.reporter._
+  def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog map { program =>
 
     // Step 1: Collect symbols in declarations
     // Step 2: Attach symbols to identifiers (except method calls) in method bodies
@@ -22,6 +21,6 @@ object NameAnalysis extends Pipeline[Program, Program] {
 
     // Make sure you check for all constraints
 
-    prog
+    program
   }
 }
