@@ -34,7 +34,7 @@ object Trees {
     override def print: String = {
       val statments = stats map { _.print } mkString "\n"
       val mainMethod = "def main() : Unit = {\n" + indent(statments) + "\n}"
-      "object " + id.print + " {\n" + indent(mainMethod) + "\n}\n"
+      "object " + id.print + " " + symbolComment + "{\n" + indent(mainMethod) + "\n}\n"
     }
   }
   case class ClassDecl(
