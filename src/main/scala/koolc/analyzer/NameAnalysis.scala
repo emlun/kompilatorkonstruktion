@@ -21,6 +21,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     // Make sure you check for all constraints
 
+    program.main.setSymbol(new ClassSymbol(program.main.id.value))
+
     program
   }
 }
