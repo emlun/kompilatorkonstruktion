@@ -41,7 +41,7 @@ class Real {
     var i : Int;
     util = new Util();
     integerPart = intPart;
-    digits = new Int [ digitsCount ] ;
+    digits = new Int [ digitsCount ];
     i = 0;
     while ( (i < digitsCount) )
       {

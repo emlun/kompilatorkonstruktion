@@ -61,8 +61,8 @@ class ReferenceTest {
     unit = this.swapInt ( int1, int2 );
     println( ("int1: " + int1) );
     println( ("int2: " + int2) );
-    intArr1 = new Int [ 1 ] ;
-    intArr2 = new Int [ 2 ] ;
+    intArr1 = new Int [ 1 ];
+    intArr2 = new Int [ 2 ];
     unit = this.swapIntArr ( intArr1, intArr2 );
     println( ("intArr1: " + intArr1.length) );
     println( ("intArr2: " + intArr2.length) );

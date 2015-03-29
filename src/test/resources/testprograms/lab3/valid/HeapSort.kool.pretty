@@ -25,7 +25,7 @@ class HS {
   def init (  ) : HS = {
     size = 9;
     initialSize = 9;
-    array = new Int [ size ] ;
+    array = new Int [ size ];
     array[ 0 ] = 13;
     array[ 1 ] = 4;
     array[ 2 ] = 27;

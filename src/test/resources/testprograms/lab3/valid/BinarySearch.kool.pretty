@@ -101,7 +101,7 @@ class BS {
     var aux01 : Int;
     var aux02 : Int;
     size = sz;
-    number = new Int [ sz ] ;
+    number = new Int [ sz ];
     j = 1;
     k = (size + 1);
     while ( (j < size) )

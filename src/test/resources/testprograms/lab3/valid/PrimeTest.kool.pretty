@@ -49,7 +49,7 @@ class primeTest {
   def init (  ) : Int = {
     var j : Int;
     n = 10;
-    tab = new Int [ 10 ] ;
+    tab = new Int [ 10 ];
     tab[ 0 ] = 2;
     tab[ 1 ] = 23;
     tab[ 2 ] = 225;

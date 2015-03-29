@@ -170,7 +170,7 @@ ${this.indent(level)}}
     override def print(level: Int = 0): String = "this"
   }
   case class NewIntArray(size: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "new Int [ " + size.print() + " ] "
+    override def print(level: Int = 0): String = "new Int [ " + size.print() + " ]"
   }
   case class New(tpe: Identifier) extends ExprTree {
     override def print(level: Int = 0): String = "new " + tpe.print() + "()"

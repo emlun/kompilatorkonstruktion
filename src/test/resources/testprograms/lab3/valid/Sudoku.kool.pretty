@@ -11,7 +11,7 @@ class SudokuGrid {
   var garbage_ : Bool;
   def init (  ) : SudokuGrid = {
     var i : Int;
-    grid_ = new Int [ 81 ] ;
+    grid_ = new Int [ 81 ];
     currentLine_ = 0;
     currentColumn_ = 0;
     i = 0;

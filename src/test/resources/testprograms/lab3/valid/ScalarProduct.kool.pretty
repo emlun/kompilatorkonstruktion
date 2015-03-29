@@ -33,7 +33,7 @@ class Vector4 {
   var vect : Int[ ];
   var varName : String;
   def initialize ( name : String, n1 : Int, n2 : Int, n3 : Int, n4 : Int ) : String = {
-    vect = new Int [ 4 ] ;
+    vect = new Int [ 4 ];
     varName = name;
     vect[ 0 ] = n1;
     vect[ 1 ] = n2;

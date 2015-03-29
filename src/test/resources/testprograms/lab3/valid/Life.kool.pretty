@@ -9,7 +9,7 @@ class Matrix {
   var cols : Int;
   def init ( n : Int, m : Int ) : Matrix = {
     cols = m;
-    elements = new Int [ (n * m) ] ;
+    elements = new Int [ (n * m) ];
     return this;
   }
   def unfold ( i : Int, j : Int ) : Int = {

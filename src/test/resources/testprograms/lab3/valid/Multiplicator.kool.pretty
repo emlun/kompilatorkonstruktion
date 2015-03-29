@@ -99,7 +99,7 @@ class PaperMulti {
     var factorParts : Int[ ];
     var counter : Int;
     counter = 0;
-    factorParts = new Int [ this.getNumberOfDigits ( factor ) ] ;
+    factorParts = new Int [ this.getNumberOfDigits ( factor ) ];
     while ( (9 < factor) )
       {
         rest = this.remainder ( factor, 10 );

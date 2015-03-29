@@ -85,7 +85,7 @@ class QS {
   }
   def Init ( sz : Int ) : Int = {
     size = sz;
-    number = new Int [ sz ] ;
+    number = new Int [ sz ];
     number[ 0 ] = 20;
     number[ 1 ] = 7;
     number[ 2 ] = 12;

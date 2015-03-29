@@ -3,7 +3,7 @@ object biggerTest {
     aaa = 1;
     bbb = (1 + 1);
     ccc = (aaa * bbb);
-    ddd = new Int [ 10 ] ;
+    ddd = new Int [ 10 ];
     eee = ddd.length;
     if ( (aaa == bbb) )
     while ( (aaa < ccc) )
