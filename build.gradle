@@ -4,7 +4,7 @@ plugins {
 apply plugin: 'scala'
 apply plugin: 'eclipse'
 
-version = '0.3.2'
+version = '0.4.0'
 ext.appendix = 'emlun_plundahl'
 
 task wrapper(type: Wrapper) {
