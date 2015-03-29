@@ -117,19 +117,22 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
             eat(DEF) {
               eatIdentifier(id =>
                 eat(LPAREN) {
-                  val parameters = (if(currentToken is IDKIND) {
-                    eatIdentifier(paramId =>
-                      parseType(tpe => Some(Formal(tpe, paramId)))
-                    )
-                  } else None) ++: (
-                    accumulate {
-                      eat(COMMA) {
-                        eatIdentifier(paramId =>
-                          parseType(tpe => Some(Formal(tpe, paramId)))
-                        )
-                      }
-                    } whilst { currentToken is COMMA }
-                  )
+                  val parameters: List[Formal] =
+                    if(currentToken is IDKIND) {
+                      eatIdentifier(paramId =>
+                        parseType(tpe => Some(Formal(tpe, paramId)))
+                      ) map { firstParam =>
+                        firstParam +: {
+                          accumulate {
+                            eat(COMMA) {
+                              eatIdentifier(paramId =>
+                                parseType(tpe => Some(Formal(tpe, paramId)))
+                              )
+                            }
+                          } whilst { currentToken is COMMA }
+                        }
+                      } getOrElse Nil
+                    } else Nil
 
                   eat(RPAREN) {
                     parseType(returnType =>
