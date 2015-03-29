@@ -508,6 +508,37 @@ class ParserSpec extends FunSpec with Matchers with ParseMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
     }
 
+    it("fails if the first argument in method call is missing.") {
+      val source = """
+      object Main {
+        def main(): Unit = {
+          result = foo.bar(,"someArg");
+        }
+      }
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
+    it("fails if the first parameter name in method declaration is missing.") {
+      val source = """
+      object Main { def main(): Unit = {} }
+      class Foo {
+        def bar(, baz: Int) { return 1; }
+      }
+      """
+
+      val pipeline = SourceLexer andThen Parser andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+    }
+
     it("fails if there are trailing characters after the last class declaration.") {
       val source = """
       object Main {
