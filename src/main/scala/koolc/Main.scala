@@ -58,7 +58,7 @@ object Main {
       for(t <- (Lexer andThen PrintTokens).run(ctx)(ctx.file.get)) {
         println()
       }
-    } else if(printAST){
+    } else if(printAST) {
       val pipeline = Lexer andThen Parser
 
       println(
