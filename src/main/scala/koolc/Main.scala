@@ -11,6 +11,7 @@ import java.io.File
 
 import lexer._
 import ast._
+import analyzer._
 
 object Main {
 
@@ -67,7 +68,7 @@ object Main {
       )
 
     } else {
-      val pipeline = Lexer andThen Parser
+      val pipeline = Lexer andThen Parser andThen NameAnalysis
 
       print(
         pipeline.run(ctx)(ctx.file.get)
