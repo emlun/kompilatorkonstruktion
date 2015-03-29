@@ -8,6 +8,7 @@ package koolc
 package ast
 
 import utils._
+import analyzer.Symbols._
 
 object Trees {
   sealed trait Tree extends Positioned {
@@ -18,7 +19,7 @@ object Trees {
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
     override def print(level: Int = 0): String = main.print(1) + (classes map ("\n" + _.print()) mkString "")
   }
-  case class MainObject(id: Identifier, stats: List[StatTree]) extends Tree {
+  case class MainObject(id: Identifier, stats: List[StatTree]) extends Tree with Symbolic[ClassSymbol] {
     override def print(level: Int = 0): String = {
       val statments = stats map ("\n" + indent(level + 1) + _.print(1)) mkString ""
       s"""object ${id.print()} {
@@ -32,7 +33,7 @@ ${this.indent(level)}}
       id: Identifier,
       parent: Option[Identifier],
       vars: List[VarDecl],
-      methods: List[MethodDecl]) extends Tree {
+      methods: List[MethodDecl]) extends Tree with Symbolic[ClassSymbol] {
     override def print(level: Int = 0): String = {
       val extend = parent map (" extends " + _.print()) getOrElse ""
       val vari = vars.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
@@ -41,7 +42,7 @@ ${this.indent(level)}}
       this.indent(level) + "class " + id.print() + extend + " {\n" + vari + meti + this.indent(level) + "}\n"
     }
   }
-  case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree {
+  case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree with Symbolic[VariableSymbol] {
     override def print(level: Int = 0): String = s"var ${id.print()} : ${tpe.print()};"
   }
   case class MethodDecl(
@@ -50,7 +51,7 @@ ${this.indent(level)}}
       args: List[Formal],
       vars: List[VarDecl],
       stats: List[StatTree],
-      retExpr: ExprTree) extends Tree {
+      retExpr: ExprTree) extends Tree with Symbolic[MethodSymbol] {
     override def print(level: Int = 0): String = {
       val arg = args map (_.print()) mkString ", "
       val vari = vars map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
@@ -61,7 +62,7 @@ ${this.indent(level)}}
         indent(level) + "}"
     }
   }
-  sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree {
+  sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree with Symbolic[VariableSymbol] {
     override def print(level: Int = 0): String = id.print() + " : " + tpe.print()
   }
 
@@ -157,11 +158,11 @@ ${this.indent(level)}}
   case class False() extends ExprTree {
     override def print(level: Int = 0): String = "false"
   }
-  case class Identifier(value: String) extends TypeTree with ExprTree {
+  case class Identifier(value: String) extends TypeTree with ExprTree with Symbolic[Symbol] {
     override def print(level: Int = 0): String = value
   }
 
-  case class This() extends ExprTree {
+  case class This() extends ExprTree with Symbolic[ClassSymbol] {
     override def print(level: Int = 0): String = "this"
   }
   case class NewIntArray(size: ExprTree) extends ExprTree {
