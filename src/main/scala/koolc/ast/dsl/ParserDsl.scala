@@ -10,11 +10,11 @@ package dsl
 
 trait ParserDsl {
 
-  sealed class Accumulator[+T](val func: () => Option[T]) {
+  sealed class Accumulator[+T](val generator: () => Option[T]) {
     def whilst(test: => Boolean): List[T] =
-      if(test) func() ++: whilst(test)
+      if(test) generator() ++: whilst(test)
       else Nil
   }
 
-  def accumulate[T](func: () => Option[T]) = new Accumulator[T](func)
+  def accumulate[T](generator: => Option[T]) = new Accumulator[T](() => generator)
 }
