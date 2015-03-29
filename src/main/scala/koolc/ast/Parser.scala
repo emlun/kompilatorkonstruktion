@@ -302,11 +302,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       def parseMethodCall(obj: ExprTree): Option[ExprTree] =
         eatIdentifier(identifier =>
           eat(LPAREN) {
-            val args = (if(currentToken is (BEGIN_EXPRESSION:_*)) {
-              parseExpression()
-            } else None) ++: (
-              accumulate { eat(COMMA) { parseExpression() } } whilst { currentToken is COMMA }
-            )
+            val args: List[ExprTree] =
+              if(currentToken is (BEGIN_EXPRESSION:_*)) {
+                parseExpression() map { firstArgument =>
+                  firstArgument +: {
+                    accumulate { eat(COMMA) { parseExpression() } } whilst { currentToken is COMMA }
+                  }
+                } getOrElse Nil
+              } else Nil
 
             eat(RPAREN) { Some(MethodCall(obj, identifier, args)) }
           }
