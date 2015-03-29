@@ -16,10 +16,14 @@ object Trees {
     def indent(times: Int): String = "  " * times
   }
 
+  sealed trait SymbolicTree[S <: Symbol] extends Tree with Symbolic[S] {
+    def symbolComment: String = symbol map { sym => s"/* ${sym.name}#${sym.id} */ " } getOrElse ""
+  }
+
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
     override def print(level: Int = 0): String = main.print(1) + (classes map ("\n" + _.print()) mkString "")
   }
-  case class MainObject(id: Identifier, stats: List[StatTree]) extends Tree with Symbolic[ClassSymbol] {
+  case class MainObject(id: Identifier, stats: List[StatTree]) extends SymbolicTree[ClassSymbol] {
     override def print(level: Int = 0): String = {
       val statments = stats map ("\n" + indent(level + 1) + _.print(1)) mkString ""
       s"""object ${id.print()} {
