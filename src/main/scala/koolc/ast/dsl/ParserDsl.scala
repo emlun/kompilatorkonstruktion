@@ -11,8 +11,8 @@ package dsl
 trait ParserDsl {
 
   sealed class Accumulator[+T](val func: () => Option[T]) {
-    def whilst(predicate: () => Boolean): List[T] =
-      if(predicate()) func() ++: whilst(predicate)
+    def whilst(test: => Boolean): List[T] =
+      if(test) func() ++: whilst(test)
       else Nil
   }
 

@@ -128,7 +128,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
                           parseType(tpe => Some(Formal(tpe, paramId)))
                         )
                       }
-                    ) whilst(() => currentToken is COMMA))
+                    ) whilst { currentToken is COMMA }
+                  )
 
                   eat(RPAREN) {
                     parseType(returnType =>
@@ -152,7 +153,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
               )
             }
 
-          accumulate(parseMethodDeclaration) whilst(() => currentToken is DEF)
+          accumulate(parseMethodDeclaration) whilst { currentToken is DEF }
         }
 
         eat(CLASS) {
@@ -171,7 +172,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
       }
 
-      accumulate(parseClassDeclaration) whilst(() => currentToken is CLASS)
+      accumulate(parseClassDeclaration) whilst { currentToken is CLASS }
     }
 
     def parseVarDeclarations(): List[VarDecl] = {
@@ -186,7 +187,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           )
         }
 
-      accumulate(parseVarDeclaration) whilst(() => currentToken is VAR)
+      accumulate(parseVarDeclaration) whilst { currentToken is VAR }
     }
 
     def parseType[T](thenn: TypeTree => Option[T] = Some[TypeTree](_)): Option[T] =
@@ -291,7 +292,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def parseStatements(): List[StatTree] =
-      accumulate(() => parseStatement()) whilst(() => currentToken is (BEGIN_STATEMENT:_*))
+      accumulate(() => parseStatement()) whilst { currentToken is (BEGIN_STATEMENT:_*) }
 
     def parseExpression[T](thenn: ExprTree => Option[T] = Some[ExprTree](_)): Option[T] = {
 
@@ -303,7 +304,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
             } else None) ++: (
               accumulate(() =>
                 eat(COMMA) { parseExpression() }
-              ) whilst(() => currentToken is COMMA))
+              ) whilst { currentToken is COMMA }
+            )
 
             eat(RPAREN) { Some(MethodCall(obj, identifier, args)) }
           }
