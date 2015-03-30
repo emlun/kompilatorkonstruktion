@@ -83,5 +83,59 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       }
     }
 
+    it("detects if classes are declared multiple times.") {
+      val input = new File(getClass.getResource("redeclared-class.kool").toURI())
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+    }
+
+    it("detects if a class has the same name as the main object.") {
+      val input = new File(getClass.getResource("redeclared-main.kool").toURI())
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+    }
+
+    it("detects if class members are declared multiple times.") {
+      val input = new File(getClass.getResource("redeclared-member.kool").toURI())
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+    }
+
+    it("detects if methods are declared multiple times.") {
+      val input = new File(getClass.getResource("redeclared-method.kool").toURI())
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+    }
+
+    it("detects if method parameters are declared multiple times.") {
+      val input = new File(getClass.getResource("redeclared-parameter.kool").toURI())
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+    }
+
+    it("detects if method variables are declared multiple times.") {
+      val input = new File(getClass.getResource("redeclared-method-variable.kool").toURI())
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+    }
+
   }
 }
