@@ -42,6 +42,30 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
       )
 
+    def createMethodSymbol(classSymbol: ClassSymbol, method: MethodDecl): MethodSymbol = {
+      val parameterSymbols = method.args map { parameter =>
+        val symbol = new VariableSymbol(parameter.id.value)
+        parameter.setSymbol(symbol)
+        symbol
+      }
+
+      val methodSymbol = new MethodSymbol(method.id.value, classSymbol, makeMethodVariablesSymbolMap(method))
+      method.setSymbol(methodSymbol)
+      methodSymbol
+    }
+
+    def makeMethodSymbolsMap(clazz: ClassDecl, classSymbol: ClassSymbol): Map[String, MethodSymbol] =
+      clazz.methods.foldLeft(Map[String, MethodSymbol]())((symbols, method) =>
+        symbols.get(method.id.value) match {
+          case Some(existingSymbol) => {
+            ctx.reporter.error(s"Method ${method.id.value} declared multiple times", method);
+            ctx.reporter.info(s"${method.id.value} first declared here:", existingSymbol);
+            symbols
+          }
+          case None => symbols + (method.id.value -> createMethodSymbol(classSymbol, method))
+        }
+      )
+
     def makeMethodVariablesSymbolMap(method: MethodDecl): Map[String, VariableSymbol] =
       method.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) =>
         varSymbols.get(varDecl.id.value) match {
@@ -59,18 +83,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz))
         clazz.setSymbol(classSymbol)
 
-        val methodSymbols = clazz.methods map { method =>
-          val methodSymbol = new MethodSymbol(method.id.value, classSymbol, makeMethodVariablesSymbolMap(method))
-          method.setSymbol(methodSymbol)
-
-          val parameterSymbols = method.args map { parameter =>
-            val symbol = new VariableSymbol(parameter.id.value)
-            parameter.setSymbol(symbol)
-            symbol
-          }
-
-          methodSymbol
-        }
+        classSymbol.methods = makeMethodSymbolsMap(clazz, classSymbol)
 
         classSymbol
       }
