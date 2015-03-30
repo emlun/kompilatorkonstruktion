@@ -40,8 +40,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       clazz.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) =>
         varSymbols.get(varDecl.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varDecl);
-            ctx.reporter.info(s"${clazz.id.value}.${varDecl.id.value} first declared here:", existingSymbol);
+            ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varDecl)
+            ctx.reporter.info(s"${clazz.id.value}.${varDecl.id.value} first declared here:", existingSymbol)
             varSymbols
           }
           case None => varSymbols + (varDecl.id.value -> createVariableSymbol(varDecl))
@@ -61,8 +61,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       clazz.methods.foldLeft(Map[String, MethodSymbol]())((symbols, method) =>
         symbols.get(method.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Method ${method.id.value} declared multiple times", method);
-            ctx.reporter.info(s"${method.id.value} first declared here:", existingSymbol);
+            ctx.reporter.error(s"Method ${method.id.value} declared multiple times", method)
+            ctx.reporter.info(s"${method.id.value} first declared here:", existingSymbol)
             symbols
           }
           case None => symbols + (method.id.value -> createMethodSymbol(classSymbol, method))
@@ -73,8 +73,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       method.args.foldLeft(Map[String, VariableSymbol]())((symbols, param) =>
         symbols.get(param.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", param);
-            ctx.reporter.info(s"${param.id.value} first declared here:", existingSymbol);
+            ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", param)
+            ctx.reporter.info(s"${param.id.value} first declared here:", existingSymbol)
             symbols
           }
           case None => symbols + (param.id.value -> createParameterSymbol(param))
@@ -85,8 +85,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       method.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) =>
         varSymbols.get(varDecl.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Variable ${varDecl.id.value} declared multiple times", varDecl);
-            ctx.reporter.info(s"${varDecl.id.value} first declared here:", existingSymbol);
+            ctx.reporter.error(s"Variable ${varDecl.id.value} declared multiple times", varDecl)
+            ctx.reporter.info(s"${varDecl.id.value} first declared here:", existingSymbol)
             varSymbols
           }
           case None => varSymbols + (varDecl.id.value -> createVariableSymbol(varDecl))
@@ -108,8 +108,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       classSymbols.foldLeft(Map[String, ClassSymbol]())((symbolsMap, classSymbol) =>
         symbolsMap.get(classSymbol.name) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Class ${classSymbol.name} declared multiple times", classSymbol);
-            ctx.reporter.info(s"${classSymbol.name} first declared here:", existingSymbol);
+            ctx.reporter.error(s"Class ${classSymbol.name} declared multiple times", classSymbol)
+            ctx.reporter.info(s"${classSymbol.name} first declared here:", existingSymbol)
             symbolsMap
           }
           case None => symbolsMap + (classSymbol.name -> classSymbol)
