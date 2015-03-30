@@ -363,7 +363,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         def parseExpressionBase(): Option[ExprTree] = currentToken match {
           case INTLIT(value) => eatAndReturn(INTLITKIND) map { IntLit(value)    .setPos(_) }
           case STRLIT(value) => eatAndReturn(STRLITKIND) map { StringLit(value) .setPos(_) }
-          case ID(value)     => eatAndReturn(IDKIND)     map { Identifier(value).setPos(_) }
+          case ID(value)     => eatIdentifier()
           case _             => currentToken.kind match {
             case TRUE        => eatAndReturn(TRUE)       map { True()           .setPos(_) }
             case FALSE       => eatAndReturn(FALSE)      map { False()          .setPos(_) }
