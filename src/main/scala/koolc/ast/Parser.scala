@@ -41,7 +41,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    def eatInternal(kind: TokenKind): Option[Token] = {
+    def eatAndReturn(kind: TokenKind): Option[Token] = {
       if (currentToken.kind == kind) {
         val current = Some(currentToken)
         readToken
@@ -59,8 +59,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
 
       moreKinds.toList match {
-        case Nil          => new EatTokenResult(eatInternal(kind))
-        case head :: tail => eatInternal(kind) match {
+        case Nil          => new EatTokenResult(eatAndReturn(kind))
+        case head :: tail => eatAndReturn(kind) match {
           case Some(_) => eat(head, tail:_*)
           case None        => (_ => None)
         }
@@ -68,7 +68,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def eatIdentifier[T](thenn: Identifier => Option[T] = Some[Identifier](_)): Option[T] =
-      eatInternal(IDKIND) match {
+      eatAndReturn(IDKIND) match {
         case Some(ID(value)) => thenn(new Identifier(value))
         case _               => {
           expected(IDKIND)
