@@ -13,20 +13,7 @@ import Tokens._
 
 import Trees._
 
-trait ParseMatchers {
-  import org.scalatest.matchers._
-
-  class ReporterShouldBeErrorlessMatcher extends BeMatcher[Reporter] {
-    override def apply(left: Reporter) = {
-      val message = left.messages map (_.toString) mkString "\n"
-      MatchResult(!left.hasErrors, message, message)
-    }
-  }
-
-  def errorless = new ReporterShouldBeErrorlessMatcher
-}
-
-class ParserSpec extends FunSpec with Matchers with ParseMatchers {
+class ParserSpec extends FunSpec with Matchers with ReporterMatchers {
 
   val VALID_TEST_FILES =
     "/helloworld.kool" ::
