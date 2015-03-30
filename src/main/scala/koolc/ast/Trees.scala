@@ -19,7 +19,7 @@ object Trees {
   def trimLinesFromRight(s: String): String = s.lines map { _.replaceFirst("\\s+$", "") } mkString "\n"
 
   sealed trait SymbolicTree[S <: Symbol] extends Tree with Symbolic[S] {
-    def symbolComment: String = symbol map { sym => s"/* ${sym.name}#${sym.id} */ " } getOrElse ""
+    def symbolComment: String = symbol map { sym => s" /* ${sym.name}#${sym.id} */" } getOrElse ""
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
@@ -34,7 +34,7 @@ object Trees {
     override def print: String = {
       val statments = stats map { _.print } mkString "\n"
       val mainMethod = "def main() : Unit = {\n" + indent(statments) + "\n}"
-      "object " + id.print + " " + symbolComment + "{\n" + indent(mainMethod) + "\n}\n"
+      "object " + id.print + symbolComment + " {\n" + indent(mainMethod) + "\n}\n"
     }
   }
   case class ClassDecl(
@@ -48,11 +48,11 @@ object Trees {
       val meti = methods map { _.print }
 
       val body = vari ++: meti mkString "\n"
-      "class " + id.print + extend + " {\n" + indent(body) + "\n}\n"
+      "class " + id.print + symbolComment + extend + " {\n" + indent(body) + "\n}\n"
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol] {
-    override def print: String = s"var ${id.print} : ${tpe.print};"
+    override def print: String = s"var ${id.print}${symbolComment} : ${tpe.print};"
   }
   case class MethodDecl(
       retType: TypeTree,
@@ -68,11 +68,11 @@ object Trees {
       val ret = "return " + retExpr.print + ";"
 
       val body = (vari ++: stmt ++: List(ret)) mkString "\n"
-      "def " + id.print + " ( " + arg + " ) : " + retType.print + " = {\n" + indent(body) + "\n}\n"
+      "def " + id.print + symbolComment + " ( " + arg + " ) : " + retType.print + " = {\n" + indent(body) + "\n}\n"
     }
   }
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol] {
-    override def print: String = id.print + " : " + tpe.print
+    override def print: String = id.print + symbolComment + " : " + tpe.print
   }
 
   sealed trait TypeTree extends Tree
@@ -171,11 +171,11 @@ object Trees {
     override def print: String = "false"
   }
   case class Identifier(value: String) extends TypeTree with ExprTree with SymbolicTree[Symbol] {
-    override def print: String = value
+    override def print: String = value + symbolComment
   }
 
   case class This() extends ExprTree with SymbolicTree[ClassSymbol] {
-    override def print: String = "this"
+    override def print: String = "this" + symbolComment
   }
   case class NewIntArray(size: ExprTree) extends ExprTree {
     override def print: String = "new Int [ " + size.print + " ]"
