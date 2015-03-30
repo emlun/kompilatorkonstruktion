@@ -41,7 +41,7 @@ object Trees {
       id: Identifier,
       parent: Option[Identifier],
       vars: List[VarDecl],
-      methods: List[MethodDecl]) extends Tree with Symbolic[ClassSymbol] {
+      methods: List[MethodDecl]) extends SymbolicTree[ClassSymbol] {
     override def print: String = {
       val extend = parent map (" extends " + _.print) getOrElse ""
       val vari = vars map { _.print }
@@ -51,7 +51,7 @@ object Trees {
       "class " + id.print + extend + " {\n" + indent(body) + "\n}\n"
     }
   }
-  case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree with Symbolic[VariableSymbol] {
+  case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol] {
     override def print: String = s"var ${id.print} : ${tpe.print};"
   }
   case class MethodDecl(
@@ -60,7 +60,7 @@ object Trees {
       args: List[Formal],
       vars: List[VarDecl],
       stats: List[StatTree],
-      retExpr: ExprTree) extends Tree with Symbolic[MethodSymbol] {
+      retExpr: ExprTree) extends SymbolicTree[MethodSymbol] {
     override def print: String = {
       val arg = args map (_.print) mkString ", "
       val vari = vars map { _.print }
@@ -71,7 +71,7 @@ object Trees {
       "def " + id.print + " ( " + arg + " ) : " + retType.print + " = {\n" + indent(body) + "\n}\n"
     }
   }
-  sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree with Symbolic[VariableSymbol] {
+  sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol] {
     override def print: String = id.print + " : " + tpe.print
   }
 
@@ -170,11 +170,11 @@ object Trees {
   case class False() extends ExprTree {
     override def print: String = "false"
   }
-  case class Identifier(value: String) extends TypeTree with ExprTree with Symbolic[Symbol] {
+  case class Identifier(value: String) extends TypeTree with ExprTree with SymbolicTree[Symbol] {
     override def print: String = value
   }
 
-  case class This() extends ExprTree with Symbolic[ClassSymbol] {
+  case class This() extends ExprTree with SymbolicTree[ClassSymbol] {
     override def print: String = "this"
   }
   case class NewIntArray(size: ExprTree) extends ExprTree {
