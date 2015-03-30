@@ -21,7 +21,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     // Make sure you check for all constraints
 
-    program.main.setSymbol(new ClassSymbol(program.main.id.value))
+    program.main.setSymbol(new ClassSymbol(program.main.id.value, Map.empty))
 
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
       val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl)
@@ -43,14 +43,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
       )
 
-      val classSymbol = new ClassSymbol(clazz.id.value)
+      val classSymbol = new ClassSymbol(clazz.id.value, memberVarSymbols)
       clazz.setSymbol(classSymbol)
-
-      val memberVariableSymbols = clazz.vars map { varDecl =>
-        val symbol = new VariableSymbol(varDecl.id.value)
-        varDecl.setSymbol(symbol)
-        symbol
-      }
 
       val methodSymbols = clazz.methods map { method =>
         val methodSymbol = new MethodSymbol(method.id.value, classSymbol)

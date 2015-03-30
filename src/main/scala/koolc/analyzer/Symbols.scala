@@ -43,10 +43,9 @@ object Symbols {
     def lookupClass(n: String): Option[ClassSymbol] = ???
   }
 
-  class ClassSymbol(val name: String) extends Symbol {
+  class ClassSymbol(val name: String, val members: Map[String, VariableSymbol]) extends Symbol {
     var parent: Option[ClassSymbol] = None
     var methods = Map[String,MethodSymbol]()
-    var members = Map[String,VariableSymbol]()
 
     def lookupMethod(n: String): Option[MethodSymbol] = ???
     def lookupVar(n: String): Option[VariableSymbol] = ???
