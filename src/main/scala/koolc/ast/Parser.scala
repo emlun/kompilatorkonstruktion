@@ -68,13 +68,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def eatIdentifier[T](thenn: Identifier => Option[T] = Some[Identifier](_)): Option[T] =
-      eatAndReturn(IDKIND) match {
-        case Some(ID(value)) => thenn(new Identifier(value))
-        case _               => {
-          expected(IDKIND)
-          None
+      eatAndReturn(IDKIND) flatMap { token => token match {
+          case ID(value) => Some(Identifier(value).setPos(token))
+          case _         => None
         }
-      }
+      } orElse {
+        expected(IDKIND)
+        None
+      } flatMap thenn
 
     /**
      * Complains that what was found was not expected. The method accepts
