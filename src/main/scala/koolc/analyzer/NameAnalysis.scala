@@ -58,7 +58,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       clazz.setSymbol(classSymbol)
 
       val methodSymbols = clazz.methods map { method =>
-        val methodSymbol = new MethodSymbol(method.id.value, classSymbol)
+        val methodSymbol = new MethodSymbol(method.id.value, classSymbol, makeMethodVariablesSymbolMap(method))
         method.setSymbol(methodSymbol)
 
         val parameterSymbols = method.args map { parameter =>
@@ -66,8 +66,6 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           parameter.setSymbol(symbol)
           symbol
         }
-
-        val methodVariablesSymbols = makeMethodVariablesSymbolMap(method)
 
         methodSymbol
       }
