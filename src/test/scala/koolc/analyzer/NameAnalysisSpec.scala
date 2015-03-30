@@ -66,6 +66,15 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
     case t: TypeTree => {}
   }
 
+  def assertFileSucceeds(path: String) = {
+    val input = new File(getClass.getResource(path).toURI())
+    val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+      ctx.reporter shouldBe errorless
+      program should not be (None)
+    })
+    pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+  }
+
   def assertFileFails(path: String) = {
     val input = new File(getClass.getResource(path).toURI())
     val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
@@ -104,6 +113,9 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
 
     describe("enforces the constraint:") {
       it("No two variables can have the same name in the same scope, unless one of the two cases of shadowing occurs.") {
+        assertFileFails("redeclared-member.kool")
+        assertFileFails("redeclared-method-variable.kool")
+        assertFileFails("redeclared-parameter.kool")
         cancel("Test not implemented.")
       }
 
@@ -120,11 +132,14 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       }
 
       it("No other type of shadowing is allowed in KOOL.") {
+        assertFileFails("redeclared-member.kool")
+        assertFileFails("redeclared-method-variable.kool")
+        assertFileFails("redeclared-parameter.kool")
         cancel("Test not implemented.")
       }
 
       it("Classes must be defined only once.") {
-        cancel("Test not implemented.")
+        assertFileFails("redeclared-class.kool")
       }
 
       it("When a class is declared as extending another one, the other class must be declared and cannot be the main object.") {
@@ -132,7 +147,7 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       }
 
       it("""The transitive closure of the "extends" relation must be irreflexive (no cycles in the inheritance graph).""") {
-        cancel("Test not implemented.")
+        assertFileFails("circular-inheritance.kool")
       }
 
       it("When a class name is used as a type, the class must be declared.") {
@@ -140,13 +155,14 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       }
 
       it("The main object cannot be used as a type.") {
-        cancel("Test not implemented.")
+        assertFileFails("redeclared-main.kool")
       }
 
       describe("Overloading is not permitted:") {
         it("In a given class, no two methods can have the same name.") {
-          cancel("Test not implemented.")
+          assertFileFails("redeclared-method.kool")
         }
+
         it("In a given class, no method can have the same name as another method defined in a super class, unless overriding applies.") {
           cancel("Test not implemented.")
         }
