@@ -29,21 +29,20 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       symbol
     }
 
-    val classSymbols = program.classes map { clazz =>
-      val memberVarSymbols =
-        clazz.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) => {
-          varSymbols.get(varDecl.id.value) match {
-            case Some(existingSymbol) => {
-              ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varDecl);
-              ctx.reporter.info(s"${clazz.id.value}.${varDecl.id.value} first declared here:", existingSymbol);
-              varSymbols
-            }
-            case None => varSymbols + (varDecl.id.value -> createVariableSymbol(varDecl))
+    def makeClassVariablesSymbolMap(clazz: ClassDecl): Map[String, VariableSymbol] =
+      clazz.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) =>
+        varSymbols.get(varDecl.id.value) match {
+          case Some(existingSymbol) => {
+            ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varDecl);
+            ctx.reporter.info(s"${clazz.id.value}.${varDecl.id.value} first declared here:", existingSymbol);
+            varSymbols
           }
+          case None => varSymbols + (varDecl.id.value -> createVariableSymbol(varDecl))
         }
       )
 
-      val classSymbol = new ClassSymbol(clazz.id.value, memberVarSymbols)
+    val classSymbols = program.classes map { clazz =>
+      val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz))
       clazz.setSymbol(classSymbol)
 
       val methodSymbols = clazz.methods map { method =>
