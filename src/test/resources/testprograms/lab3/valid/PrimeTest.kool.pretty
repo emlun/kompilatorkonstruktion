@@ -10,6 +10,7 @@ class primeTest {
   def mod ( m : Int, n : Int ) : Int = {
     return (m - (n * (m / n)));
   }
+
   def test ( c : Int ) : Bool = {
     var i : Int;
     var a : Int;
@@ -25,7 +26,7 @@ class primeTest {
           {
             toReturn = false;
           }
-        else 
+        else
           {
             i = 3;
             l = (c / 2);
@@ -42,10 +43,12 @@ class primeTest {
       }
     return toReturn;
   }
+
   def print (  ) : Int = {
     println( "print() ??" );
     return 0;
   }
+
   def init (  ) : Int = {
     var j : Int;
     n = 10;

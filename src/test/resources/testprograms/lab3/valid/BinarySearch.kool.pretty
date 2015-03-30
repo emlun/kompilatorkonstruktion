@@ -14,38 +14,39 @@ class BS {
     aux02 = this.Print (  );
     if ( this.Search ( 8 ) )
       println( 1 );
-    else 
+    else
       println( 0 );
     if ( this.Search ( 19 ) )
       println( 1 );
-    else 
+    else
       println( 0 );
     if ( this.Search ( 20 ) )
       println( 1 );
-    else 
+    else
       println( 0 );
     if ( this.Search ( 21 ) )
       println( 1 );
-    else 
+    else
       println( 0 );
     if ( this.Search ( 37 ) )
       println( 1 );
-    else 
+    else
       println( 0 );
     if ( this.Search ( 38 ) )
       println( 1 );
-    else 
+    else
       println( 0 );
     if ( this.Search ( 39 ) )
       println( 1 );
-    else 
+    else
       println( 0 );
     if ( this.Search ( 50 ) )
       println( 1 );
-    else 
+    else
       println( 0 );
     return 999;
   }
+
   def Search ( num : Int ) : Bool = {
     var bs01 : Bool;
     var right : Int;
@@ -67,23 +68,24 @@ class BS {
         aux01 = number [ medium ];
         if ( (num < aux01) )
           right = (medium - 1);
-        else 
+        else
           left = (medium + 1);
         if ( (aux01 == num) )
           var_cont = false;
-        else 
+        else
           var_cont = true;
         if ( (right < left) )
           var_cont = false;
-        else 
+        else
           nt = 0;
       }
     if ( (aux01 == num) )
       bs01 = true;
-    else 
+    else
       bs01 = false;
     return bs01;
   }
+
   def Print (  ) : Int = {
     var j : Int;
     j = 1;
@@ -95,6 +97,7 @@ class BS {
     println( 99999 );
     return 0;
   }
+
   def Init ( sz : Int ) : Int = {
     var j : Int;
     var k : Int;

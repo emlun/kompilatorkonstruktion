@@ -1,13 +1,13 @@
 object ScalarProduct {
   def main() : Unit = {
     if ( new Sim().start (  ) )
-    {
-      println( "Ok" );
-    }
-  else 
-    {
-      println( "error" );
-    }
+      {
+        println( "Ok" );
+      }
+    else
+      {
+        println( "error" );
+      }
   }
 }
 
@@ -41,14 +41,17 @@ class Vector4 {
     vect[ 3 ] = n4;
     return (((((((((("New vector " + varName) + " created: [") + vect [ 0 ]) + ",") + vect [ 1 ]) + ",") + vect [ 2 ]) + ",") + vect [ 3 ]) + "]");
   }
+
   def scalar ( v : Vector4 ) : Int = {
     var x : Int;
     x = ((((vect [ 0 ] * v.getInd ( 0 )) + (vect [ 1 ] * v.getInd ( 1 ))) + (vect [ 2 ] * v.getInd ( 2 ))) + (vect [ 3 ] * v.getInd ( 3 )));
     return x;
   }
+
   def getName (  ) : String = {
     return varName;
   }
+
   def getInd ( i : Int ) : Int = {
     return vect [ i ];
   }

@@ -10,5 +10,5 @@ package ast
 import Trees._
 
 object Printer extends (Tree => String) {
-  def apply(t: Tree): String = t.print()
+  def apply(t: Tree): String = t.print
 }

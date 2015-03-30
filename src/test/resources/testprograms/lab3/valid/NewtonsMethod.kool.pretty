@@ -14,6 +14,7 @@ class NM {
     result = this.sqrtIter ( guess, 0, 5, orig );
     return result;
   }
+
   def sqrtIter ( guess : Real, i : Int, maxIter : Int, original : Real ) : Real = {
     var average : Real;
     var quotient : Real;
@@ -22,7 +23,7 @@ class NM {
       {
         result = guess;
       }
-    else 
+    else
       {
         println( ((("Iteration " + i) + ": Guess is ") + guess.toString (  )) );
         quotient = original.divide ( guess );
@@ -50,16 +51,20 @@ class Real {
       }
     return this;
   }
+
   def getDigits (  ) : Int[ ] = {
     return digits;
   }
+
   def getIntegerPart (  ) : Int = {
     return integerPart;
   }
+
   def setIntegerPart ( p : Int ) : Real = {
     integerPart = p;
     return this;
   }
+
   def divide ( other : Real ) : Real = {
     var i : Int;
     var int1 : Int;
@@ -72,7 +77,7 @@ class Real {
       {
         len = digits.length;
       }
-    else 
+    else
       {
         len = other.getDigits (  ).length;
       }
@@ -90,6 +95,7 @@ class Real {
     result = new Real().init ( 3, 4 ).evalFrac ( f );
     return result;
   }
+
   def evalFrac ( frac : Frac ) : Real = {
     var leftover : Int;
     var i : Int;
@@ -111,6 +117,7 @@ class Real {
       }
     return this;
   }
+
   def plus ( other : Real ) : Real = {
     var len : Int;
     var od : Int[ ];
@@ -124,7 +131,7 @@ class Real {
       {
         len = digits.length;
       }
-    else 
+    else
       {
         len = od.length;
       }
@@ -141,6 +148,7 @@ class Real {
       }
     return result.setIntegerPart ( ((integerPart + other.getIntegerPart (  )) + carry) );
   }
+
   def toString (  ) : String = {
     var ret : String;
     var i : Int;
@@ -167,19 +175,24 @@ class Frac {
     sign = (((n < 0) && (d < 0)) || (((0 < n) || (n == 0)) && ((0 < d) || (d == 0))));
     return this.simplify (  );
   }
+
   def getNumerator (  ) : Int = {
     return numerator;
   }
+
   def getDenominator (  ) : Int = {
     return denominator;
   }
+
   def setPos ( positive : Bool ) : Frac = {
     sign = positive;
     return this;
   }
+
   def isPos (  ) : Bool = {
     return sign;
   }
+
   def simplify (  ) : Frac = {
     var gcd_ : Int;
     if ( (!(numerator == 0) && !(denominator == 0)) )
@@ -193,6 +206,7 @@ class Frac {
       }
     return this;
   }
+
   def plus ( other : Frac ) : Frac = {
     var lcm : Int;
     var lfac : Int;
@@ -210,28 +224,34 @@ class Frac {
       }
     return new Frac().init ( ((lfac * numerator) + (rfac * other.getNumerator (  ))), lcm );
   }
+
   def minus ( other : Frac ) : Frac = {
     return this.plus ( other.negative (  ) );
   }
+
   def times ( other : Frac ) : Frac = {
     return new Frac().init ( (numerator * other.getNumerator (  )), (denominator * other.getDenominator (  )) ).simplify (  ).setPos ( ((this.isPos (  ) && other.isPos (  )) || (!this.isPos (  ) && !other.isPos (  ))) );
   }
+
   def divided ( other : Frac ) : Frac = {
     return this.times ( other.inverse (  ) );
   }
+
   def inverse (  ) : Frac = {
     return new Frac().init ( denominator, numerator );
   }
+
   def negative (  ) : Frac = {
     return new Frac().init ( numerator, denominator ).setPos ( false );
   }
+
   def toString (  ) : String = {
     var result : String;
     if ( sign )
       {
         result = "";
       }
-    else 
+    else
       {
         result = "-";
       }
@@ -246,12 +266,13 @@ class Util {
       {
         res = v;
       }
-    else 
+    else
       {
         res = (0 - v);
       }
     return res;
   }
+
   def gcd ( m_ : Int, n_ : Int ) : Int = {
     var t : Int;
     var r : Int;
@@ -271,15 +292,17 @@ class Util {
       {
         result = n;
       }
-    else 
+    else
       {
         result = this.gcd ( n, r );
       }
     return result;
   }
+
   def lcm ( m : Int, n : Int ) : Int = {
     return ((n * m) / this.gcd ( n, m ));
   }
+
   def mod ( m : Int, n : Int ) : Int = {
     return (m - (n * (m / n)));
   }

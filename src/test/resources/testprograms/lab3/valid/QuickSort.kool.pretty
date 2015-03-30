@@ -17,6 +17,7 @@ class QS {
     aux01 = this.Print (  );
     return 9999;
   }
+
   def Sort ( left : Int, right : Int ) : Int = {
     var v : Int;
     var i : Int;
@@ -42,7 +43,7 @@ class QS {
                 aux03 = number [ i ];
                 if ( !(aux03 < v) )
                   cont02 = false;
-                else 
+                else
                   cont02 = true;
               }
             cont02 = true;
@@ -52,7 +53,7 @@ class QS {
                 aux03 = number [ j ];
                 if ( !(v < aux03) )
                   cont02 = false;
-                else 
+                else
                   cont02 = true;
               }
             t = number [ i ];
@@ -60,7 +61,7 @@ class QS {
             number[ j ] = t;
             if ( (j < (i + 1)) )
               cont01 = false;
-            else 
+            else
               cont01 = true;
           }
         number[ j ] = number [ i ];
@@ -69,10 +70,11 @@ class QS {
         nt = this.Sort ( left, (i - 1) );
         nt = this.Sort ( (i + 1), right );
       }
-    else 
+    else
       nt = 0;
     return 0;
   }
+
   def Print (  ) : Int = {
     var j : Int;
     j = 0;
@@ -83,6 +85,7 @@ class QS {
       }
     return 0;
   }
+
   def Init ( sz : Int ) : Int = {
     size = sz;
     number = new Int [ sz ];

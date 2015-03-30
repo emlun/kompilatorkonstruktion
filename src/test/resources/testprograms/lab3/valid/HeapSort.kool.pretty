@@ -22,6 +22,7 @@ class HS {
       }
     return "Sorting using HeapSort algorithm completed";
   }
+
   def init (  ) : HS = {
     size = 9;
     initialSize = 9;
@@ -37,6 +38,7 @@ class HS {
     array[ 8 ] = 3;
     return this;
   }
+
   def createHeap (  ) : Int = {
     var k : Int;
     k = ((size / 2) - 1);
@@ -47,6 +49,7 @@ class HS {
       }
     return 0;
   }
+
   def siftDown ( kk : Int ) : Int = {
     var k : Int;
     var desc : Int;
@@ -61,7 +64,7 @@ class HS {
           {
             desc = size;
           }
-        else 
+        else
           {
             foo = this.exchange ( k, desc );
             k = desc;
@@ -70,6 +73,7 @@ class HS {
       }
     return 0;
   }
+
   def exchange ( i : Int, j : Int ) : Int = {
     var temp : Int;
     temp = array [ i ];
@@ -77,6 +81,7 @@ class HS {
     array[ j ] = temp;
     return 0;
   }
+
   def print (  ) : Int = {
     var j : Int;
     var str : String;

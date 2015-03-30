@@ -1,9 +1,9 @@
 object NinetyNineBottles {
   def main() : Unit = {
     if ( new DrunkPirate().sing (  ) )
-    {
-      println( "Done!" );
-    }
+      {
+        println( "Done!" );
+      }
   }
 }
 
@@ -13,6 +13,7 @@ class DrunkPirate {
     value = this.verse ( 99 );
     return true;
   }
+
   def verse ( number : Int ) : Int = {
     var value : Int;
     value = 0;
@@ -23,19 +24,20 @@ class DrunkPirate {
       }
     return value;
   }
+
   def bottles ( number : Int ) : String = {
     var value : String;
     if ( (number == 0) )
       {
         value = "no more bottles";
       }
-    else 
+    else
       {
         if ( (number == 1) )
           {
             value = "1 bottle";
           }
-        else 
+        else
           {
             value = (number + " bottles");
           }

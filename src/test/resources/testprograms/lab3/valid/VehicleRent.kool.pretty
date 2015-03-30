@@ -41,10 +41,12 @@ class RentingAgency {
     println( this.checkin ( client2, car1, 123 ) );
     return "------ END OF THE EXAMPLE DAY OF A RENTING AGENCY ------";
   }
+
   def checkout ( client : Client, vehicle : Vehicle ) : String = {
     println( (" " + client.rent ( vehicle )) );
     return "";
   }
+
   def checkin ( client : Client, vehicle : Vehicle, milage : Int ) : String = {
     println( (" " + client.restore ( vehicle, milage )) );
     return "";
@@ -63,6 +65,7 @@ class Client {
     msg = (((("CREATE : Client " + clientNumber) + " (") + name) + ") created!");
     return msg;
   }
+
   def rent ( vehicle : Vehicle ) : String = {
     var msg : String;
     if ( (rent || vehicle.getRented (  )) )
@@ -71,12 +74,12 @@ class Client {
           {
             msg = (((("NO RENT : " + name) + " has already #") + rentedVehicle) + " (1 vehicle/client)");
           }
-        else 
+        else
           {
             msg = (((("NO RENT : " + name) + " can't rent #") + vehicle.getNumber (  )) + " (already in use)");
           }
       }
-    else 
+    else
       {
         rent = true;
         rentedVehicle = vehicle.getNumber (  );
@@ -84,6 +87,7 @@ class Client {
       }
     return msg;
   }
+
   def restore ( vehicle : Vehicle, milage : Int ) : String = {
     var msg : String;
     if ( ((rent && vehicle.getRented (  )) && (rentedVehicle == vehicle.getNumber (  ))) )
@@ -92,7 +96,7 @@ class Client {
         rentedVehicle = 0;
         msg = ((("RETURN : " + name) + " just brought back : ") + vehicle.checkin ( milage ));
       }
-    else 
+    else
       {
         msg = (((("NO RETURN : " + name) + " didn't rent #") + vehicle.getNumber (  )) + " or the vehicle is already back!");
       }
@@ -109,25 +113,31 @@ class Vehicle {
     rented = true;
     return this.description (  );
   }
+
   def checkin ( mil : Int ) : String = {
     rented = false;
     milage = (milage + mil);
     return this.description (  );
   }
+
   def description (  ) : String = {
     var descr : String;
     descr = (((((("#" + number) + ", ") + brand) + ", ") + milage) + "km");
     return descr;
   }
+
   def getNumber (  ) : Int = {
     return number;
   }
+
   def getMilage (  ) : Int = {
     return milage;
   }
+
   def getBrand (  ) : String = {
     return brand;
   }
+
   def getRented (  ) : Bool = {
     return rented;
   }
@@ -142,6 +152,7 @@ class Car extends Vehicle {
     nbSeats = seats;
     return (((((("CAR ADDED: #" + number) + ", ") + brand) + ", ") + nbSeats) + " seats");
   }
+
   def getNbSeats (  ) : Int = {
     return nbSeats;
   }
@@ -156,6 +167,7 @@ class Truck extends Vehicle {
     maxWeight = weight;
     return (((((("TRUCK ADDED : #" + number) + ", ") + brand) + ", ") + maxWeight) + "t");
   }
+
   def getMaxWeight (  ) : Int = {
     return maxWeight;
   }

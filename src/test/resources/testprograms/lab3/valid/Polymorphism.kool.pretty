@@ -22,6 +22,7 @@ class PolymorphismTest {
     unit = new ReferenceTest().run (  );
     return "done";
   }
+
   def displayShape ( shape : Shape ) : Int = {
     var text : String;
     text = ("I am a " + shape.getColor (  ));
@@ -50,11 +51,11 @@ class ReferenceTest {
     unit = this.swapBool ( bool1, bool2 );
     if ( bool1 )
       println( "bool1: true" );
-    else 
+    else
       println( "bool1: false" );
     if ( bool2 )
       println( "bool2: true" );
-    else 
+    else
       println( "bool2: false" );
     int1 = 1;
     int2 = 2;
@@ -89,6 +90,7 @@ class ReferenceTest {
     println( ("shape2set: " + shape2.getColor (  )) );
     return 0;
   }
+
   def swapBool ( n1 : Bool, n2 : Bool ) : Int = {
     var temp : Bool;
     temp = n1;
@@ -96,6 +98,7 @@ class ReferenceTest {
     n2 = temp;
     return 0;
   }
+
   def swapInt ( n1 : Int, n2 : Int ) : Int = {
     var temp : Int;
     temp = n1;
@@ -103,6 +106,7 @@ class ReferenceTest {
     n2 = temp;
     return 0;
   }
+
   def swapIntArr ( n1 : Int[ ], n2 : Int[ ] ) : Int = {
     var temp : Int[ ];
     temp = n1;
@@ -110,6 +114,7 @@ class ReferenceTest {
     n2 = temp;
     return 0;
   }
+
   def swapIntArrValue ( n1 : Int[ ], n2 : Int[ ] ) : Int = {
     var temp : Int;
     temp = n1 [ 0 ];
@@ -117,6 +122,7 @@ class ReferenceTest {
     n2[ 0 ] = temp;
     return 0;
   }
+
   def swapString ( n1 : String, n2 : String ) : Int = {
     var temp : String;
     temp = n1;
@@ -124,10 +130,12 @@ class ReferenceTest {
     n2 = temp;
     return 0;
   }
+
   def concatStringValue ( n1 : String, n2 : String ) : Int = {
     n1 = (n1 + n2);
     return 0;
   }
+
   def swapShape ( n1 : Shape, n2 : Shape ) : Int = {
     var temp : Shape;
     temp = n1;
@@ -135,6 +143,7 @@ class ReferenceTest {
     n2 = temp;
     return 0;
   }
+
   def resetShape ( n1 : Shape, n2 : Shape ) : Int = {
     var unit : Int;
     n1 = new Shape().init ( "3" );
@@ -149,16 +158,20 @@ class Shape {
     color = col;
     return this;
   }
+
   def getName (  ) : String = {
     return "shape";
   }
+
   def draw (  ) : Int = {
     println( "~" );
     return 0;
   }
+
   def getColor (  ) : String = {
     return color;
   }
+
   def setColor ( col : String ) : Int = {
     color = col;
     return 0;
@@ -175,9 +188,11 @@ class Rectangle extends Shape {
     unit = this.init ( c );
     return this;
   }
+
   def getName (  ) : String = {
     return "rectangle";
   }
+
   def draw (  ) : Int = {
     var first : String;
     var second : String;
@@ -210,6 +225,7 @@ class Square extends Rectangle {
     unit = this.initRectangle ( c, side, side );
     return this;
   }
+
   def getName (  ) : String = {
     return "square";
   }
@@ -221,13 +237,16 @@ class Circle extends Shape {
     unit = this.init ( c );
     return this;
   }
+
   def getName (  ) : String = {
     return "circle";
   }
+
   def draw (  ) : Int = {
     println( "O" );
     return 0;
   }
+
   def drawTwice (  ) : Int = {
     return (this.draw (  ) + this.draw (  ));
   }

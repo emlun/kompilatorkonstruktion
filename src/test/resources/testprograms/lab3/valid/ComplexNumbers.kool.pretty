@@ -12,21 +12,27 @@ class ComplexNumber {
     im = im_;
     return this;
   }
+
   def inverse (  ) : ComplexNumber = {
     return new ComplexNumber().init ( (0 - re), (0 - im) );
   }
+
   def add ( b : ComplexNumber ) : ComplexNumber = {
     return new ComplexNumber().init ( (re + b.real (  )), (im + b.imaginary (  )) );
   }
+
   def multiply ( b : ComplexNumber ) : ComplexNumber = {
     return new ComplexNumber().init ( ((re * b.real (  )) - (im * b.imaginary (  ))), ((im * b.real (  )) + (re * b.imaginary (  ))) );
   }
+
   def real (  ) : Int = {
     return re;
   }
+
   def imaginary (  ) : Int = {
     return im;
   }
+
   def print (  ) : String = {
     println( re );
     println( im );

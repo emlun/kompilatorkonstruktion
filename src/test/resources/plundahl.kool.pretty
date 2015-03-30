@@ -6,13 +6,13 @@ object biggerTest {
     ddd = new Int [ 10 ];
     eee = ddd.length;
     if ( (aaa == bbb) )
-    while ( (aaa < ccc) )
-      aaa = (aaa + 1);
-  else 
-    {
-      aaa = (aaa + 2);
-      println( aaa );
-    }
+      while ( (aaa < ccc) )
+        aaa = (aaa + 1);
+    else
+      {
+        aaa = (aaa + 2);
+        println( aaa );
+      }
   }
 }
 

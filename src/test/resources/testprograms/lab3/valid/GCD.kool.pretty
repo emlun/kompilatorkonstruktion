@@ -1,12 +1,12 @@
 object MainObject {
   def main() : Unit = {
     {
-    println( new GreatestCommonDivisor().init ( 28, 7856 ) );
-    println( new GreatestCommonDivisor().init ( 344, 873 ) );
-    println( new GreatestCommonDivisor().init ( 456, 0 ) );
-    println( new GreatestCommonDivisor().init ( 33, 87 ) );
-    println( new GreatestCommonDivisor().init ( 47, 6853 ) );
-  }
+      println( new GreatestCommonDivisor().init ( 28, 7856 ) );
+      println( new GreatestCommonDivisor().init ( 344, 873 ) );
+      println( new GreatestCommonDivisor().init ( 456, 0 ) );
+      println( new GreatestCommonDivisor().init ( 33, 87 ) );
+      println( new GreatestCommonDivisor().init ( 47, 6853 ) );
+    }
   }
 }
 
@@ -21,17 +21,19 @@ class GreatestCommonDivisor {
     initB = second;
     return this.findGcd (  );
   }
+
   def findGcd (  ) : Int = {
     if ( (initB < initA) )
       {
         n = this.gcd ( initA, initB );
       }
-    else 
+    else
       {
         n = this.gcd ( initB, initA );
       }
     return n;
   }
+
   def gcd ( a : Int, b : Int ) : Int = {
     while ( !(b == 0) )
       {
@@ -41,6 +43,7 @@ class GreatestCommonDivisor {
       }
     return a;
   }
+
   def modulo ( number : Int, mod : Int ) : Int = {
     r = number;
     while ( ((mod < r) || (mod == r)) )

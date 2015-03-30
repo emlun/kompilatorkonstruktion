@@ -1,13 +1,13 @@
 object Multiplicator {
   def main() : Unit = {
     if ( new PaperMulti().showMultiplication ( 12345, 9876 ) )
-    {
-      println( "Completed successfully!" );
-    }
-  else 
-    {
-      println( "Fail.." );
-    }
+      {
+        println( "Completed successfully!" );
+      }
+    else
+      {
+        println( "Fail.." );
+      }
   }
 }
 
@@ -43,7 +43,7 @@ class PaperMulti {
         sum = (sum + tempResult);
         if ( (i == 0) )
           initString = " ";
-        else 
+        else
           initString = "+";
         aux = this.printNumber ( maxLength, tempResult, initString );
         i = (i + 1);
@@ -54,6 +54,7 @@ class PaperMulti {
     println( "**********************" );
     return (sum == result);
   }
+
   def printNumber ( theLength : Int, number : Int, initString : String ) : Int = {
     var lineToPrint : String;
     var i : Int;
@@ -69,6 +70,7 @@ class PaperMulti {
     println( (lineToPrint + number) );
     return 0;
   }
+
   def printLine ( theLength : Int ) : Int = {
     var i : Int;
     var lineToPrint : String;
@@ -82,6 +84,7 @@ class PaperMulti {
     println( lineToPrint );
     return 0;
   }
+
   def remainder ( number : Int, divider : Int ) : Int = {
     var result : Int;
     var realNew : Int;
@@ -94,6 +97,7 @@ class PaperMulti {
       }
     return (number - realNew);
   }
+
   def separateFactor ( factor : Int ) : Int[ ] = {
     var rest : Int;
     var factorParts : Int[ ];
@@ -110,16 +114,18 @@ class PaperMulti {
     factorParts[ counter ] = factor;
     return factorParts;
   }
+
   def getNumberOfDigits ( number : Int ) : Int = {
     return this.countDigits ( number, 10, 1 );
   }
+
   def countDigits ( number : Int, value : Int, counter : Int ) : Int = {
     var returnValue : Int;
     if ( (number < value) )
       {
         returnValue = counter;
       }
-    else 
+    else
       {
         returnValue = this.countDigits ( number, (10 * value), (counter + 1) );
       }

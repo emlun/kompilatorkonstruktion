@@ -1,9 +1,9 @@
 object OptimalChange {
   def main() : Unit = {
     if ( (new OptChange().calculateChange ( 3547 ) == 0) )
-    println( "Nothing left" );
-  else 
-    println( "Error" );
+      println( "Nothing left" );
+    else
+      println( "Error" );
   }
 }
 
@@ -41,7 +41,7 @@ class OptChange {
           {
             println( (((values [ i ] + " coin/bill of ") + coins [ i ]) + ".-") );
           }
-        else 
+        else
           {
             println( (((values [ i ] + " coins/bills of ") + coins [ i ]) + ".-") );
           }

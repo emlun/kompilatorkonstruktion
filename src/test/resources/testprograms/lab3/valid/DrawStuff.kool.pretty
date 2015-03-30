@@ -1,10 +1,10 @@
 object DrawStuff {
   def main() : Unit = {
     {
-    println( new ConcentricCircles().render (  ) );
-    println( new Mandelbrot().render (  ) );
-    println( new Cross().render (  ) );
-  }
+      println( new ConcentricCircles().render (  ) );
+      println( new Mandelbrot().render (  ) );
+      println( new Cross().render (  ) );
+    }
   }
 }
 
@@ -72,9 +72,11 @@ class Drawable {
     println( "" );
     return "";
   }
+
   def computePixel ( x : Int, y : Int ) : Int = {
     return 0;
   }
+
   def getDesc (  ) : String = {
     return "";
   }
@@ -104,6 +106,7 @@ class ConcentricCircles extends Drawable {
       }
     return iter;
   }
+
   def getDesc (  ) : String = {
     return "Concentric circles, giving a representation of successive integer overflows.";
   }
@@ -133,6 +136,7 @@ class Mandelbrot extends Drawable {
       }
     return iter;
   }
+
   def getDesc (  ) : String = {
     return "Representation of a Mandelbrot set (not so pretty due to rounding).";
   }
@@ -164,6 +168,7 @@ class Cross extends Drawable {
       }
     return iter;
   }
+
   def getDesc (  ) : String = {
     return "Another cool pattern!";
   }

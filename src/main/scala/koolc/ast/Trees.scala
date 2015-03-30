@@ -12,25 +12,29 @@ import analyzer.Symbols._
 
 object Trees {
   sealed trait Tree extends Positioned {
-    def print(level: Int = 0): String
-    def indent(times: Int): String = "  " * times
+    def print: String
   }
+
+  def indent(indentee: String, times: Int = 1): String = indentee.lines map { "  " * times + _ } mkString "\n"
+  def trimLinesFromRight(s: String): String = s.lines map { _.replaceFirst("\\s+$", "") } mkString "\n"
 
   sealed trait SymbolicTree[S <: Symbol] extends Tree with Symbolic[S] {
     def symbolComment: String = symbol map { sym => s"/* ${sym.name}#${sym.id} */ " } getOrElse ""
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
-    override def print(level: Int = 0): String = main.print(1) + (classes map ("\n" + _.print()) mkString "")
+    override def print: String = {
+      val mainObject = main.print
+      val classesStrings = classes map { _.print } mkString "\n"
+
+      trimLinesFromRight(main.print + "\n" + classesStrings + "\n")
+    }
   }
   case class MainObject(id: Identifier, stats: List[StatTree]) extends SymbolicTree[ClassSymbol] {
-    override def print(level: Int = 0): String = {
-      val statments = stats map ("\n" + indent(level + 1) + _.print(1)) mkString ""
-      s"""object ${id.print()} {
-${this.indent(level)}def main() : Unit = {${statments}
-${this.indent(level)}}
-}
-"""
+    override def print: String = {
+      val statments = stats map { _.print } mkString "\n"
+      val mainMethod = "def main() : Unit = {\n" + indent(statments) + "\n}"
+      "object " + id.print + " {\n" + indent(mainMethod) + "\n}\n"
     }
   }
   case class ClassDecl(
@@ -38,16 +42,17 @@ ${this.indent(level)}}
       parent: Option[Identifier],
       vars: List[VarDecl],
       methods: List[MethodDecl]) extends Tree with Symbolic[ClassSymbol] {
-    override def print(level: Int = 0): String = {
-      val extend = parent map (" extends " + _.print()) getOrElse ""
-      val vari = vars.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
-      val meti = methods.map (indent(level + 1) + _.print(level + 1) + "\n") mkString ""
+    override def print: String = {
+      val extend = parent map (" extends " + _.print) getOrElse ""
+      val vari = vars map { _.print }
+      val meti = methods map { _.print }
 
-      this.indent(level) + "class " + id.print() + extend + " {\n" + vari + meti + this.indent(level) + "}\n"
+      val body = vari ++: meti mkString "\n"
+      "class " + id.print + extend + " {\n" + indent(body) + "\n}\n"
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends Tree with Symbolic[VariableSymbol] {
-    override def print(level: Int = 0): String = s"var ${id.print()} : ${tpe.print()};"
+    override def print: String = s"var ${id.print} : ${tpe.print};"
   }
   case class MethodDecl(
       retType: TypeTree,
@@ -56,127 +61,130 @@ ${this.indent(level)}}
       vars: List[VarDecl],
       stats: List[StatTree],
       retExpr: ExprTree) extends Tree with Symbolic[MethodSymbol] {
-    override def print(level: Int = 0): String = {
-      val arg = args map (_.print()) mkString ", "
-      val vari = vars map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
-      val stmt = stats map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
-      "def " + id.print() + " ( " + arg + " ) : " + retType.print() + " = {" +
-        vari + stmt + "\n" +
-        indent(level + 1) + "return " + retExpr.print() + ";\n" +
-        indent(level) + "}"
+    override def print: String = {
+      val arg = args map (_.print) mkString ", "
+      val vari = vars map { _.print }
+      val stmt = stats map { _.print }
+      val ret = "return " + retExpr.print + ";"
+
+      val body = (vari ++: stmt ++: List(ret)) mkString "\n"
+      "def " + id.print + " ( " + arg + " ) : " + retType.print + " = {\n" + indent(body) + "\n}\n"
     }
   }
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree with Symbolic[VariableSymbol] {
-    override def print(level: Int = 0): String = id.print() + " : " + tpe.print()
+    override def print: String = id.print + " : " + tpe.print
   }
 
   sealed trait TypeTree extends Tree
   case class IntArrayType() extends TypeTree {
-    override def print(level: Int = 0): String = "Int[ ]"
+    override def print: String = "Int[ ]"
   }
   case class IntType() extends TypeTree {
-    override def print(level: Int = 0): String = "Int"
+    override def print: String = "Int"
   }
   case class BooleanType() extends TypeTree {
-    override def print(level: Int = 0): String = "Bool"
+    override def print: String = "Bool"
   }
   case class StringType() extends TypeTree {
-    override def print(level: Int = 0): String = "String"
+    override def print: String = "String"
   }
 
   sealed trait StatTree extends Tree
   case class Block(stats: List[StatTree]) extends StatTree {
-    override def print(level: Int = 0): String = {
-      val statments = stats map ("\n" + indent(level + 1) + _.print(level + 1)) mkString ""
-      "{" + statments + "\n" + indent(level) + "}"
+    override def print: String = {
+      val body = stats map { _.print } mkString "\n"
+      "{\n" + indent(body) + "\n}"
     }
   }
   case class If(expr: ExprTree, thn: StatTree, els: Option[StatTree]) extends StatTree {
-    override def print(level: Int = 0): String = {
-      val addElse = els map ("\n" + indent(level) + "else \n" + indent(level + 1) + _.print(level + 1)) getOrElse "";
-      "if ( " + expr.print() + " )\n" + this.indent(level + 1) + thn.print(level + 1) + addElse
+    override def print: String = {
+      val addElse = els map { elseStatement =>
+          "\nelse\n" + indent(elseStatement.print)
+        } getOrElse "";
+
+      "if ( " + expr.print + " )\n" + indent(thn.print) + addElse
     }
   }
   case class While(expr: ExprTree, stat: StatTree) extends StatTree {
-    override def print(level: Int = 0): String = {
-      "while ( " + expr.print() + " )\n" + this.indent(level + 1) + stat.print(level + 1)
+    override def print: String = {
+      "while ( " + expr.print + " )\n" + indent(stat.print)
     }
   }
   case class Println(expr: ExprTree) extends StatTree {
-    override def print(level: Int = 0): String = "println( " + expr.print() + " );"
+    override def print: String = "println( " + expr.print + " );"
   }
   case class Assign(id: Identifier, expr: ExprTree) extends StatTree {
-    override def print(level: Int = 0): String = id.print() + " = " + expr.print() + ";"
+    override def print: String = id.print + " = " + expr.print + ";"
   }
   case class ArrayAssign(id: Identifier, index: ExprTree, expr: ExprTree) extends StatTree {
-    override def print(level: Int = 0): String = id.print() + "[ " + index.print() + " ] = " + expr.print() + ";"
+    override def print: String = id.print + "[ " + index.print + " ] = " + expr.print + ";"
   }
 
   sealed trait ExprTree extends Tree
   case class And(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "(" + lhs.print() + " && " + rhs.print() +")"
+    override def print: String = "(" + lhs.print + " && " + rhs.print +")"
   }
   case class Or(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "(" + lhs.print() + " || " + rhs.print() +")"
+    override def print: String = "(" + lhs.print + " || " + rhs.print +")"
   }
   case class Plus(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "(" + lhs.print() + " + " + rhs.print() +")"
+    override def print: String = "(" + lhs.print + " + " + rhs.print +")"
   }
   case class Minus(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "(" + lhs.print() + " - " + rhs.print() +")"
+    override def print: String = "(" + lhs.print + " - " + rhs.print +")"
   }
   case class Times(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "(" + lhs.print() + " * " + rhs.print() +")"
+    override def print: String = "(" + lhs.print + " * " + rhs.print +")"
   }
   case class Div(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "(" + lhs.print() + " / " + rhs.print() +")"
+    override def print: String = "(" + lhs.print + " / " + rhs.print +")"
   }
   case class LessThan(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "(" + lhs.print() + " < " + rhs.print() +")"
+    override def print: String = "(" + lhs.print + " < " + rhs.print +")"
   }
   case class Equals(lhs: ExprTree, rhs: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "(" + lhs.print() + " == " + rhs.print() +")"
+    override def print: String = "(" + lhs.print + " == " + rhs.print +")"
   }
   case class ArrayRead(arr: ExprTree, index: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = arr.print() + " [ " + index.print() + " ]"
+    override def print: String = arr.print + " [ " + index.print + " ]"
   }
   case class ArrayLength(arr: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = arr.print() + ".length"
+    override def print: String = arr.print + ".length"
   }
   case class MethodCall(obj: ExprTree, meth: Identifier, args: List[ExprTree]) extends ExprTree {
-    override def print(level: Int = 0): String = {
-      val arg = args map (_.print()) mkString ", "
-      obj.print() + "." + meth.print() + " ( " + arg + " )"
+    override def print: String = {
+      val arg = args map (_.print) mkString ", "
+      obj.print + "." + meth.print + " ( " + arg + " )"
     }
   }
   case class IntLit(value: Int) extends ExprTree {
-    override def print(level: Int = 0): String = value.toString
+    override def print: String = value.toString
   }
   case class StringLit(value: String) extends ExprTree {
-    override def print(level: Int = 0): String = '"' + value + '"'
+    override def print: String = '"' + value + '"'
   }
 
   case class True() extends ExprTree {
-    override def print(level: Int = 0): String = "true"
+    override def print: String = "true"
   }
   case class False() extends ExprTree {
-    override def print(level: Int = 0): String = "false"
+    override def print: String = "false"
   }
   case class Identifier(value: String) extends TypeTree with ExprTree with Symbolic[Symbol] {
-    override def print(level: Int = 0): String = value
+    override def print: String = value
   }
 
   case class This() extends ExprTree with Symbolic[ClassSymbol] {
-    override def print(level: Int = 0): String = "this"
+    override def print: String = "this"
   }
   case class NewIntArray(size: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "new Int [ " + size.print() + " ]"
+    override def print: String = "new Int [ " + size.print + " ]"
   }
   case class New(tpe: Identifier) extends ExprTree {
-    override def print(level: Int = 0): String = "new " + tpe.print() + "()"
+    override def print: String = "new " + tpe.print + "()"
   }
 
   case class Not(expr: ExprTree) extends ExprTree {
-    override def print(level: Int = 0): String = "!" + expr.print()
+    override def print: String = "!" + expr.print
   }
 }

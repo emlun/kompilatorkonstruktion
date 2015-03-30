@@ -9,7 +9,7 @@ class Fact {
     var num_aux : Int;
     if ( (num < 1) )
       num_aux = 1;
-    else 
+    else
       num_aux = (num * this.computeFactorial ( (num - 1) ));
     return num_aux;
   }

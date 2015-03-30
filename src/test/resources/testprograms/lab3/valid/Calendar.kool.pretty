@@ -17,29 +17,32 @@ class CalendarImpl {
     year_ = year;
     return this;
   }
+
   def isLeap ( year : Int ) : Bool = {
     var result : Bool;
     if ( (this.mod ( year, 100 ) == 0) )
       result = (this.mod ( year, 400 ) == 0);
-    else 
+    else
       result = (this.mod ( year, 4 ) == 0);
     return result;
   }
+
   def daysInMonth ( month : Int, year : Int ) : Int = {
     var result : Int;
     if ( (((((((month == 1) || (month == 3)) || (month == 5)) || (month == 7)) || (month == 8)) || (month == 10)) || (month == 12)) )
       result = 31;
-    else 
+    else
       result = 30;
     if ( (month == 2) )
       {
         if ( this.isLeap ( year ) )
           result = 29;
-        else 
+        else
           result = 28;
       }
     return result;
   }
+
   def firstJan ( year : Int ) : Int = {
     var result : Int;
     var pyear : Int;
@@ -48,6 +51,7 @@ class CalendarImpl {
     result = this.mod ( result, 7 );
     return result;
   }
+
   def firstDay ( month : Int, year : Int ) : Int = {
     var result : Int;
     var i : Int;
@@ -61,6 +65,7 @@ class CalendarImpl {
     result = this.mod ( result, 7 );
     return result;
   }
+
   def display (  ) : String = {
     var days : Int;
     var firstDay : Int;
@@ -74,12 +79,13 @@ class CalendarImpl {
       {
         if ( (days < (count + 7)) )
           println( this.displayWeek ( (count + 1), days ) );
-        else 
+        else
           println( this.displayWeek ( (count + 1), (count + 7) ) );
         count = (count + 7);
       }
     return "";
   }
+
   def displayWeek ( first : Int, last : Int ) : String = {
     var current : Int;
     var counter : Int;
@@ -93,11 +99,11 @@ class CalendarImpl {
           {
             result = (result + "   ");
           }
-        else 
+        else
           {
             if ( (current < 10) )
               result = (((result + " ") + current) + " ");
-            else 
+            else
               result = ((result + current) + " ");
             current = (current + 1);
           }
@@ -105,6 +111,7 @@ class CalendarImpl {
       }
     return result;
   }
+
   def mod ( i : Int, j : Int ) : Int = {
     return (i - ((i / j) * j));
   }
