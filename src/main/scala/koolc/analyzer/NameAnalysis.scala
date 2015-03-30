@@ -73,6 +73,18 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       classSymbol
     }
 
+    val classSymbolsMap: Map[String, ClassSymbol] =
+      classSymbols.foldLeft(Map[String, ClassSymbol]())((symbolsMap, classSymbol) =>
+        symbolsMap.get(classSymbol.name) match {
+          case Some(existingSymbol) => {
+            ctx.reporter.error(s"Class ${classSymbol.name} declared multiple times", classSymbol);
+            ctx.reporter.info(s"${classSymbol.name} first declared here:", existingSymbol);
+            symbolsMap
+          }
+          case None => symbolsMap + (classSymbol.name -> classSymbol)
+        }
+      )
+
     if(ctx.reporter.hasErrors) None
     else Some(program)
   }
