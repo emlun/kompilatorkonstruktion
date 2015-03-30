@@ -137,5 +137,14 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
     }
 
+    it("detects circular class inheritance.") {
+      val input = new File(getClass.getResource("circular-inheritance.kool").toURI())
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+      })
+      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+    }
+
   }
 }
