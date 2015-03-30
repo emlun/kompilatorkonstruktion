@@ -40,7 +40,10 @@ object Symbols {
       val mainClass: ClassSymbol,
       val classes: Map[String, ClassSymbol]
       ) {
-    def lookupClass(n: String): Option[ClassSymbol] = ???
+    def lookupClass(n: String): Option[ClassSymbol] = n match {
+      case mainClass.name => Some(mainClass)
+      case _              => classes get n
+    }
   }
 
   class ClassSymbol(val name: String, val members: Map[String, VariableSymbol]) extends Symbol {
