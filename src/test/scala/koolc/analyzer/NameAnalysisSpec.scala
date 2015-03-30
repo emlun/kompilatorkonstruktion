@@ -102,5 +102,63 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       it("class inheritance is cyclic.")                   { assertFileFails("circular-inheritance.kool")       }
     }
 
+    describe("enforces the constraint:") {
+      it("No two variables can have the same name in the same scope, unless one of the two cases of shadowing occurs.") {
+        cancel("Test not implemented.")
+      }
+
+      it("All variables used must be declared.") {
+        cancel("Test not implemented.")
+      }
+
+      it("A local variable in a method can shadow a class member.") {
+        cancel("Test not implemented.")
+      }
+
+      it("A method parameter can shadow a class member.") {
+        cancel("Test not implemented.")
+      }
+
+      it("No other type of shadowing is allowed in KOOL.") {
+        cancel("Test not implemented.")
+      }
+
+      it("Classes must be defined only once.") {
+        cancel("Test not implemented.")
+      }
+
+      it("When a class is declared as extending another one, the other class must be declared and cannot be the main object.") {
+        cancel("Test not implemented.")
+      }
+
+      it("""The transitive closure of the "extends" relation must be irreflexive (no cycles in the inheritance graph).""") {
+        cancel("Test not implemented.")
+      }
+
+      it("When a class name is used as a type, the class must be declared.") {
+        cancel("Test not implemented.")
+      }
+
+      it("The main object cannot be used as a type.") {
+        cancel("Test not implemented.")
+      }
+
+      describe("Overloading is not permitted:") {
+        it("In a given class, no two methods can have the same name.") {
+          cancel("Test not implemented.")
+        }
+        it("In a given class, no method can have the same name as another method defined in a super class, unless overriding applies.") {
+          cancel("Test not implemented.")
+        }
+      }
+
+      it("A method in a given class overrides another one in a super class if they have the same name and the same number of arguments. (Of course this constraint will be tightened once we start checking types.)") {
+          cancel("Test not implemented.")
+      }
+      it("Fields cannot be overridden.") {
+          cancel("Test not implemented.")
+      }
+    }
+
   }
 }
