@@ -23,6 +23,12 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     program.main.setSymbol(new ClassSymbol(program.main.id.value))
 
+    def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
+      val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl)
+      varDecl.setSymbol(symbol)
+      symbol
+    }
+
     val classSymbols = program.classes map { clazz =>
       val classSymbol = new ClassSymbol(clazz.id.value)
       clazz.setSymbol(classSymbol)
