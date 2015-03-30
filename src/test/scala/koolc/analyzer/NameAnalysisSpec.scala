@@ -84,6 +84,64 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
     pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
   }
 
+  def checkRefs(tree: Tree): Unit = tree match {
+    case id: Identifier => withClue("Identifier:") { id.symbol  should not be None }
+    case ths: This      => withClue("This:")       { ths.symbol should not be None }
+
+    case Program(main, classes) =>                        { checkRefs(main); classes foreach checkRefs _ }
+    case MainObject(id, stats)  => withClue("MainObject") { checkRefs(id); stats foreach checkRefs _     }
+    case VarDecl(tpe, id)       => withClue("VarDecl")    { checkRefs(tpe); checkRefs(id)                }
+    case Formal(tpe, id)        => withClue("Formal")     { checkRefs(tpe); checkRefs(id)                }
+    case clazz: ClassDecl       => withClue("ClassDecl")  {
+      checkRefs(clazz.id)
+      clazz.parent foreach checkRefs _
+      clazz.vars foreach checkRefs _
+      clazz.methods foreach checkRefs _
+    }
+    case method: MethodDecl     => withClue("MethodDecl") {
+      checkRefs(method.retType)
+      checkRefs(method.id)
+      method.args foreach checkRefs _
+      method.vars foreach checkRefs _
+      method.stats foreach checkRefs _
+      checkRefs(method.retExpr)
+    }
+
+    case Block(substats)              => withClue("Block") { substats foreach checkRefs _ }
+    case If(expr, thn, els)           => withClue("If")    {
+      checkRefs(expr);
+      checkRefs(thn);
+      els foreach checkRefs _
+    }
+    case While(expr, statement)       => withClue("While")       { checkRefs(expr); checkRefs(statement) }
+    case Println(expr)                => withClue("Println")     { checkRefs(expr)                       }
+    case Assign(id, expr)             => withClue("Assign")      { checkRefs(id); checkRefs(expr)        }
+    case ArrayAssign(id, index, expr) => withClue("ArrayAssign") {
+      checkRefs(id)
+      checkRefs(index)
+      checkRefs(expr)
+    }
+
+    case And(lhs, rhs)               => withClue("And")         { checkRefs(lhs); checkRefs(rhs)           }
+    case Or(lhs, rhs)                => withClue("Or")          { checkRefs(lhs); checkRefs(rhs)           }
+    case Plus(lhs, rhs)              => withClue("Plus")        { checkRefs(lhs); checkRefs(rhs)           }
+    case Minus(lhs, rhs)             => withClue("Minus")       { checkRefs(lhs); checkRefs(rhs)           }
+    case Times(lhs, rhs)             => withClue("Times")       { checkRefs(lhs); checkRefs(rhs)           }
+    case Div(lhs, rhs)               => withClue("Div")         { checkRefs(lhs); checkRefs(rhs)           }
+    case LessThan(lhs, rhs)          => withClue("LessThan")    { checkRefs(lhs); checkRefs(rhs)           }
+    case Equals(lhs, rhs)            => withClue("Equals")      { checkRefs(lhs); checkRefs(rhs)           }
+    case ArrayRead(arr, index)       => withClue("ArrayRead")   { checkRefs(arr); checkRefs(index)         }
+    case ArrayLength(arr)            => withClue("ArrayLength") { checkRefs(arr)                           }
+                                                                // Method name symbols done later
+    case MethodCall(obj, meth, args) => withClue("MethodCall")  { checkRefs(obj); args foreach checkRefs _ }
+    case NewIntArray(size)           => withClue("NewIntArray") { checkRefs(size)                          }
+    case New(tpe)                    => withClue("New")         { checkRefs(tpe)                           }
+    case Not(expr)                   => withClue("Not")         { checkRefs(expr)                          }
+
+    case BooleanType() | IntArrayType() | IntType() | StringType() |
+         False()       | True()         | IntLit(_) | StringLit(_) => {}
+  }
+
   describe("The name analyzer") {
 
     describe("attaches symbols to all declarations") {
@@ -186,6 +244,21 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
 
     it("emits a warning to the user when a declared variable is never accessed (read or written).") {
       cancel("Test not implemented.")
+    }
+
+    describe("attaches symbol references to all identifiers") {
+      VALID_TEST_FILES foreach { path =>
+        it(s"in ${path}") {
+          val input = new File(getClass.getResource(path).toURI())
+
+          val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be None
+            program foreach checkRefs _
+          })
+          pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+        }
+      }
     }
 
   }
