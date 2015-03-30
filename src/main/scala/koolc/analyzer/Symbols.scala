@@ -36,10 +36,10 @@ object Symbols {
     }
   }
 
-  class GlobalScope {
-    var mainClass: ClassSymbol = _
-    var classes = Map[String,ClassSymbol]()
-
+  class GlobalScope(
+      val mainClass: ClassSymbol,
+      val classes: Map[String, ClassSymbol]
+      ) {
     def lookupClass(n: String): Option[ClassSymbol] = ???
   }
 
