@@ -21,7 +21,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     // Make sure you check for all constraints
 
-    program.main.setSymbol(new ClassSymbol(program.main.id.value, Map.empty))
+    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty)
+    program.main.setSymbol(mainSymbol)
 
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
       val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl)
