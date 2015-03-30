@@ -116,7 +116,7 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
         assertFileFails("redeclared-member.kool")
         assertFileFails("redeclared-method-variable.kool")
         assertFileFails("redeclared-parameter.kool")
-        cancel("Test not implemented.")
+        assertFileFails("parameter-shadowed-by-method-variable.kool")
       }
 
       it("All variables used must be declared.") {
@@ -124,18 +124,18 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       }
 
       it("A local variable in a method can shadow a class member.") {
-        cancel("Test not implemented.")
+        assertFileSucceeds("member-shadowed-by-method-variable.kool")
       }
 
       it("A method parameter can shadow a class member.") {
-        cancel("Test not implemented.")
+        assertFileSucceeds("member-shadowed-by-parameter.kool")
       }
 
       it("No other type of shadowing is allowed in KOOL.") {
         assertFileFails("redeclared-member.kool")
         assertFileFails("redeclared-method-variable.kool")
         assertFileFails("redeclared-parameter.kool")
-        cancel("Test not implemented.")
+        assertFileFails("parameter-shadowed-by-method-variable.kool")
       }
 
       it("Classes must be defined only once.") {
