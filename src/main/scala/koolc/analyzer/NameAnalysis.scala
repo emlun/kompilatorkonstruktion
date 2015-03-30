@@ -30,6 +30,12 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       symbol
     }
 
+    def createParameterSymbol(param: Formal): VariableSymbol = {
+      val symbol = new VariableSymbol(param.id.value).setPos(param)
+      param.setSymbol(symbol)
+      symbol
+    }
+
     def makeClassVariablesSymbolMap(clazz: ClassDecl): Map[String, VariableSymbol] =
       clazz.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) =>
         varSymbols.get(varDecl.id.value) match {
@@ -43,11 +49,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       )
 
     def createMethodSymbol(classSymbol: ClassSymbol, method: MethodDecl): MethodSymbol = {
-      val parameterSymbols = method.args map { parameter =>
-        val symbol = new VariableSymbol(parameter.id.value)
-        parameter.setSymbol(symbol)
-        symbol
-      }
+      val parameterSymbols = makeMethodParameterSymbolsMap(method)
 
       val methodSymbol = new MethodSymbol(method.id.value, classSymbol, makeMethodVariablesSymbolMap(method))
       method.setSymbol(methodSymbol)
@@ -63,6 +65,18 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             symbols
           }
           case None => symbols + (method.id.value -> createMethodSymbol(classSymbol, method))
+        }
+      )
+
+    def makeMethodParameterSymbolsMap(method: MethodDecl): Map[String, VariableSymbol] =
+      method.args.foldLeft(Map[String, VariableSymbol]())((symbols, param) =>
+        symbols.get(param.id.value) match {
+          case Some(existingSymbol) => {
+            ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", param);
+            ctx.reporter.info(s"${param.id.value} first declared here:", existingSymbol);
+            symbols
+          }
+          case None => symbols + (param.id.value -> createParameterSymbol(param))
         }
       )
 
