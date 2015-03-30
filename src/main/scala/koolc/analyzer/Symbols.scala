@@ -54,9 +54,9 @@ object Symbols {
   class MethodSymbol(
       val name: String,
       val classSymbol: ClassSymbol,
-      val members: Map[String,VariableSymbol]
+      val members: Map[String,VariableSymbol],
+      val params: Map[String,VariableSymbol]
       ) extends Symbol {
-    var params = Map[String,VariableSymbol]()
     var argList: List[VariableSymbol] = Nil
     var overridden : Option[MethodSymbol] = None
 

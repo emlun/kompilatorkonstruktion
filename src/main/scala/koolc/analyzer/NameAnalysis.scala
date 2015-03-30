@@ -49,9 +49,10 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       )
 
     def createMethodSymbol(classSymbol: ClassSymbol, method: MethodDecl): MethodSymbol = {
-      val parameterSymbols = makeMethodParameterSymbolsMap(method)
-
-      val methodSymbol = new MethodSymbol(method.id.value, classSymbol, makeMethodVariablesSymbolMap(method))
+      val methodSymbol = new MethodSymbol(method.id.value, classSymbol,
+        makeMethodVariablesSymbolMap(method),
+        makeMethodParameterSymbolsMap(method)
+      )
       method.setSymbol(methodSymbol)
       methodSymbol
     }
