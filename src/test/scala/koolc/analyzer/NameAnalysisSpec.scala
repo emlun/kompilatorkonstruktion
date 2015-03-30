@@ -176,5 +176,17 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       }
     }
 
+    it("assigns overriding methods a different symbol than their overridden counterparts.") {
+      cancel("Test not implemented.")
+    }
+
+    it("does not resolve method name symbols in method calls.") {
+      cancel("Test not implemented.")
+    }
+
+    it("emits a warning to the user when a declared variable is never accessed (read or written).") {
+      cancel("Test not implemented.")
+    }
+
   }
 }
