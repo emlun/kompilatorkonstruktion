@@ -13,7 +13,7 @@ import Symbols._
 
 object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
-  def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog map { program =>
+  def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
 
     // Step 1: Collect symbols in declarations
     // Step 2: Attach symbols to identifiers (except method calls) in method bodies
@@ -55,6 +55,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       classSymbol
     }
 
-    program
+    if(ctx.reporter.hasErrors) None
+    else Some(program)
   }
 }
