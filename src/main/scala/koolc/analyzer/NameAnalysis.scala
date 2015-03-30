@@ -23,6 +23,38 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     program.main.setSymbol(new ClassSymbol(program.main.id.value))
 
+    val classSymbols = program.classes map { clazz =>
+      val classSymbol = new ClassSymbol(clazz.id.value)
+      clazz.setSymbol(classSymbol)
+
+      val memberVariableSymbols = clazz.vars map { varDecl =>
+        val symbol = new VariableSymbol(varDecl.id.value)
+        varDecl.setSymbol(symbol)
+        symbol
+      }
+
+      val methodSymbols = clazz.methods map { method =>
+        val methodSymbol = new MethodSymbol(method.id.value, classSymbol)
+        method.setSymbol(methodSymbol)
+
+        val parameterSymbols = method.args map { parameter =>
+          val symbol = new VariableSymbol(parameter.id.value)
+          parameter.setSymbol(symbol)
+          symbol
+        }
+
+        val methodVariableSymbols = method.vars map { varDecl =>
+          val symbol = new VariableSymbol(varDecl.id.value)
+          varDecl.setSymbol(symbol)
+          symbol
+        }
+
+        methodSymbol
+      }
+
+      classSymbol
+    }
+
     program
   }
 }
