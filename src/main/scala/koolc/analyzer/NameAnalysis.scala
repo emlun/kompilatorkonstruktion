@@ -30,6 +30,19 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     }
 
     val classSymbols = program.classes map { clazz =>
+      val memberVarSymbols =
+        clazz.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) => {
+          varSymbols.get(varDecl.id.value) match {
+            case Some(existingSymbol) => {
+              ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varDecl);
+              ctx.reporter.info(s"${clazz.id.value}.${varDecl.id.value} first declared here:", existingSymbol);
+              varSymbols
+            }
+            case None => varSymbols + (varDecl.id.value -> createVariableSymbol(varDecl))
+          }
+        }
+      )
+
       val classSymbol = new ClassSymbol(clazz.id.value)
       clazz.setSymbol(classSymbol)
 
