@@ -41,6 +41,18 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
       )
 
+    def makeMethodVariablesSymbolMap(method: MethodDecl): Map[String, VariableSymbol] =
+      method.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) =>
+        varSymbols.get(varDecl.id.value) match {
+          case Some(existingSymbol) => {
+            ctx.reporter.error(s"Variable ${varDecl.id.value} declared multiple times", varDecl);
+            ctx.reporter.info(s"${varDecl.id.value} first declared here:", existingSymbol);
+            varSymbols
+          }
+          case None => varSymbols + (varDecl.id.value -> createVariableSymbol(varDecl))
+        }
+      )
+
     val classSymbols = program.classes map { clazz =>
       val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz))
       clazz.setSymbol(classSymbol)
@@ -55,11 +67,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           symbol
         }
 
-        val methodVariableSymbols = method.vars map { varDecl =>
-          val symbol = new VariableSymbol(varDecl.id.value)
-          varDecl.setSymbol(symbol)
-          symbol
-        }
+        val methodVariablesSymbols = makeMethodVariablesSymbolMap(method)
 
         methodSymbol
       }
