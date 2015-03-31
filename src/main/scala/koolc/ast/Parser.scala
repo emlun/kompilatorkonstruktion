@@ -41,7 +41,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    def eatAndReturn(kind: TokenKind): Option[Token] = {
+    def read(kind: TokenKind): Option[Token] = {
       if (currentToken.kind == kind) {
         val current = Some(currentToken)
         readToken
@@ -59,8 +59,8 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
 
       moreKinds.toList match {
-        case Nil          => new EatTokenResult(eatAndReturn(kind))
-        case head :: tail => eatAndReturn(kind) match {
+        case Nil          => new EatTokenResult(read(kind))
+        case head :: tail => read(kind) match {
           case Some(_) => eat(head, tail:_*)
           case None        => (_ => None)
         }
@@ -68,7 +68,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def eatIdentifier[T](thenn: Identifier => Option[T] = Some[Identifier](_)): Option[T] =
-      eatAndReturn(IDKIND) flatMap { token => token match {
+      read(IDKIND) flatMap { token => token match {
           case ID(value) => Some(Identifier(value).setPos(token))
           case _         => None
         }
@@ -100,7 +100,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       })
 
     def parseMainObject[T](thenn: MainObject => Option[T] = Some[MainObject](_)): Option[T] =
-      eatAndReturn(OBJECT) flatMap { objectToken =>
+      read(OBJECT) flatMap { objectToken =>
         eatIdentifier(id =>
           eat(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE) {
             val statements = parseStatements()
@@ -115,7 +115,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       def parseClassDeclaration(): Option[ClassDecl] = {
         def parseMethodDeclarations(): List[MethodDecl] = {
           def parseMethodDeclaration(): Option[MethodDecl] =
-            eatAndReturn(DEF) flatMap { defToken =>
+            read(DEF) flatMap { defToken =>
               eatIdentifier(id =>
                 eat(LPAREN) {
                   val parameters: List[Formal] =
@@ -160,7 +160,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           accumulate { parseMethodDeclaration() } whilst { currentToken is DEF }
         }
 
-        eatAndReturn(CLASS) flatMap { classToken =>
+        read(CLASS) flatMap { classToken =>
           eatIdentifier(id => {
             val parentClass = if(currentToken is EXTENDS) {
               eat(EXTENDS) { eatIdentifier() }
@@ -181,7 +181,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
     def parseVarDeclarations(): List[VarDecl] = {
       def parseVarDeclaration(): Option[VarDecl] =
-        eatAndReturn(VAR) flatMap { varToken =>
+        read(VAR) flatMap { varToken =>
           eatIdentifier(id =>
             parseType(tpe =>
               eat(SEMICOLON) {
@@ -197,10 +197,10 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     def parseType[T](thenn: TypeTree => Option[T] = Some[TypeTree](_)): Option[T] =
       eat(COLON) {
         currentToken.kind match {
-          case BOOLEAN => eatAndReturn(BOOLEAN) map { BooleanType().setPos(_) }
-          case STRING  => eatAndReturn(STRING)  map { StringType().setPos(_)  }
+          case BOOLEAN => read(BOOLEAN) map { BooleanType().setPos(_) }
+          case STRING  => read(STRING)  map { StringType().setPos(_)  }
           case IDKIND  => eatIdentifier()
-          case INT     => eatAndReturn(INT) flatMap { intToken =>
+          case INT     => read(INT) flatMap { intToken =>
               if(currentToken is LBRACKET) {
                 eat(LBRACKET, RBRACKET) { Some(IntArrayType().setPos(intToken)) }
               } else Some(IntType().setPos(intToken))
@@ -215,7 +215,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     def parseStatement[T](thenn: StatTree => Option[T] = Some[StatTree](_)): Option[T] = {
 
       def parseBlock(): Option[StatTree] =
-        eatAndReturn(LBRACE) flatMap { braceToken =>
+        read(LBRACE) flatMap { braceToken =>
           val statements = parseStatements()
           eat(RBRACE) {
             Some(Block(statements).setPos(braceToken))
@@ -223,7 +223,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
 
       def parseIf(): Option[If] =
-        eatAndReturn(IF) flatMap { ifToken =>
+        read(IF) flatMap { ifToken =>
           eat(LPAREN) {
             parseExpression(expression =>
               eat(RPAREN) {
@@ -242,7 +242,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
 
       def parseWhile(): Option[While] =
-        eatAndReturn(WHILE) flatMap { whileToken =>
+        read(WHILE) flatMap { whileToken =>
           eat(LPAREN) {
             parseExpression(expression =>
               eat(RPAREN) {
@@ -253,7 +253,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
 
       def parsePrintln(): Option[Println] =
-        eatAndReturn(PRINTLN) flatMap { printlnToken =>
+        read(PRINTLN) flatMap { printlnToken =>
           eat(LPAREN) {
             parseExpression(expression =>
               eat(RPAREN, SEMICOLON) {
@@ -324,7 +324,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
       def parseNegation(thenn: ExprTree => Option[ExprTree] = Some(_)): Option[ExprTree] = {
         def parseNew(): Option[ExprTree] =
-          eatAndReturn(NEW) flatMap { newToken =>
+          read(NEW) flatMap { newToken =>
             if(currentToken is IDKIND) {
               eatIdentifier(id =>
                 eat(LPAREN, RPAREN) { Some(New(id).setPos(newToken)) }
@@ -361,15 +361,15 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           } else Some(expression)
 
         def parseExpressionBase(): Option[ExprTree] = currentToken match {
-          case INTLIT(value) => eatAndReturn(INTLITKIND) map { IntLit(value)    .setPos(_) }
-          case STRLIT(value) => eatAndReturn(STRLITKIND) map { StringLit(value) .setPos(_) }
+          case INTLIT(value) => read(INTLITKIND) map { IntLit(value)    .setPos(_) }
+          case STRLIT(value) => read(STRLITKIND) map { StringLit(value) .setPos(_) }
           case ID(value)     => eatIdentifier()
           case _             => currentToken.kind match {
-            case TRUE        => eatAndReturn(TRUE)       map { True()           .setPos(_) }
-            case FALSE       => eatAndReturn(FALSE)      map { False()          .setPos(_) }
-            case THIS        => eatAndReturn(THIS)       map { This()           .setPos(_) }
+            case TRUE        => read(TRUE)       map { True()           .setPos(_) }
+            case FALSE       => read(FALSE)      map { False()          .setPos(_) }
+            case THIS        => read(THIS)       map { This()           .setPos(_) }
             case NEW         => parseNew()
-            case BANG        => eatAndReturn(BANG) flatMap { bangToken =>
+            case BANG        => read(BANG) flatMap { bangToken =>
               parseNegation(negation => Some(Not(negation).setPos(bangToken)))
             }
             case LPAREN      => eat(LPAREN) {
