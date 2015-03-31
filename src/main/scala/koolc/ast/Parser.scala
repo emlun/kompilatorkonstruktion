@@ -72,7 +72,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       }
     }
 
-    def eatIdentifier[T](thenn: Identifier => Option[T] = Some[Identifier](_)): Option[T] =
+    def readIdentifier[T](thenn: Identifier => Option[T] = Some[Identifier](_)): Option[T] =
       read(IDKIND) { token => token match {
           case ID(value) => Some(Identifier(value).setPos(token))
           case _         => None
@@ -106,7 +106,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
     def parseMainObject[T](thenn: MainObject => Option[T] = Some[MainObject](_)): Option[T] =
       read(OBJECT) { objectToken =>
-        eatIdentifier(id =>
+        readIdentifier(id =>
           eat(LBRACE, DEF, MAIN, LPAREN, RPAREN, COLON, UNIT, EQSIGN, LBRACE) {
             val statements = parseStatements()
             eat(RBRACE, RBRACE) {
@@ -121,17 +121,17 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         def parseMethodDeclarations(): List[MethodDecl] = {
           def parseMethodDeclaration(): Option[MethodDecl] =
             read(DEF) { defToken =>
-              eatIdentifier(id =>
+              readIdentifier(id =>
                 eat(LPAREN) {
                   val parameters: List[Formal] =
                     if(currentToken is IDKIND) {
-                      eatIdentifier(paramId =>
+                      readIdentifier(paramId =>
                         parseType(tpe => Some(Formal(tpe, paramId).setPos(paramId)))
                       ) map { firstParam =>
                         firstParam +: {
                           accumulate {
                             eat(COMMA) {
-                              eatIdentifier(paramId =>
+                              readIdentifier(paramId =>
                                 parseType(tpe => Some(Formal(tpe, paramId).setPos(paramId)))
                               )
                             }
@@ -166,9 +166,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         }
 
         read(CLASS) { classToken =>
-          eatIdentifier(id => {
+          readIdentifier(id => {
             val parentClass = if(currentToken is EXTENDS) {
-              eat(EXTENDS) { eatIdentifier() }
+              eat(EXTENDS) { readIdentifier() }
             } else None
             eat(LBRACE) {
               val vars = parseVarDeclarations()
@@ -187,7 +187,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     def parseVarDeclarations(): List[VarDecl] = {
       def parseVarDeclaration(): Option[VarDecl] =
         read(VAR) { varToken =>
-          eatIdentifier(id =>
+          readIdentifier(id =>
             parseType(tpe =>
               eat(SEMICOLON) {
                 Some(VarDecl(tpe, id).setPos(varToken))
@@ -204,7 +204,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         currentToken.kind match {
           case BOOLEAN => read(BOOLEAN) { token => Some(BooleanType().setPos(token)) }
           case STRING  => read(STRING)  { token => Some(StringType().setPos(token))  }
-          case IDKIND  => eatIdentifier()
+          case IDKIND  => readIdentifier()
           case INT     => read(INT) { intToken =>
               if(currentToken is LBRACKET) {
                 eat(LBRACKET, RBRACKET) { Some(IntArrayType().setPos(intToken)) }
@@ -268,7 +268,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           }
         }
 
-      def parseAssignment(): Option[StatTree] = eatIdentifier(assignId =>
+      def parseAssignment(): Option[StatTree] = readIdentifier(assignId =>
         currentToken.kind match {
           case EQSIGN   => eat(EQSIGN) {
             parseExpression(expression =>
@@ -312,7 +312,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     def parseExpression[T](thenn: ExprTree => Option[T] = Some[ExprTree](_)): Option[T] = {
 
       def parseMethodCall(obj: ExprTree): Option[ExprTree] =
-        eatIdentifier(identifier =>
+        readIdentifier(identifier =>
           eat(LPAREN) {
             val args: List[ExprTree] =
               if(currentToken is (BEGIN_EXPRESSION:_*)) {
@@ -331,7 +331,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         def parseNew(): Option[ExprTree] =
           read(NEW) { newToken =>
             if(currentToken is IDKIND) {
-              eatIdentifier(id =>
+              readIdentifier(id =>
                 eat(LPAREN, RPAREN) { Some(New(id).setPos(newToken)) }
               )
             } else {
@@ -368,7 +368,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         def parseExpressionBase(): Option[ExprTree] = currentToken match {
           case INTLIT(value) => read(INTLITKIND) { token => Some(IntLit(value)   .setPos(token)) }
           case STRLIT(value) => read(STRLITKIND) { token => Some(StringLit(value).setPos(token)) }
-          case ID(value)     => eatIdentifier()
+          case ID(value)     => readIdentifier()
           case _             => currentToken.kind match {
             case TRUE        => read(TRUE)       { token => Some(True()          .setPos(token)) }
             case FALSE       => read(FALSE)      { token => Some(False()         .setPos(token)) }
