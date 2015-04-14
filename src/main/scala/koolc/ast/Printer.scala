@@ -23,7 +23,7 @@ object Printer extends (Tree => String) {
     }
 
       case MainObject(id , stats) =>{
-        val statments = stats map { indent(ident+1) + print(_,ident+1) } mkString
+        val statments = stats map { indent(ident+1) + print(_,ident+1) } mkString "\n"
         val mainMethod = indent(ident) + "def main() : Unit = {\n" + statments + "\n" +indent(ident)+"}"
         "object " + print(id,ident+1) + " {\n" + mainMethod + "\n}\n\n"
     }
