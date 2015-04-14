@@ -19,7 +19,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         global: GlobalScope,
         clazz: ClassSymbol,
         lookupVar: (String => Option[VariableSymbol]),
-        statement: StatTree
+        tree: Tree
         ): Unit = {
 
       def setOnStatement(statement: StatTree): Unit = statement match {
@@ -87,7 +87,19 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         case _                           => {}
       }
 
-      setOnStatement(statement)
+      def setOnType(tpe: Identifier): Unit =
+          global.lookupClass(tpe.value) orElse {
+            ctx.reporter.error(s"Reference to undeclared type: ${tpe}", tpe)
+            None
+          } map { symbol => tpe.setSymbol(symbol) }
+
+      tree match {
+        case statement: StatTree         => setOnStatement(statement)
+        case expr: ExprTree              => setOnExpression(expr)
+        case VarDecl(tpe: Identifier, _) => setOnType(tpe)
+        case Formal(tpe: Identifier, _)  => setOnType(tpe)
+        case _                           => {}
+      }
     }
 
     // Step 1: Collect symbols in declarations
