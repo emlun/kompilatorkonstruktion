@@ -223,7 +223,14 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           global.lookupClass(parentId.value) orElse {
             ctx.reporter.error(s"Class ${clazz.id} extends undeclared type: ${parentId}", parentId)
             None
-          } map { parentSym => classSymbol.parent = Some(parentSym) }
+          } map { parentSym =>
+            classSymbol.parent = Some(parentSym)
+            parentId.setSymbol(parentSym)
+          }
+        }
+
+        clazz.vars foreach { varDecl =>
+          setSymbolReferences(global, classSymbol, classSymbol.lookupVar _, varDecl)
         }
 
         clazz.methods foreach { method =>
@@ -231,7 +238,6 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             sys.error(s"Method no longer has a symbol: ${method}")
             None
           } map { methodSymbol =>
-
             method.retType match {
               case id: Identifier => global.lookupClass(id.value) orElse {
                 ctx.reporter.error(
@@ -241,10 +247,16 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
               } map id.setSymbol _
               case _              => {}
             }
-
+            method.args foreach { param =>
+              setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, param)
+            }
+            method.vars foreach { varDecl =>
+              setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, varDecl)
+            }
             method.stats foreach { statement =>
               setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, statement)
             }
+            setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, method.retExpr)
           }
         }
       }
