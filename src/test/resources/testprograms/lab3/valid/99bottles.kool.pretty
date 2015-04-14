@@ -1,47 +1,47 @@
-object NinetyNineBottles {
+object NinetyNineBottles /* NinetyNineBottles#0 */ {
   def main() : Unit = {
-    if ( new DrunkPirate().sing (  ) )
+    if ( new DrunkPirate/**/().sing/**/ (  ) )
       {
         println( "Done!" );
       }
   }
 }
 
-class DrunkPirate {
-  def sing (  ) : Bool = {
-    var value : Int;
-    value = this.verse ( 99 );
+class DrunkPirate /* DrunkPirate#1 */ {
+  def sing /* sing#3 */ (  ) : Bool = {
+    var value /* value#2 */ /* value#2 */ : Int;
+    value/**/ = this/**/.verse/**/ ( 99 );
     return true;
   }
 
-  def verse ( number : Int ) : Int = {
-    var value : Int;
-    value = 0;
-    println( (((this.bottles ( number ) + " of beer on the wall, take one down, pass it around, ") + this.bottles ( (number - 1) )) + " of beer on the wall.") );
-    if ( (1 < number) )
+  def verse /* verse#6 */ ( number /* number#5 */ : Int ) : Int = {
+    var value /* value#4 */ /* value#4 */ : Int;
+    value/**/ = 0;
+    println( (((this/**/.bottles/**/ ( number/**/ ) + " of beer on the wall, take one down, pass it around, ") + this/**/.bottles/**/ ( (number/**/ - 1) )) + " of beer on the wall.") );
+    if ( (1 < number/**/) )
       {
-        value = this.verse ( (number - 1) );
+        value/**/ = this/**/.verse/**/ ( (number/**/ - 1) );
       }
-    return value;
+    return value/**/;
   }
 
-  def bottles ( number : Int ) : String = {
-    var value : String;
-    if ( (number == 0) )
+  def bottles /* bottles#9 */ ( number /* number#8 */ : Int ) : String = {
+    var value /* value#7 */ /* value#7 */ : String;
+    if ( (number/**/ == 0) )
       {
-        value = "no more bottles";
+        value/**/ = "no more bottles";
       }
     else
       {
-        if ( (number == 1) )
+        if ( (number/**/ == 1) )
           {
-            value = "1 bottle";
+            value/**/ = "1 bottle";
           }
         else
           {
-            value = (number + " bottles");
+            value/**/ = (number/**/ + " bottles");
           }
       }
-    return value;
+    return value/**/;
   }
 }

@@ -1,175 +1,175 @@
-object DrawStuff {
+object DrawStuff /* DrawStuff#0 */ {
   def main() : Unit = {
     {
-      println( new ConcentricCircles().render (  ) );
-      println( new Mandelbrot().render (  ) );
-      println( new Cross().render (  ) );
+      println( new ConcentricCircles/**/().render/**/ (  ) );
+      println( new Mandelbrot/**/().render/**/ (  ) );
+      println( new Cross/**/().render/**/ (  ) );
     }
   }
 }
 
-class Drawable {
-  var resX : Int;
-  var resY : Int;
-  def render (  ) : String = {
-    var depth : Int;
-    var screen : String;
-    var symb : String;
-    var x : Int;
-    var y : Int;
-    screen = "";
-    symb = "?";
-    x = 0;
-    y = 0;
-    resX = 66;
-    resY = 31;
-    while ( (y < resY) )
+class Drawable /* Drawable#3 */ {
+  var resX /* resX#1 */ /* resX#1 */ : Int;
+  var resY /* resY#2 */ /* resY#2 */ : Int;
+  def render /* render#9 */ (  ) : String = {
+    var depth /* depth#4 */ /* depth#4 */ : Int;
+    var screen /* screen#5 */ /* screen#5 */ : String;
+    var symb /* symb#6 */ /* symb#6 */ : String;
+    var x /* x#7 */ /* x#7 */ : Int;
+    var y /* y#8 */ /* y#8 */ : Int;
+    screen/**/ = "";
+    symb/**/ = "?";
+    x/**/ = 0;
+    y/**/ = 0;
+    resX/**/ = 66;
+    resY/**/ = 31;
+    while ( (y/**/ < resY/**/) )
       {
-        while ( (x < resX) )
+        while ( (x/**/ < resX/**/) )
           {
-            depth = this.computePixel ( x, y );
-            if ( (depth < 1) )
+            depth/**/ = this/**/.computePixel/**/ ( x/**/, y/**/ );
+            if ( (depth/**/ < 1) )
               {
-                symb = " ";
+                symb/**/ = " ";
               }
-            if ( (depth == 1) )
+            if ( (depth/**/ == 1) )
               {
-                symb = ".";
+                symb/**/ = ".";
               }
-            if ( (depth == 2) )
+            if ( (depth/**/ == 2) )
               {
-                symb = "o";
+                symb/**/ = "o";
               }
-            if ( (depth == 3) )
+            if ( (depth/**/ == 3) )
               {
-                symb = "O";
+                symb/**/ = "O";
               }
-            if ( (depth == 4) )
+            if ( (depth/**/ == 4) )
               {
-                symb = "0";
+                symb/**/ = "0";
               }
-            if ( (depth == 5) )
+            if ( (depth/**/ == 5) )
               {
-                symb = "@";
+                symb/**/ = "@";
               }
-            if ( (5 < depth) )
+            if ( (5 < depth/**/) )
               {
-                symb = "#";
+                symb/**/ = "#";
               }
-            screen = (screen + symb);
-            x = (x + 1);
+            screen/**/ = (screen/**/ + symb/**/);
+            x/**/ = (x/**/ + 1);
           }
-        println( screen );
-        screen = "";
-        x = 0;
-        y = (y + 1);
+        println( screen/**/ );
+        screen/**/ = "";
+        x/**/ = 0;
+        y/**/ = (y/**/ + 1);
       }
     println( "" );
-    println( this.getDesc (  ) );
-    println( (((("Resolution: " + resX) + " by ") + resY) + " characters.") );
+    println( this/**/.getDesc/**/ (  ) );
+    println( (((("Resolution: " + resX/**/) + " by ") + resY/**/) + " characters.") );
     println( "" );
     println( "" );
     println( "" );
     return "";
   }
 
-  def computePixel ( x : Int, y : Int ) : Int = {
+  def computePixel /* computePixel#12 */ ( x /* x#10 */ : Int, y /* y#11 */ : Int ) : Int = {
     return 0;
   }
 
-  def getDesc (  ) : String = {
+  def getDesc /* getDesc#13 */ (  ) : String = {
     return "";
   }
 }
 
-class ConcentricCircles extends Drawable {
-  def computePixel ( x : Int, y : Int ) : Int = {
-    var x0 : Int;
-    var y0 : Int;
-    var iter : Int;
-    var maxIter : Int;
-    var xTemp : Int;
-    resX = 65;
-    resY = 30;
-    x0 = ((x * 2500) - 15000);
-    y0 = ((y * 4500) - 15000);
-    x = 0;
-    y = 0;
-    iter = (0 - 1);
-    maxIter = 100;
-    while ( ((((x * x) + (y * y)) < 100000000) && (iter < maxIter)) )
+class ConcentricCircles /* ConcentricCircles#14 */ extends Drawable/**/ {
+  def computePixel /* computePixel#22 */ ( x /* x#20 */ : Int, y /* y#21 */ : Int ) : Int = {
+    var x0 /* x0#15 */ /* x0#15 */ : Int;
+    var y0 /* y0#16 */ /* y0#16 */ : Int;
+    var iter /* iter#17 */ /* iter#17 */ : Int;
+    var maxIter /* maxIter#18 */ /* maxIter#18 */ : Int;
+    var xTemp /* xTemp#19 */ /* xTemp#19 */ : Int;
+    resX/**/ = 65;
+    resY/**/ = 30;
+    x0/**/ = ((x/**/ * 2500) - 15000);
+    y0/**/ = ((y/**/ * 4500) - 15000);
+    x/**/ = 0;
+    y/**/ = 0;
+    iter/**/ = (0 - 1);
+    maxIter/**/ = 100;
+    while ( ((((x/**/ * x/**/) + (y/**/ * y/**/)) < 100000000) && (iter/**/ < maxIter/**/)) )
       {
-        xTemp = (x0 + x);
-        y = (y0 + y);
-        x = xTemp;
-        iter = (iter + 1);
+        xTemp/**/ = (x0/**/ + x/**/);
+        y/**/ = (y0/**/ + y/**/);
+        x/**/ = xTemp/**/;
+        iter/**/ = (iter/**/ + 1);
       }
-    return iter;
+    return iter/**/;
   }
 
-  def getDesc (  ) : String = {
+  def getDesc /* getDesc#23 */ (  ) : String = {
     return "Concentric circles, giving a representation of successive integer overflows.";
   }
 }
 
-class Mandelbrot extends Drawable {
-  def computePixel ( x : Int, y : Int ) : Int = {
-    var x0 : Int;
-    var y0 : Int;
-    var iter : Int;
-    var maxIter : Int;
-    var xTemp : Int;
-    resX = 70;
-    resY = 40;
-    x0 = (((x - 25) / 5) - 1);
-    y0 = ((y - 15) / 3);
-    x = 0;
-    y = 0;
-    iter = (0 - 2);
-    maxIter = 1000;
-    while ( ((((x * x) + (y * y)) < 50) && (iter < maxIter)) )
+class Mandelbrot /* Mandelbrot#24 */ extends Drawable/**/ {
+  def computePixel /* computePixel#32 */ ( x /* x#30 */ : Int, y /* y#31 */ : Int ) : Int = {
+    var x0 /* x0#25 */ /* x0#25 */ : Int;
+    var y0 /* y0#26 */ /* y0#26 */ : Int;
+    var iter /* iter#27 */ /* iter#27 */ : Int;
+    var maxIter /* maxIter#28 */ /* maxIter#28 */ : Int;
+    var xTemp /* xTemp#29 */ /* xTemp#29 */ : Int;
+    resX/**/ = 70;
+    resY/**/ = 40;
+    x0/**/ = (((x/**/ - 25) / 5) - 1);
+    y0/**/ = ((y/**/ - 15) / 3);
+    x/**/ = 0;
+    y/**/ = 0;
+    iter/**/ = (0 - 2);
+    maxIter/**/ = 1000;
+    while ( ((((x/**/ * x/**/) + (y/**/ * y/**/)) < 50) && (iter/**/ < maxIter/**/)) )
       {
-        xTemp = (((x * x) - (y * y)) + x0);
-        y = (((2 * x) * y) + y0);
-        x = xTemp;
-        iter = (iter + 1);
+        xTemp/**/ = (((x/**/ * x/**/) - (y/**/ * y/**/)) + x0/**/);
+        y/**/ = (((2 * x/**/) * y/**/) + y0/**/);
+        x/**/ = xTemp/**/;
+        iter/**/ = (iter/**/ + 1);
       }
-    return iter;
+    return iter/**/;
   }
 
-  def getDesc (  ) : String = {
+  def getDesc /* getDesc#33 */ (  ) : String = {
     return "Representation of a Mandelbrot set (not so pretty due to rounding).";
   }
 }
 
-class Cross extends Drawable {
-  def computePixel ( x : Int, y : Int ) : Int = {
-    var x0 : Int;
-    var y0 : Int;
-    var iter : Int;
-    var maxIter : Int;
-    var xTemp : Int;
-    var s : Int;
-    s = 13;
-    resX = 50;
-    resY = 30;
-    x0 = ((((x * 80) * s) / resX) - (40 * s));
-    y0 = ((((y * 400) * s) / resY) - (200 * s));
-    x = 0;
-    y = 0;
-    iter = (0 - 2);
-    maxIter = 10000;
-    while ( ((((y * y) - (x * x)) < 10000) && (iter < maxIter)) )
+class Cross /* Cross#34 */ extends Drawable/**/ {
+  def computePixel /* computePixel#43 */ ( x /* x#41 */ : Int, y /* y#42 */ : Int ) : Int = {
+    var x0 /* x0#35 */ /* x0#35 */ : Int;
+    var y0 /* y0#36 */ /* y0#36 */ : Int;
+    var iter /* iter#37 */ /* iter#37 */ : Int;
+    var maxIter /* maxIter#38 */ /* maxIter#38 */ : Int;
+    var xTemp /* xTemp#39 */ /* xTemp#39 */ : Int;
+    var s /* s#40 */ /* s#40 */ : Int;
+    s/**/ = 13;
+    resX/**/ = 50;
+    resY/**/ = 30;
+    x0/**/ = ((((x/**/ * 80) * s/**/) / resX/**/) - (40 * s/**/));
+    y0/**/ = ((((y/**/ * 400) * s/**/) / resY/**/) - (200 * s/**/));
+    x/**/ = 0;
+    y/**/ = 0;
+    iter/**/ = (0 - 2);
+    maxIter/**/ = 10000;
+    while ( ((((y/**/ * y/**/) - (x/**/ * x/**/)) < 10000) && (iter/**/ < maxIter/**/)) )
       {
-        xTemp = ((((x * x) - (y * y)) + x0) / 10);
-        y = (((((2 * x) * y) * x) + y0) / 100);
-        x = xTemp;
-        iter = (iter + 1);
+        xTemp/**/ = ((((x/**/ * x/**/) - (y/**/ * y/**/)) + x0/**/) / 10);
+        y/**/ = (((((2 * x/**/) * y/**/) * x/**/) + y0/**/) / 100);
+        x/**/ = xTemp/**/;
+        iter/**/ = (iter/**/ + 1);
       }
-    return iter;
+    return iter/**/;
   }
 
-  def getDesc (  ) : String = {
+  def getDesc /* getDesc#44 */ (  ) : String = {
     return "Another cool pattern!";
   }
 }

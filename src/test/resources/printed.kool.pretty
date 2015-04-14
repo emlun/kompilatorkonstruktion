@@ -1,43 +1,43 @@
-object biggerTest {
+object biggerTest /* biggerTest#0 */ {
   def main() : Unit = {
-    aaa = 1;
-    bbb = (1 + 1);
-    ccc = (aaa * bbb);
-    ddd = new Int [ 10 ];
-    eee = ddd.length;
-    if ( (aaa == bbb) )
-      while ( (aaa < ccc) )
-        aaa = (aaa + 1);
+    aaa/**/ = 1;
+    bbb/**/ = (1 + 1);
+    ccc/**/ = (aaa/**/ * bbb/**/);
+    ddd/**/ = new Int [ 10 ];
+    eee/**/ = ddd/**/.length;
+    if ( (aaa/**/ == bbb/**/) )
+      while ( (aaa/**/ < ccc/**/) )
+        aaa/**/ = (aaa/**/ + 1);
     else
       {
-        aaa = (aaa + 2);
-        println( aaa );
+        aaa/**/ = (aaa/**/ + 2);
+        println( aaa/**/ );
       }
   }
 }
 
-class firstClass {
-  var a1 : Int[ ];
-  var a2 : Bool;
-  var a3 : Int;
-  def firstMethod ( input1 : Int[ ], input2 : Int ) : Int = {
-    var a4 : String;
-    var a5 : a2;
-    println( input1 [ input2 ] );
-    return input1 [ input2 ];
+class firstClass /* firstClass#4 */ {
+  var a1 /* a1#1 */ /* a1#1 */ : Int[ ];
+  var a2 /* a2#2 */ /* a2#2 */ : Bool;
+  var a3 /* a3#3 */ /* a3#3 */ : Int;
+  def firstMethod /* firstMethod#9 */ ( input1 /* input1#7 */ : Int[ ], input2 /* input2#8 */ : Int ) : Int = {
+    var a4 /* a4#5 */ /* a4#5 */ : String;
+    var a5 /* a5#6 */ /* a5#6 */ : a2/**/;
+    println( input1/**/ [ input2/**/ ] );
+    return input1/**/ [ input2/**/ ];
   }
 }
 
-class secondClass extends firstClass {
-  def secondMethod (  ) : Boolean = {
-    println( this );
-    a1 = ((((((((1 - 2) - 3) - 4) - 5) - 6) - 7) - 8) - 9);
+class secondClass /* secondClass#10 */ extends firstClass/**/ {
+  def secondMethod /* secondMethod#11 */ (  ) : Boolean/**/ = {
+    println( this/**/ );
+    a1/**/ = ((((((((1 - 2) - 3) - 4) - 5) - 6) - 7) - 8) - 9);
     {
-      a = 1;
+      a/**/ = 1;
       {
-        b = 2;
+        b/**/ = 2;
         {
-          c = 3;
+          c/**/ = 3;
         }
       }
     }
