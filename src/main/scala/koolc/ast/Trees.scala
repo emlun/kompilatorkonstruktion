@@ -19,7 +19,8 @@ object Trees {
   def trimLinesFromRight(s: String): String = s.lines map { _.replaceFirst("\\s+$", "") } mkString "\n"
 
   sealed trait SymbolicTree[S <: Symbol] extends Tree with Symbolic[S] {
-    def symbolComment: String = symbol map { sym => s" /* ${sym.name}#${sym.id} */" } getOrElse "/**/"
+    //def symbolComment: String = symbol map { sym => s" /* ${sym.name}#${sym.id} */" } getOrElse "/**/"
+    def symbolComment: String = symbol map { sym => s"#${sym.id}" } getOrElse "#"
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
@@ -52,7 +53,7 @@ object Trees {
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol] {
-    override def print: String = s"var ${id.print}${symbolComment} : ${tpe.print};"
+    override def print: String = s"var ${id.print} : ${tpe.print};"
   }
   case class MethodDecl(
       retType: TypeTree,
