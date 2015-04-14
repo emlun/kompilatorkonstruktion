@@ -97,17 +97,17 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
       )
 
-    val classSymbols = mainSymbol :: {
-      program.classes map { clazz =>
-        val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz)).setPos(clazz)
-        clazz.setSymbol(classSymbol)
-        clazz.id.setSymbol(classSymbol)
+    def createClassSymbol(clazz: ClassDecl): ClassSymbol = {
+      val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz)).setPos(clazz)
+      clazz.setSymbol(classSymbol)
+      clazz.id.setSymbol(classSymbol)
 
-        classSymbol.methods = makeMethodSymbolsMap(clazz, classSymbol)
+      classSymbol.methods = makeMethodSymbolsMap(clazz, classSymbol)
 
-        classSymbol
-      }
+      classSymbol
     }
+
+    val classSymbols = mainSymbol :: ( program.classes map createClassSymbol _ )
 
     val classSymbolsMap: Map[String, ClassSymbol] =
       classSymbols.foldLeft(Map[String, ClassSymbol]())((symbolsMap, classSymbol) =>
