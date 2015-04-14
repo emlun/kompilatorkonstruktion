@@ -36,7 +36,7 @@ object Printer extends (Tree => String) {
         "class " + print(id,ident+1) + extend + " {\n" + body + "}\n\n"
     }
     case VarDecl(tpe, id) => {
-      "var " + print(id,ident) + " : " + print(tpe,ident)
+      "var " + print(id,ident) + " : " + print(tpe,ident) + ";"
     }
     case MethodDecl(retType, id, args, vars, stats, retExpr) => {
         val arg = args map (print(_,ident)) mkString ", "
