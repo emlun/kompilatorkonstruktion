@@ -3,11 +3,11 @@ object Main { def main(): Unit = {} }
 class Main {}
 
 class Foo {
-  var bar: Boolean;
+  var bar: Bool;
   var bar: Int;
 
-  def bar(bar: Boolean, bar: Int): Boolean = { return true; }
-  def bar(bar: Int, bar: Boolean): Int = { return 1; }
+  def bar(bar: Bool, bar: Int): Bool = { return true; }
+  def bar(bar: Int, bar: Bool): Int = { return 1; }
 }
 
 class Foo {}
