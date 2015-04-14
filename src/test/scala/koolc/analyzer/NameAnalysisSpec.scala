@@ -184,7 +184,6 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       }
 
       it("A local variable in a method can shadow a class member.") {
-        cancel("Test disabled.")
         assertFileSucceeds("member-shadowed-by-method-variable.kool")
       }
 
