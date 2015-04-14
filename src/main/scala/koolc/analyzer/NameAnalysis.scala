@@ -127,16 +127,17 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     }
 
     def makeClassVariablesSymbolMap(clazz: ClassDecl): Map[String, VariableSymbol] =
-      clazz.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) =>
+      clazz.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) => {
+        val varSymbol = createVariableSymbol(varDecl)
         varSymbols.get(varDecl.id.value) match {
           case Some(existingSymbol) => {
             ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varDecl);
             ctx.reporter.info(s"${clazz.id.value}.${varDecl.id.value} first declared here:", existingSymbol);
             varSymbols
           }
-          case None => varSymbols + (varDecl.id.value -> createVariableSymbol(varDecl))
+          case None => varSymbols + (varDecl.id.value -> varSymbol)
         }
-      )
+      })
 
     def createMethodSymbol(classSymbol: ClassSymbol, method: MethodDecl): MethodSymbol = {
       val methodSymbol = new MethodSymbol(method.id.value, classSymbol,
@@ -149,40 +150,43 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     }
 
     def makeMethodSymbolsMap(clazz: ClassDecl, classSymbol: ClassSymbol): Map[String, MethodSymbol] =
-      clazz.methods.foldLeft(Map[String, MethodSymbol]())((symbols, method) =>
+      clazz.methods.foldLeft(Map[String, MethodSymbol]())((symbols, method) => {
+        val symbol = createMethodSymbol(classSymbol, method)
         symbols.get(method.id.value) match {
           case Some(existingSymbol) => {
             ctx.reporter.error(s"Method ${method.id.value} declared multiple times", method);
             ctx.reporter.info(s"${method.id.value} first declared here:", existingSymbol);
             symbols
           }
-          case None => symbols + (method.id.value -> createMethodSymbol(classSymbol, method))
+          case None => symbols + (method.id.value -> symbol)
         }
-      )
+      })
 
     def makeMethodParameterSymbolsMap(method: MethodDecl): Map[String, VariableSymbol] =
-      method.args.foldLeft(Map[String, VariableSymbol]())((symbols, param) =>
+      method.args.foldLeft(Map[String, VariableSymbol]())((symbols, param) => {
+        val symbol = createParameterSymbol(param)
         symbols.get(param.id.value) match {
           case Some(existingSymbol) => {
             ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", param);
             ctx.reporter.info(s"${param.id.value} first declared here:", existingSymbol);
             symbols
           }
-          case None => symbols + (param.id.value -> createParameterSymbol(param))
+          case None => symbols + (param.id.value -> symbol)
         }
-      )
+      })
 
     def makeMethodVariablesSymbolMap(method: MethodDecl): Map[String, VariableSymbol] =
-      method.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) =>
+      method.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) => {
+        val varSymbol = createVariableSymbol(varDecl)
         varSymbols.get(varDecl.id.value) match {
           case Some(existingSymbol) => {
             ctx.reporter.error(s"Variable ${varDecl.id.value} declared multiple times", varDecl);
             ctx.reporter.info(s"${varDecl.id.value} first declared here:", existingSymbol);
             varSymbols
           }
-          case None => varSymbols + (varDecl.id.value -> createVariableSymbol(varDecl))
+          case None => varSymbols + (varDecl.id.value -> varSymbol)
         }
-      )
+      })
 
     def createClassSymbol(clazz: ClassDecl): ClassSymbol = {
       val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz)).setPos(clazz)
