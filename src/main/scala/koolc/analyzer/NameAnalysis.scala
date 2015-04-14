@@ -15,6 +15,81 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
 
+    def setSymbolReferences(
+        global: GlobalScope,
+        clazz: ClassSymbol,
+        lookupVar: (String => Option[VariableSymbol]),
+        statement: StatTree
+        ): Unit = {
+
+      def setOnStatement(statement: StatTree): Unit = statement match {
+        case Block(substats) => substats foreach setOnStatement _
+        case If(expression, thn, els) => {
+          setOnExpression(expression)
+          setOnStatement(thn)
+          els foreach setOnStatement _
+        }
+        case While(expression, statement) => {
+          setOnExpression(expression)
+          setOnStatement(statement)
+        }
+        case Println(expression) => setOnExpression(expression)
+        case Assign(id, expression) => {
+          lookupVar(id.value) orElse {
+            ctx.reporter.error(s"Assignment to undeclared identifier: ${id}", id)
+            None
+          } map { symbol => id.setSymbol(symbol) }
+          setOnExpression(expression)
+        }
+        case ArrayAssign(id, index, expression) => {
+          lookupVar(id.value) orElse {
+            ctx.reporter.error(s"Array assignment to undeclared identifier: ${id}", id)
+            None
+          } map { symbol => id.setSymbol(symbol) }
+          setOnExpression(index)
+          setOnExpression(expression)
+        }
+      }
+
+      def setOnExpression(expression: ExprTree): Unit = expression match {
+        case And(lhs, rhs)               => { setOnExpression(lhs); setOnExpression(rhs) }
+        case Or(lhs, rhs)                => { setOnExpression(lhs); setOnExpression(rhs) }
+        case Plus(lhs, rhs)              => { setOnExpression(lhs); setOnExpression(rhs) }
+        case Minus(lhs, rhs)             => { setOnExpression(lhs); setOnExpression(rhs) }
+        case Times(lhs, rhs)             => { setOnExpression(lhs); setOnExpression(rhs) }
+        case Div(lhs, rhs)               => { setOnExpression(lhs); setOnExpression(rhs) }
+        case LessThan(lhs, rhs)          => { setOnExpression(lhs); setOnExpression(rhs) }
+        case Equals(lhs, rhs)            => { setOnExpression(lhs); setOnExpression(rhs) }
+        case ArrayRead(arr, index)       => { setOnExpression(arr); setOnExpression(index) }
+        case ArrayLength(arr)            => setOnExpression(arr)
+        case MethodCall(obj, meth, args) => {
+          setOnExpression(obj)
+          // Process method identifier in a later stage with type checking
+          args foreach setOnExpression _
+        }
+        case id: Identifier              => {
+          // It can only be a variable if we end up here,
+          // since we don't descend into MethodCall.meth or New.tpe
+          lookupVar(id.value) orElse {
+            ctx.reporter.error(s"Reference to undeclared identifier: ${id}", id)
+            None
+          } map { symbol => id.setSymbol(symbol) }
+        }
+        case ths: This                   => ths.setSymbol(clazz)
+        case NewIntArray(size)           => setOnExpression(size)
+        case New(tpe)                    => {
+          global.lookupClass(tpe.value) orElse {
+            ctx.reporter.error(s"Reference to undeclared type: ${tpe}", tpe)
+            None
+          } map { symbol => tpe.setSymbol(symbol) }
+        }
+        case Not(expr)                   => setOnExpression(expr)
+        case _                           => {}
+      }
+
+      setOnStatement(statement)
+    }
+
     // Step 1: Collect symbols in declarations
     // Step 2: Attach symbols to identifiers (except method calls) in method bodies
     // (Step 3:) Print tree with symbol ids for debugging
