@@ -7,6 +7,8 @@ Petter Lundahl
 package koolc
 package analyzer
 
+import scala.collection.mutable.ListBuffer
+
 import utils._
 import ast.Trees._
 import Symbols._
@@ -230,6 +232,19 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           } map { parentSym =>
             classSymbol.parent = Some(parentSym)
             parentId.setSymbol(parentSym)
+
+            // Check for cyclic inheritance
+            var chain = new ListBuffer[String]()
+            chain += classSymbol.name
+            var ancestor: Option[ClassSymbol] = Some(parentSym)
+            while(ancestor.isDefined) {
+              chain += ancestor.get.name
+              if(ancestor.get.name == classSymbol.name) {
+                ctx.reporter.error( "Cyclic inheritance detected: " + (chain.toList mkString " <: "), clazz)
+                return None
+              }
+              ancestor = ancestor flatMap { _.parent }
+            }
           }
         }
 
