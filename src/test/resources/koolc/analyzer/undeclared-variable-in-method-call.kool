@@ -1,6 +1,6 @@
 object Main { def main(): Unit = {} }
 class Foo {
-  def bar(): Boolean = {
+  def bar(): Bool = {
     return a.bar();
   }
 }
