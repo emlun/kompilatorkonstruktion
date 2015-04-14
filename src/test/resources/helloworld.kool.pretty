@@ -1,4 +1,4 @@
-object HelloWorld {
+object HelloWorld /* HelloWorld#0 */ {
   def main() : Unit = {
     println( "Hello, World!" );
   }

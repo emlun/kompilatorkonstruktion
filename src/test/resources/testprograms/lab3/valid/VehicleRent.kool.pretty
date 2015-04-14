@@ -1,174 +1,174 @@
-object VehicleRent {
+object VehicleRent /* VehicleRent#0 */ {
   def main() : Unit = {
-    println( new RentingAgency().exampleDay (  ) );
+    println( new RentingAgency/**/().exampleDay/**/ (  ) );
   }
 }
 
-class RentingAgency {
-  def exampleDay (  ) : String = {
-    var client1 : Client;
-    var client2 : Client;
-    var client3 : Client;
-    var car1 : Car;
-    var car2 : Car;
-    var truck1 : Truck;
-    var truck2 : Truck;
-    client1 = new Client();
-    client2 = new Client();
-    client3 = new Client();
-    car1 = new Car();
-    car2 = new Car();
-    truck1 = new Truck();
-    truck2 = new Truck();
-    println( car1.init ( 27275, "Ferrari", 2 ) );
-    println( car2.init ( 32113, "VW", 7 ) );
-    println( truck1.init ( 12879, "Opel", 40 ) );
-    println( truck2.init ( 99234, "Renault", 56 ) );
-    println( client1.create ( 1, "Charlie Sheen" ) );
-    println( client2.create ( 2, "Angelina Jolie" ) );
-    println( client3.create ( 3, "Cameron Diaz" ) );
+class RentingAgency /* RentingAgency#1 */ {
+  def exampleDay /* exampleDay#9 */ (  ) : String = {
+    var client1 /* client1#2 */ /* client1#2 */ : Client/**/;
+    var client2 /* client2#3 */ /* client2#3 */ : Client/**/;
+    var client3 /* client3#4 */ /* client3#4 */ : Client/**/;
+    var car1 /* car1#5 */ /* car1#5 */ : Car/**/;
+    var car2 /* car2#6 */ /* car2#6 */ : Car/**/;
+    var truck1 /* truck1#7 */ /* truck1#7 */ : Truck/**/;
+    var truck2 /* truck2#8 */ /* truck2#8 */ : Truck/**/;
+    client1/**/ = new Client/**/();
+    client2/**/ = new Client/**/();
+    client3/**/ = new Client/**/();
+    car1/**/ = new Car/**/();
+    car2/**/ = new Car/**/();
+    truck1/**/ = new Truck/**/();
+    truck2/**/ = new Truck/**/();
+    println( car1/**/.init/**/ ( 27275, "Ferrari", 2 ) );
+    println( car2/**/.init/**/ ( 32113, "VW", 7 ) );
+    println( truck1/**/.init/**/ ( 12879, "Opel", 40 ) );
+    println( truck2/**/.init/**/ ( 99234, "Renault", 56 ) );
+    println( client1/**/.create/**/ ( 1, "Charlie Sheen" ) );
+    println( client2/**/.create/**/ ( 2, "Angelina Jolie" ) );
+    println( client3/**/.create/**/ ( 3, "Cameron Diaz" ) );
     println( "" );
     println( "----- START OF THE EXAMPLE DAY OF A RENTING AGENCY -----" );
     println( "" );
-    println( this.checkout ( client1, car1 ) );
-    println( this.checkout ( client2, car1 ) );
-    println( this.checkout ( client1, car2 ) );
-    println( this.checkin ( client1, car1, 453 ) );
-    println( this.checkout ( client3, truck2 ) );
-    println( this.checkout ( client3, truck1 ) );
-    println( this.checkout ( client2, car1 ) );
-    println( this.checkin ( client3, truck2, 1011 ) );
-    println( this.checkin ( client2, car1, 123 ) );
+    println( this/**/.checkout/**/ ( client1/**/, car1/**/ ) );
+    println( this/**/.checkout/**/ ( client2/**/, car1/**/ ) );
+    println( this/**/.checkout/**/ ( client1/**/, car2/**/ ) );
+    println( this/**/.checkin/**/ ( client1/**/, car1/**/, 453 ) );
+    println( this/**/.checkout/**/ ( client3/**/, truck2/**/ ) );
+    println( this/**/.checkout/**/ ( client3/**/, truck1/**/ ) );
+    println( this/**/.checkout/**/ ( client2/**/, car1/**/ ) );
+    println( this/**/.checkin/**/ ( client3/**/, truck2/**/, 1011 ) );
+    println( this/**/.checkin/**/ ( client2/**/, car1/**/, 123 ) );
     return "------ END OF THE EXAMPLE DAY OF A RENTING AGENCY ------";
   }
 
-  def checkout ( client : Client, vehicle : Vehicle ) : String = {
-    println( (" " + client.rent ( vehicle )) );
+  def checkout /* checkout#12 */ ( client /* client#10 */ : Client/**/, vehicle /* vehicle#11 */ : Vehicle/**/ ) : String = {
+    println( (" " + client/**/.rent/**/ ( vehicle/**/ )) );
     return "";
   }
 
-  def checkin ( client : Client, vehicle : Vehicle, milage : Int ) : String = {
-    println( (" " + client.restore ( vehicle, milage )) );
+  def checkin /* checkin#16 */ ( client /* client#13 */ : Client/**/, vehicle /* vehicle#14 */ : Vehicle/**/, milage /* milage#15 */ : Int ) : String = {
+    println( (" " + client/**/.restore/**/ ( vehicle/**/, milage/**/ )) );
     return "";
   }
 }
 
-class Client {
-  var clientNumber : Int;
-  var name : String;
-  var rent : Bool;
-  var rentedVehicle : Int;
-  def create ( nb : Int, n : String ) : String = {
-    var msg : String;
-    clientNumber = nb;
-    name = n;
-    msg = (((("CREATE : Client " + clientNumber) + " (") + name) + ") created!");
-    return msg;
+class Client /* Client#21 */ {
+  var clientNumber /* clientNumber#17 */ /* clientNumber#17 */ : Int;
+  var name /* name#18 */ /* name#18 */ : String;
+  var rent /* rent#19 */ /* rent#19 */ : Bool;
+  var rentedVehicle /* rentedVehicle#20 */ /* rentedVehicle#20 */ : Int;
+  def create /* create#25 */ ( nb /* nb#23 */ : Int, n /* n#24 */ : String ) : String = {
+    var msg /* msg#22 */ /* msg#22 */ : String;
+    clientNumber/**/ = nb/**/;
+    name/**/ = n/**/;
+    msg/**/ = (((("CREATE : Client " + clientNumber/**/) + " (") + name/**/) + ") created!");
+    return msg/**/;
   }
 
-  def rent ( vehicle : Vehicle ) : String = {
-    var msg : String;
-    if ( (rent || vehicle.getRented (  )) )
+  def rent /* rent#28 */ ( vehicle /* vehicle#27 */ : Vehicle/**/ ) : String = {
+    var msg /* msg#26 */ /* msg#26 */ : String;
+    if ( (rent/**/ || vehicle/**/.getRented/**/ (  )) )
       {
-        if ( rent )
+        if ( rent/**/ )
           {
-            msg = (((("NO RENT : " + name) + " has already #") + rentedVehicle) + " (1 vehicle/client)");
+            msg/**/ = (((("NO RENT : " + name/**/) + " has already #") + rentedVehicle/**/) + " (1 vehicle/client)");
           }
         else
           {
-            msg = (((("NO RENT : " + name) + " can't rent #") + vehicle.getNumber (  )) + " (already in use)");
+            msg/**/ = (((("NO RENT : " + name/**/) + " can't rent #") + vehicle/**/.getNumber/**/ (  )) + " (already in use)");
           }
       }
     else
       {
-        rent = true;
-        rentedVehicle = vehicle.getNumber (  );
-        msg = ((("RENT : " + name) + " just rented : ") + vehicle.checkout (  ));
+        rent/**/ = true;
+        rentedVehicle/**/ = vehicle/**/.getNumber/**/ (  );
+        msg/**/ = ((("RENT : " + name/**/) + " just rented : ") + vehicle/**/.checkout/**/ (  ));
       }
-    return msg;
+    return msg/**/;
   }
 
-  def restore ( vehicle : Vehicle, milage : Int ) : String = {
-    var msg : String;
-    if ( ((rent && vehicle.getRented (  )) && (rentedVehicle == vehicle.getNumber (  ))) )
+  def restore /* restore#32 */ ( vehicle /* vehicle#30 */ : Vehicle/**/, milage /* milage#31 */ : Int ) : String = {
+    var msg /* msg#29 */ /* msg#29 */ : String;
+    if ( ((rent/**/ && vehicle/**/.getRented/**/ (  )) && (rentedVehicle/**/ == vehicle/**/.getNumber/**/ (  ))) )
       {
-        rent = false;
-        rentedVehicle = 0;
-        msg = ((("RETURN : " + name) + " just brought back : ") + vehicle.checkin ( milage ));
+        rent/**/ = false;
+        rentedVehicle/**/ = 0;
+        msg/**/ = ((("RETURN : " + name/**/) + " just brought back : ") + vehicle/**/.checkin/**/ ( milage/**/ ));
       }
     else
       {
-        msg = (((("NO RETURN : " + name) + " didn't rent #") + vehicle.getNumber (  )) + " or the vehicle is already back!");
+        msg/**/ = (((("NO RETURN : " + name/**/) + " didn't rent #") + vehicle/**/.getNumber/**/ (  )) + " or the vehicle is already back!");
       }
-    return msg;
+    return msg/**/;
   }
 }
 
-class Vehicle {
-  var number : Int;
-  var milage : Int;
-  var brand : String;
-  var rented : Bool;
-  def checkout (  ) : String = {
-    rented = true;
-    return this.description (  );
+class Vehicle /* Vehicle#37 */ {
+  var number /* number#33 */ /* number#33 */ : Int;
+  var milage /* milage#34 */ /* milage#34 */ : Int;
+  var brand /* brand#35 */ /* brand#35 */ : String;
+  var rented /* rented#36 */ /* rented#36 */ : Bool;
+  def checkout /* checkout#38 */ (  ) : String = {
+    rented/**/ = true;
+    return this/**/.description/**/ (  );
   }
 
-  def checkin ( mil : Int ) : String = {
-    rented = false;
-    milage = (milage + mil);
-    return this.description (  );
+  def checkin /* checkin#40 */ ( mil /* mil#39 */ : Int ) : String = {
+    rented/**/ = false;
+    milage/**/ = (milage/**/ + mil/**/);
+    return this/**/.description/**/ (  );
   }
 
-  def description (  ) : String = {
-    var descr : String;
-    descr = (((((("#" + number) + ", ") + brand) + ", ") + milage) + "km");
-    return descr;
+  def description /* description#42 */ (  ) : String = {
+    var descr /* descr#41 */ /* descr#41 */ : String;
+    descr/**/ = (((((("#" + number/**/) + ", ") + brand/**/) + ", ") + milage/**/) + "km");
+    return descr/**/;
   }
 
-  def getNumber (  ) : Int = {
-    return number;
+  def getNumber /* getNumber#43 */ (  ) : Int = {
+    return number/**/;
   }
 
-  def getMilage (  ) : Int = {
-    return milage;
+  def getMilage /* getMilage#44 */ (  ) : Int = {
+    return milage/**/;
   }
 
-  def getBrand (  ) : String = {
-    return brand;
+  def getBrand /* getBrand#45 */ (  ) : String = {
+    return brand/**/;
   }
 
-  def getRented (  ) : Bool = {
-    return rented;
-  }
-}
-
-class Car extends Vehicle {
-  var nbSeats : Int;
-  def init ( nb : Int, br : String, seats : Int ) : String = {
-    number = nb;
-    brand = br;
-    milage = 0;
-    nbSeats = seats;
-    return (((((("CAR ADDED: #" + number) + ", ") + brand) + ", ") + nbSeats) + " seats");
-  }
-
-  def getNbSeats (  ) : Int = {
-    return nbSeats;
+  def getRented /* getRented#46 */ (  ) : Bool = {
+    return rented/**/;
   }
 }
 
-class Truck extends Vehicle {
-  var maxWeight : Int;
-  def init ( nb : Int, br : String, weight : Int ) : String = {
-    number = nb;
-    brand = br;
-    milage = 0;
-    maxWeight = weight;
-    return (((((("TRUCK ADDED : #" + number) + ", ") + brand) + ", ") + maxWeight) + "t");
+class Car /* Car#48 */ extends Vehicle/**/ {
+  var nbSeats /* nbSeats#47 */ /* nbSeats#47 */ : Int;
+  def init /* init#52 */ ( nb /* nb#49 */ : Int, br /* br#50 */ : String, seats /* seats#51 */ : Int ) : String = {
+    number/**/ = nb/**/;
+    brand/**/ = br/**/;
+    milage/**/ = 0;
+    nbSeats/**/ = seats/**/;
+    return (((((("CAR ADDED: #" + number/**/) + ", ") + brand/**/) + ", ") + nbSeats/**/) + " seats");
   }
 
-  def getMaxWeight (  ) : Int = {
-    return maxWeight;
+  def getNbSeats /* getNbSeats#53 */ (  ) : Int = {
+    return nbSeats/**/;
+  }
+}
+
+class Truck /* Truck#55 */ extends Vehicle/**/ {
+  var maxWeight /* maxWeight#54 */ /* maxWeight#54 */ : Int;
+  def init /* init#59 */ ( nb /* nb#56 */ : Int, br /* br#57 */ : String, weight /* weight#58 */ : Int ) : String = {
+    number/**/ = nb/**/;
+    brand/**/ = br/**/;
+    milage/**/ = 0;
+    maxWeight/**/ = weight/**/;
+    return (((((("TRUCK ADDED : #" + number/**/) + ", ") + brand/**/) + ", ") + maxWeight/**/) + "t");
+  }
+
+  def getMaxWeight /* getMaxWeight#60 */ (  ) : Int = {
+    return maxWeight/**/;
   }
 }

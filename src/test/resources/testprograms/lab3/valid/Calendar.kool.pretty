@@ -1,118 +1,118 @@
-object Calendar {
+object Calendar /* Calendar#0 */ {
   def main() : Unit = {
     println( "~~~ October 2011 ~~~" );
-    println( new CalendarImpl().init ( 10, 2011 ).display (  ) );
+    println( new CalendarImpl/**/().init/**/ ( 10, 2011 ).display/**/ (  ) );
     println( "~~ September 1988 ~~" );
-    println( new CalendarImpl().init ( 9, 1988 ).display (  ) );
+    println( new CalendarImpl/**/().init/**/ ( 9, 1988 ).display/**/ (  ) );
     println( "~~ February 2000 ~~~" );
-    println( new CalendarImpl().init ( 2, 2000 ).display (  ) );
+    println( new CalendarImpl/**/().init/**/ ( 2, 2000 ).display/**/ (  ) );
   }
 }
 
-class CalendarImpl {
-  var month_ : Int;
-  var year_ : Int;
-  def init ( month : Int, year : Int ) : CalendarImpl = {
-    month_ = month;
-    year_ = year;
-    return this;
+class CalendarImpl /* CalendarImpl#3 */ {
+  var month_ /* month_#1 */ /* month_#1 */ : Int;
+  var year_ /* year_#2 */ /* year_#2 */ : Int;
+  def init /* init#6 */ ( month /* month#4 */ : Int, year /* year#5 */ : Int ) : CalendarImpl/**/ = {
+    month_/**/ = month/**/;
+    year_/**/ = year/**/;
+    return this/**/;
   }
 
-  def isLeap ( year : Int ) : Bool = {
-    var result : Bool;
-    if ( (this.mod ( year, 100 ) == 0) )
-      result = (this.mod ( year, 400 ) == 0);
+  def isLeap /* isLeap#9 */ ( year /* year#8 */ : Int ) : Bool = {
+    var result /* result#7 */ /* result#7 */ : Bool;
+    if ( (this/**/.mod/**/ ( year/**/, 100 ) == 0) )
+      result/**/ = (this/**/.mod/**/ ( year/**/, 400 ) == 0);
     else
-      result = (this.mod ( year, 4 ) == 0);
-    return result;
+      result/**/ = (this/**/.mod/**/ ( year/**/, 4 ) == 0);
+    return result/**/;
   }
 
-  def daysInMonth ( month : Int, year : Int ) : Int = {
-    var result : Int;
-    if ( (((((((month == 1) || (month == 3)) || (month == 5)) || (month == 7)) || (month == 8)) || (month == 10)) || (month == 12)) )
-      result = 31;
+  def daysInMonth /* daysInMonth#13 */ ( month /* month#11 */ : Int, year /* year#12 */ : Int ) : Int = {
+    var result /* result#10 */ /* result#10 */ : Int;
+    if ( (((((((month/**/ == 1) || (month/**/ == 3)) || (month/**/ == 5)) || (month/**/ == 7)) || (month/**/ == 8)) || (month/**/ == 10)) || (month/**/ == 12)) )
+      result/**/ = 31;
     else
-      result = 30;
-    if ( (month == 2) )
+      result/**/ = 30;
+    if ( (month/**/ == 2) )
       {
-        if ( this.isLeap ( year ) )
-          result = 29;
+        if ( this/**/.isLeap/**/ ( year/**/ ) )
+          result/**/ = 29;
         else
-          result = 28;
+          result/**/ = 28;
       }
-    return result;
+    return result/**/;
   }
 
-  def firstJan ( year : Int ) : Int = {
-    var result : Int;
-    var pyear : Int;
-    pyear = (year - 1);
-    result = ((((365 * pyear) + (pyear / 4)) - (pyear / 100)) + (pyear / 400));
-    result = this.mod ( result, 7 );
-    return result;
+  def firstJan /* firstJan#17 */ ( year /* year#16 */ : Int ) : Int = {
+    var result /* result#14 */ /* result#14 */ : Int;
+    var pyear /* pyear#15 */ /* pyear#15 */ : Int;
+    pyear/**/ = (year/**/ - 1);
+    result/**/ = ((((365 * pyear/**/) + (pyear/**/ / 4)) - (pyear/**/ / 100)) + (pyear/**/ / 400));
+    result/**/ = this/**/.mod/**/ ( result/**/, 7 );
+    return result/**/;
   }
 
-  def firstDay ( month : Int, year : Int ) : Int = {
-    var result : Int;
-    var i : Int;
-    result = this.firstJan ( year );
-    i = 1;
-    while ( (i < month) )
+  def firstDay /* firstDay#22 */ ( month /* month#20 */ : Int, year /* year#21 */ : Int ) : Int = {
+    var result /* result#18 */ /* result#18 */ : Int;
+    var i /* i#19 */ /* i#19 */ : Int;
+    result/**/ = this/**/.firstJan/**/ ( year/**/ );
+    i/**/ = 1;
+    while ( (i/**/ < month/**/) )
       {
-        result = (result + this.daysInMonth ( i, year ));
-        i = (i + 1);
+        result/**/ = (result/**/ + this/**/.daysInMonth/**/ ( i/**/, year/**/ ));
+        i/**/ = (i/**/ + 1);
       }
-    result = this.mod ( result, 7 );
-    return result;
+    result/**/ = this/**/.mod/**/ ( result/**/, 7 );
+    return result/**/;
   }
 
-  def display (  ) : String = {
-    var days : Int;
-    var firstDay : Int;
-    var count : Int;
-    days = this.daysInMonth ( month_, year_ );
-    firstDay = this.firstDay ( month_, year_ );
+  def display /* display#26 */ (  ) : String = {
+    var days /* days#23 */ /* days#23 */ : Int;
+    var firstDay /* firstDay#24 */ /* firstDay#24 */ : Int;
+    var count /* count#25 */ /* count#25 */ : Int;
+    days/**/ = this/**/.daysInMonth/**/ ( month_/**/, year_/**/ );
+    firstDay/**/ = this/**/.firstDay/**/ ( month_/**/, year_/**/ );
     println( "Mo Tu We Th Fr Sa Su" );
-    println( this.displayWeek ( 1, (7 - firstDay) ) );
-    count = (7 - firstDay);
-    while ( (count < days) )
+    println( this/**/.displayWeek/**/ ( 1, (7 - firstDay/**/) ) );
+    count/**/ = (7 - firstDay/**/);
+    while ( (count/**/ < days/**/) )
       {
-        if ( (days < (count + 7)) )
-          println( this.displayWeek ( (count + 1), days ) );
+        if ( (days/**/ < (count/**/ + 7)) )
+          println( this/**/.displayWeek/**/ ( (count/**/ + 1), days/**/ ) );
         else
-          println( this.displayWeek ( (count + 1), (count + 7) ) );
-        count = (count + 7);
+          println( this/**/.displayWeek/**/ ( (count/**/ + 1), (count/**/ + 7) ) );
+        count/**/ = (count/**/ + 7);
       }
     return "";
   }
 
-  def displayWeek ( first : Int, last : Int ) : String = {
-    var current : Int;
-    var counter : Int;
-    var result : String;
-    current = first;
-    counter = 0;
-    result = "";
-    while ( (counter < 7) )
+  def displayWeek /* displayWeek#32 */ ( first /* first#30 */ : Int, last /* last#31 */ : Int ) : String = {
+    var current /* current#27 */ /* current#27 */ : Int;
+    var counter /* counter#28 */ /* counter#28 */ : Int;
+    var result /* result#29 */ /* result#29 */ : String;
+    current/**/ = first/**/;
+    counter/**/ = 0;
+    result/**/ = "";
+    while ( (counter/**/ < 7) )
       {
-        if ( (((last + counter) < 7) || (last < current)) )
+        if ( (((last/**/ + counter/**/) < 7) || (last/**/ < current/**/)) )
           {
-            result = (result + "   ");
+            result/**/ = (result/**/ + "   ");
           }
         else
           {
-            if ( (current < 10) )
-              result = (((result + " ") + current) + " ");
+            if ( (current/**/ < 10) )
+              result/**/ = (((result/**/ + " ") + current/**/) + " ");
             else
-              result = ((result + current) + " ");
-            current = (current + 1);
+              result/**/ = ((result/**/ + current/**/) + " ");
+            current/**/ = (current/**/ + 1);
           }
-        counter = (counter + 1);
+        counter/**/ = (counter/**/ + 1);
       }
-    return result;
+    return result/**/;
   }
 
-  def mod ( i : Int, j : Int ) : Int = {
-    return (i - ((i / j) * j));
+  def mod /* mod#35 */ ( i /* i#33 */ : Int, j /* j#34 */ : Int ) : Int = {
+    return (i/**/ - ((i/**/ / j/**/) * j/**/));
   }
 }

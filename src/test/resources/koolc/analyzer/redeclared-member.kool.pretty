@@ -1,10 +1,1 @@
-object Main {
-  def main() : Unit = {
-
-  }
-}
-
-class Foo {
-  var bar : Boolean;
-  var bar : Int;
-}
+Failed to parse input.
