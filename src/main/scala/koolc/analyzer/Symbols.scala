@@ -50,8 +50,12 @@ object Symbols {
     var parent: Option[ClassSymbol] = None
     var methods = Map[String,MethodSymbol]()
 
-    def lookupMethod(n: String): Option[MethodSymbol] = ???
-    def lookupVar(n: String): Option[VariableSymbol] = ???
+    def lookupMethod(n: String): Option[MethodSymbol] = methods.get(n) orElse {
+        parent flatMap ( _.lookupMethod(n) )
+      }
+    def lookupVar(n: String): Option[VariableSymbol] = members.get(n) orElse {
+        parent flatMap ( _.lookupVar(n) )
+      }
   }
 
   class MethodSymbol(
@@ -63,7 +67,9 @@ object Symbols {
     var argList: List[VariableSymbol] = Nil
     var overridden : Option[MethodSymbol] = None
 
-    def lookupVar(n: String): Option[VariableSymbol] = ???
+    def lookupVar(n: String): Option[VariableSymbol] = {
+      params.get(n) orElse { members.get(n) } orElse { classSymbol.lookupVar(n) }
+    }
   }
 
   class VariableSymbol(val name: String) extends Symbol
