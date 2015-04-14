@@ -208,6 +208,48 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
       )
 
+    val global = new GlobalScope(mainSymbol, classSymbols.map(clazz => (clazz.name, clazz)).toMap)
+
+    program.main.stats foreach { statement =>
+      setSymbolReferences(global, mainSymbol, (_ => None), statement)
+    }
+    program.classes foreach { clazz =>
+      clazz.symbol orElse {
+        sys.error(s"Class no longer has a symbol: ${clazz}")
+        None
+      } map { classSymbol =>
+
+        clazz.parent map { parentId =>
+          global.lookupClass(parentId.value) orElse {
+            ctx.reporter.error(s"Class ${clazz.id} extends undeclared type: ${parentId}", parentId)
+            None
+          } map { parentSym => classSymbol.parent = Some(parentSym) }
+        }
+
+        clazz.methods foreach { method =>
+          method.symbol orElse {
+            sys.error(s"Method no longer has a symbol: ${method}")
+            None
+          } map { methodSymbol =>
+
+            method.retType match {
+              case id: Identifier => global.lookupClass(id.value) orElse {
+                ctx.reporter.error(
+                  s"Method ${method.id} in class ${clazz.id} returns undeclared type: ${id}", id
+                )
+                None
+              } map id.setSymbol _
+              case _              => {}
+            }
+
+            method.stats foreach { statement =>
+              setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, statement)
+            }
+          }
+        }
+      }
+    }
+
     if(ctx.reporter.hasErrors) None
     else Some(program)
   }
