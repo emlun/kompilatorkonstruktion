@@ -19,7 +19,7 @@ object Trees {
   def trimLinesFromRight(s: String): String = s.lines map { _.replaceFirst("\\s+$", "") } mkString "\n"
 
   sealed trait SymbolicTree[S <: Symbol] extends Tree with Symbolic[S] {
-    def symbolComment: String = symbol map { sym => s" /* ${sym.name}#${sym.id} */" } getOrElse ""
+    def symbolComment: String = symbol map { sym => s" /* ${sym.name}#${sym.id} */" } getOrElse "/**/"
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
@@ -34,7 +34,7 @@ object Trees {
     override def print: String = {
       val statments = stats map { _.print } mkString "\n"
       val mainMethod = "def main() : Unit = {\n" + indent(statments) + "\n}"
-      "object " + id.print + symbolComment + " {\n" + indent(mainMethod) + "\n}\n"
+      "object " + id.print + " {\n" + indent(mainMethod) + "\n}\n"
     }
   }
   case class ClassDecl(
@@ -48,7 +48,7 @@ object Trees {
       val meti = methods map { _.print }
 
       val body = vari ++: meti mkString "\n"
-      "class " + id.print + symbolComment + extend + " {\n" + indent(body) + "\n}\n"
+      "class " + id.print + extend + " {\n" + indent(body) + "\n}\n"
     }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol] {
@@ -68,11 +68,11 @@ object Trees {
       val ret = "return " + retExpr.print + ";"
 
       val body = (vari ++: stmt ++: List(ret)) mkString "\n"
-      "def " + id.print + symbolComment + " ( " + arg + " ) : " + retType.print + " = {\n" + indent(body) + "\n}\n"
+      "def " + id.print + " ( " + arg + " ) : " + retType.print + " = {\n" + indent(body) + "\n}\n"
     }
   }
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol] {
-    override def print: String = id.print + symbolComment + " : " + tpe.print
+    override def print: String = id.print + " : " + tpe.print
   }
 
   sealed trait TypeTree extends Tree
