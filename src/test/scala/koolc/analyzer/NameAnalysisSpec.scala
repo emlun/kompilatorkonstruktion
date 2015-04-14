@@ -178,7 +178,8 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
       }
 
       it("All variables used must be declared.") {
-        cancel("Test not implemented.")
+        assertFileFails("undeclared-variable-in-expression.kool")
+        assertFileFails("undeclared-variable-in-assignment.kool")
       }
 
       it("A local variable in a method can shadow a class member.") {
