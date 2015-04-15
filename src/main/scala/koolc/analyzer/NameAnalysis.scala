@@ -285,13 +285,11 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             } map id.setSymbol _
             case _              => {}
           }
-          method.args foreach setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _)
-          method.vars foreach setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _)
-          method.stats foreach setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol))
-          setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol))(method.retExpr)
 
-          method.args foreach warnIfUnused(usedVars, classSymbol, Some(methodSymbol))
-          method.vars foreach warnIfUnused(usedVars, classSymbol, Some(methodSymbol))
+          (method.retExpr +: method.args ++: method.vars ++: method.stats) foreach
+            setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol))
+
+          method.args ++ method.vars foreach warnIfUnused(usedVars, classSymbol, Some(methodSymbol))
         }
       }
 
