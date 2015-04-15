@@ -67,23 +67,19 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     case t: TypeTree => {}
   }
 
-  def assertFileSucceeds(path: String) = {
+  def checkResultForFile(body: (Context, Option[Program]) => Unit)(path: String) = {
     val input = new File(getClass.getResource(path).toURI())
-    val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+    val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult(body)
+    pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
+  }
+  val assertFileSucceeds: (String => Unit) = checkResultForFile((ctx, program) => {
       ctx.reporter shouldBe errorless
       program should not be (None)
     })
-    pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
-  }
-
-  def assertFileFails(path: String) = {
-    val input = new File(getClass.getResource(path).toURI())
-    val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+  val assertFileFails: (String => Unit) = checkResultForFile((ctx, program) => {
       ctx.reporter should not be errorless
       program should be (None)
     })
-    pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
-  }
 
   def checkRefs(tree: Tree): Unit = tree match {
     case id: Identifier => withClue("Identifier:") { id.symbol  should not be None }
