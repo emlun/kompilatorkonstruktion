@@ -1,0 +1,4 @@
+object Main { def main(): Unit = {} }
+class Foo {
+  var a: Main;
+}

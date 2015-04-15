@@ -18,7 +18,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
 
     def setSymbolReferences(
-        global: GlobalScope,
+        lookupType: (Identifier => Option[ClassSymbol]),
         clazz: ClassSymbol,
         lookupVar: (String => Option[VariableSymbol]),
         tree: Tree
@@ -73,15 +73,15 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           // It can only be a variable if we end up here,
           // since we don't descend into MethodCall.meth or New.tpe
           lookupVar(id.value) orElse {
-            ctx.reporter.error(s"Reference to undeclared identifier: ${id}", id)
+            ctx.reporter.error(s"Reference to undeclared identifier: ${id.value}", id)
             None
           } map { symbol => id.setSymbol(symbol) }
         }
         case ths: This                   => ths.setSymbol(clazz)
         case NewIntArray(size)           => setOnExpression(size)
         case New(tpe)                    => {
-          global.lookupClass(tpe.value) orElse {
-            ctx.reporter.error(s"Reference to undeclared type: ${tpe}", tpe)
+          lookupType(tpe) orElse {
+            ctx.reporter.error(s"Reference to undeclared type: ${tpe.value}", tpe)
             None
           } map { symbol => tpe.setSymbol(symbol) }
         }
@@ -90,8 +90,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       }
 
       def setOnType(tpe: Identifier): Unit =
-          global.lookupClass(tpe.value) orElse {
-            ctx.reporter.error(s"Reference to undeclared type: ${tpe}", tpe)
+          lookupType(tpe) orElse {
+            ctx.reporter.error(s"Reference to undeclared type: ${tpe.value}", tpe)
             None
           } map { symbol => tpe.setSymbol(symbol) }
 
@@ -227,9 +227,16 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       )
 
     val global = new GlobalScope(mainSymbol, classSymbols.map(clazz => (clazz.name, clazz)).toMap)
+    def lookupType(id: Identifier): Option[ClassSymbol] =
+      global.lookupClass(id.value) map { classSymbol =>
+        if(classSymbol == mainSymbol) {
+          ctx.reporter.error(s"Main object cannot be used as type.", id);
+        }
+        classSymbol
+      }
 
     program.main.stats foreach { statement =>
-      setSymbolReferences(global, mainSymbol, (_ => None), statement)
+      setSymbolReferences(lookupType, mainSymbol, (_ => None), statement)
     }
     program.classes foreach { clazz =>
       clazz.symbol orElse {
@@ -239,11 +246,11 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
         clazz.parent map { parentId =>
           global.lookupClass(parentId.value) orElse {
-            ctx.reporter.error(s"Class ${clazz.id} extends undeclared type: ${parentId}", parentId)
+            ctx.reporter.error(s"Class ${clazz.id.value} extends undeclared type: ${parentId.value}", parentId)
             None
           } flatMap { parentSym =>
             if(parentSym == mainSymbol) {
-              ctx.reporter.error(s"Class ${clazz.id} must not extend main object", parentId)
+              ctx.reporter.error(s"Class ${clazz.id.value} must not extend main object", parentId)
               None
             } else Some(parentSym)
           } map { parentSym =>
@@ -264,7 +271,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
 
         clazz.vars foreach { varDecl =>
-          setSymbolReferences(global, classSymbol, classSymbol.lookupVar _, varDecl)
+          setSymbolReferences(lookupType, classSymbol, classSymbol.lookupVar _, varDecl)
         }
 
         clazz.methods foreach { method =>
@@ -273,24 +280,24 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             None
           } map { methodSymbol =>
             method.retType match {
-              case id: Identifier => global.lookupClass(id.value) orElse {
+              case id: Identifier => lookupType(id) orElse {
                 ctx.reporter.error(
-                  s"Method ${method.id} in class ${clazz.id} returns undeclared type: ${id}", id
+                  s"Method ${method.id.value} in class ${clazz.id.value} returns undeclared type: ${id.value}", id
                 )
                 None
               } map id.setSymbol _
               case _              => {}
             }
             method.args foreach { param =>
-              setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, param)
+              setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, param)
             }
             method.vars foreach { varDecl =>
-              setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, varDecl)
+              setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, varDecl)
             }
             method.stats foreach { statement =>
-              setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, statement)
+              setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, statement)
             }
-            setSymbolReferences(global, classSymbol, methodSymbol.lookupVar _, method.retExpr)
+            setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, method.retExpr)
           }
         }
       }
