@@ -299,11 +299,11 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         global.lookupClass(parentId.value) orElse {
           ctx.reporter.error(s"Class ${clazz.id.value} extends undeclared type: ${parentId.value}", parentId)
           None
-        } flatMap { parentSym =>
+        } filter { parentSym =>
           if(parentSym == mainSymbol) {
             ctx.reporter.error(s"Class ${clazz.id.value} must not extend main object", parentId)
-            None
-          } else Some(parentSym)
+            false
+          } else true
         } map { parentSym =>
           classSymbol.parent = Some(parentSym)
           parentId.setSymbol(parentSym)
