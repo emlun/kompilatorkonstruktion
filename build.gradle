@@ -24,7 +24,11 @@ dependencies {
     'org.scala-lang:scala-library:2.+',
     'org.scala-lang:scala-parser-combinators:2.+',
   )
-  testCompile 'org.scalatest:scalatest_2.11:2.+'
+  testCompile(
+    'org.scalatest:scalatest_2.11:2.+',
+    'org.scalamock:scalamock-core_2.11:3.+',
+    'org.scalamock:scalamock-scalatest-support_2.11:3.+',
+  )
   testRuntime 'org.pegdown:pegdown:1.+'
 }
 
