@@ -277,7 +277,10 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
         }
 
         it("The main object cannot be used as a type.") {
-          assertFileFails("redeclared-main.kool")
+          assertFileFails("main-as-type-in-class-member.kool")
+          assertFileFails("main-as-type-in-method-parameter.kool")
+          assertFileFails("main-as-type-in-method-return-type.kool")
+          assertFileFails("main-as-type-in-method-variable.kool")
         }
       }
 
