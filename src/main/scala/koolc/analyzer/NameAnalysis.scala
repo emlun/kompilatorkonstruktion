@@ -114,7 +114,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     program.main.id.setSymbol(mainSymbol)
 
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
-      val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl)
+      val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl.id)
       varDecl.setSymbol(symbol)
       varDecl.id.setSymbol(symbol)
       symbol
@@ -236,9 +236,9 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     def warnIfUnused(used: Set[VariableSymbol], clazz: ClassSymbol, method: Option[MethodSymbol] = None)
         (varOrParam: Symbolic[VariableSymbol] with Positioned) = {
-      val (kind, pos) = varOrParam match {
-        case v: VarDecl => ("Variable", v.id)
-        case p: Formal  => ("Parameter", p)
+      val kind = varOrParam match {
+        case v: VarDecl => "Variable"
+        case p: Formal  => "Parameter"
       }
       val ancestors = method map {
         methodSym => "Method " + clazz.name + "." + methodSym.name
@@ -246,7 +246,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
       varOrParam.symbol map { symbol =>
         if(!(used contains symbol)) {
-          ctx.reporter.warning(s"${kind} ${symbol.name} in ${ancestors} is never used.", pos)
+          ctx.reporter.warning(s"${kind} ${symbol.name} in ${ancestors} is never used.", symbol)
         }
       } orElse sys.error(s"${kind} has no symbol: ${varOrParam}")
     }
