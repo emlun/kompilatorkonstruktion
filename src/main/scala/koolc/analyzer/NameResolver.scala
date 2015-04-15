@@ -159,7 +159,10 @@ object NameResolver {
       }
     }
 
-    def setSymbolReferencesOnClass(lookupType: (Identifier => Option[ClassSymbol]), mainSymbol: ClassSymbol, classDecl: ClassDecl)
+    def setSymbolReferencesOnClass(
+        lookupType: (Identifier => Option[ClassSymbol]),
+        mainSymbol: ClassSymbol,
+        classDecl: ClassDecl)
         (clazz: ClassSymbol): Unit = {
       classDecl.parent map { parentId =>
         lookupType(parentId) orElse {
