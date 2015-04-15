@@ -286,11 +286,13 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
         }
       }
 
-      it("A method in a given class overrides another one in a super class if they have the same name and the same number of arguments. (Of course this constraint will be tightened once we start checking types.)") {
-          cancel("Test not implemented.")
-      }
-      it("Fields cannot be overridden.") {
-          cancel("Test not implemented.")
+      describe("Overriding:") {
+        it("A method in a given class overrides another one in a super class if they have the same name and the same number of arguments. (Of course this constraint will be tightened once we start checking types.)") {
+            cancel("Test not implemented.")
+        }
+        it("Fields cannot be overridden.") {
+            cancel("Test not implemented.")
+        }
       }
     }
 
