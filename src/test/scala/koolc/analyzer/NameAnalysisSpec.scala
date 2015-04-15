@@ -270,7 +270,10 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
         }
 
         it("When a class name is used as a type, the class must be declared.") {
-          cancel("Test not implemented.")
+          assertFileFails("nonexistent-type-in-class-member.kool")
+          assertFileFails("nonexistent-type-in-method-parameter.kool")
+          assertFileFails("nonexistent-type-in-method-return-type.kool")
+          assertFileFails("nonexistent-type-in-method-variable.kool")
         }
 
         it("The main object cannot be used as a type.") {
