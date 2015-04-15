@@ -252,6 +252,13 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       } orElse sys.error(s"${kind} has no symbol: ${varOrParam}")
     }
 
+    def detectCyclicInheritance(baseSym: ClassSymbol)(ancestorSym: ClassSymbol): Option[Seq[String]] =
+      if(ancestorSym == baseSym) {
+        Some(ancestorSym.name :: Nil)
+      } else {
+        ancestorSym.parent flatMap detectCyclicInheritance(baseSym) map { ancestorSym.name +: _ }
+      }
+
     def setSymbolReferencesInClass(clazz: ClassDecl)(classSymbol: ClassSymbol): Unit = {
       var usedVarsForClass: Set[VariableSymbol] = Set.empty
 
@@ -308,14 +315,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           classSymbol.parent = Some(parentSym)
           parentId.setSymbol(parentSym)
 
-          def detectCyclicInheritance(ancestorSym: ClassSymbol): Option[Seq[String]] =
-            if(ancestorSym == classSymbol) {
-              Some(ancestorSym.name :: Nil)
-            } else {
-              ancestorSym.parent flatMap detectCyclicInheritance _ map { ancestorSym.name +: _ }
-            }
-
-          detectCyclicInheritance(parentSym) map { ancestorNames  =>
+          detectCyclicInheritance(classSymbol)(parentSym) map { ancestorNames  =>
             ctx.reporter.error(
               "Cyclic inheritance detected: " + ((classSymbol.name +: ancestorNames) mkString " <: "), clazz
             )
