@@ -7,8 +7,6 @@ Petter Lundahl
 package koolc
 package analyzer
 
-import scala.collection.mutable.ListBuffer
-
 import utils._
 import ast.Trees._
 import Symbols._
