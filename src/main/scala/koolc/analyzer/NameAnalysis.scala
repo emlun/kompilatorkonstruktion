@@ -235,6 +235,103 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         classSymbol
       }
 
+    def setSymbolReferencesInClass(clazz: ClassDecl)(classSymbol: ClassSymbol): Unit = {
+      var lookedUpVarsForClass: Set[VariableSymbol] = Set.empty
+
+      clazz.parent map { parentId =>
+        global.lookupClass(parentId.value) orElse {
+          ctx.reporter.error(s"Class ${clazz.id.value} extends undeclared type: ${parentId.value}", parentId)
+          None
+        } flatMap { parentSym =>
+          if(parentSym == mainSymbol) {
+            ctx.reporter.error(s"Class ${clazz.id.value} must not extend main object", parentId)
+            None
+          } else Some(parentSym)
+        } map { parentSym =>
+          classSymbol.parent = Some(parentSym)
+          parentId.setSymbol(parentSym)
+
+          def detectCyclicInheritance(ancestorSym: ClassSymbol): Option[Seq[String]] =
+            if(ancestorSym.name == classSymbol.name) {
+              Some(ancestorSym.name :: Nil)
+            } else {
+              ancestorSym.parent flatMap detectCyclicInheritance _ map { ancestorSym.name +: _ }
+            }
+
+          detectCyclicInheritance(parentSym) map { classSymbol.name +: _ } map { chain  =>
+            ctx.reporter.error("Cyclic inheritance detected: " + (chain.toList mkString " <: "), clazz)
+          }
+        }
+      }
+
+      clazz.vars foreach { varDecl =>
+        setSymbolReferences(lookupType, classSymbol, classSymbol.lookupVar _, varDecl)
+      }
+
+      clazz.methods foreach { method =>
+        method.symbol orElse {
+          sys.error(s"Method no longer has a symbol: ${method}")
+          None
+        } map { methodSymbol =>
+          var lookedUpVars: Set[VariableSymbol] = Set.empty
+          def lookupVarAndRecordLookup(methodSymbol: MethodSymbol)(name: String): Option[VariableSymbol] = {
+            val varSymbol = methodSymbol.lookupVar(name)
+            varSymbol map { varSymbol =>
+              lookedUpVars += varSymbol
+              lookedUpVarsForClass += varSymbol
+            }
+            varSymbol
+          }
+
+          method.retType match {
+            case id: Identifier => lookupType(id) orElse {
+              ctx.reporter.error(
+                s"Method ${method.id.value} in class ${clazz.id.value} returns undeclared type: ${id.value}", id
+              )
+              None
+            } map id.setSymbol _
+            case _              => {}
+          }
+          method.args foreach { param =>
+            setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, param)
+          }
+          method.vars foreach { varDecl =>
+            setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, varDecl)
+          }
+          method.stats foreach { statement =>
+            setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), statement)
+          }
+          setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), method.retExpr)
+
+          method.args foreach { param =>
+            param.symbol map { paramSymbol =>
+              if(!(lookedUpVars contains paramSymbol)) {
+                ctx.reporter.warning(s"Parameter ${paramSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} is never used.", param)
+              }
+            } orElse sys.error(s"Parameter has no symbol: ${param}")
+          }
+          method.vars foreach { varDecl =>
+            varDecl.symbol map { varSymbol =>
+              if(!(lookedUpVars contains varSymbol)) {
+                ctx.reporter.warning(s"Variable ${varSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} is never used.", varDecl.id)
+              }
+            } orElse sys.error(s"Variable has no symbol: ${varDecl}")
+          }
+        }
+      }
+
+      clazz.vars foreach { varDecl =>
+        varDecl.symbol map { varSymbol =>
+          if(!(lookedUpVarsForClass contains varSymbol)) {
+            ctx.reporter.warning(
+              s"Member ${varSymbol.name} in class ${classSymbol.name} is never used.",
+              varDecl.id
+            )
+          }
+        } orElse sys.error(s"Variable has no symbol: ${varDecl}")
+      }
+    }
+
     program.main.stats foreach { statement =>
       setSymbolReferences(lookupType, mainSymbol, (_ => None), statement)
     }
@@ -242,102 +339,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       clazz.symbol orElse {
         sys.error(s"Class no longer has a symbol: ${clazz}")
         None
-      } map { classSymbol =>
-        var lookedUpVarsForClass: Set[VariableSymbol] = Set.empty
-
-        clazz.parent map { parentId =>
-          global.lookupClass(parentId.value) orElse {
-            ctx.reporter.error(s"Class ${clazz.id.value} extends undeclared type: ${parentId.value}", parentId)
-            None
-          } flatMap { parentSym =>
-            if(parentSym == mainSymbol) {
-              ctx.reporter.error(s"Class ${clazz.id.value} must not extend main object", parentId)
-              None
-            } else Some(parentSym)
-          } map { parentSym =>
-            classSymbol.parent = Some(parentSym)
-            parentId.setSymbol(parentSym)
-
-            def detectCyclicInheritance(ancestorSym: ClassSymbol): Option[Seq[String]] =
-              if(ancestorSym.name == classSymbol.name) {
-                Some(ancestorSym.name :: Nil)
-              } else {
-                ancestorSym.parent flatMap detectCyclicInheritance _ map { ancestorSym.name +: _ }
-              }
-
-            detectCyclicInheritance(parentSym) map { classSymbol.name +: _ } map { chain  =>
-              ctx.reporter.error("Cyclic inheritance detected: " + (chain.toList mkString " <: "), clazz)
-            }
-          }
-        }
-
-        clazz.vars foreach { varDecl =>
-          setSymbolReferences(lookupType, classSymbol, classSymbol.lookupVar _, varDecl)
-        }
-
-        clazz.methods foreach { method =>
-          method.symbol orElse {
-            sys.error(s"Method no longer has a symbol: ${method}")
-            None
-          } map { methodSymbol =>
-            var lookedUpVars: Set[VariableSymbol] = Set.empty
-            def lookupVarAndRecordLookup(methodSymbol: MethodSymbol)(name: String): Option[VariableSymbol] = {
-              val varSymbol = methodSymbol.lookupVar(name)
-              varSymbol map { varSymbol =>
-                lookedUpVars += varSymbol
-                lookedUpVarsForClass += varSymbol
-              }
-              varSymbol
-            }
-
-            method.retType match {
-              case id: Identifier => lookupType(id) orElse {
-                ctx.reporter.error(
-                  s"Method ${method.id.value} in class ${clazz.id.value} returns undeclared type: ${id.value}", id
-                )
-                None
-              } map id.setSymbol _
-              case _              => {}
-            }
-            method.args foreach { param =>
-              setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, param)
-            }
-            method.vars foreach { varDecl =>
-              setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, varDecl)
-            }
-            method.stats foreach { statement =>
-              setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), statement)
-            }
-            setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), method.retExpr)
-
-            method.args foreach { param =>
-              param.symbol map { paramSymbol =>
-                if(!(lookedUpVars contains paramSymbol)) {
-                  ctx.reporter.warning(s"Parameter ${paramSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} is never used.", param)
-                }
-              } orElse sys.error(s"Parameter has no symbol: ${param}")
-            }
-            method.vars foreach { varDecl =>
-              varDecl.symbol map { varSymbol =>
-                if(!(lookedUpVars contains varSymbol)) {
-                  ctx.reporter.warning(s"Variable ${varSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} is never used.", varDecl.id)
-                }
-              } orElse sys.error(s"Variable has no symbol: ${varDecl}")
-            }
-          }
-        }
-
-        clazz.vars foreach { varDecl =>
-          varDecl.symbol map { varSymbol =>
-            if(!(lookedUpVarsForClass contains varSymbol)) {
-              ctx.reporter.warning(
-                s"Member ${varSymbol.name} in class ${classSymbol.name} is never used.",
-                varDecl.id
-              )
-            }
-          } orElse sys.error(s"Variable has no symbol: ${varDecl}")
-        }
-      }
+      } map setSymbolReferencesInClass(clazz)
     }
 
     if(ctx.reporter.hasErrors) None
