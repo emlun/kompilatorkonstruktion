@@ -132,7 +132,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val varSymbol = createVariableSymbol(varDecl)
         varSymbols.get(varDecl.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varDecl);
+            ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varSymbol);
             ctx.reporter.info(s"${clazz.id.value}.${varDecl.id.value} first declared here:", existingSymbol);
             varSymbols
           }
@@ -167,7 +167,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val symbol = createMethodSymbol(classSymbol, method)
         symbols.get(method.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Method ${method.id.value} declared multiple times", method);
+            ctx.reporter.error(s"Method ${method.id.value} declared multiple times", symbol);
             ctx.reporter.info(s"${method.id.value} first declared here:", existingSymbol);
             symbols
           }
@@ -180,7 +180,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val symbol = createParameterSymbol(param)
         symbols.get(param.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", param);
+            ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", symbol);
             ctx.reporter.info(s"${param.id.value} first declared here:", existingSymbol);
             symbols
           }
@@ -193,7 +193,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val varSymbol = createVariableSymbol(varDecl)
         varSymbols.get(varDecl.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Variable ${varDecl.id.value} declared multiple times", varDecl);
+            ctx.reporter.error(s"Variable ${varDecl.id.value} declared multiple times", varSymbol);
             ctx.reporter.info(s"${varDecl.id.value} first declared here:", existingSymbol);
             varSymbols
           }
