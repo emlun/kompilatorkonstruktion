@@ -159,7 +159,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       }
     }
 
-    def setSymbolReferencesOnClass(global: GlobalScope, mainSymbol: ClassSymbol, classDecl: ClassDecl, clazz: ClassSymbol): Unit = {
+    def setSymbolReferencesOnClass(global: GlobalScope, mainSymbol: ClassSymbol, classDecl: ClassDecl)
+        (clazz: ClassSymbol): Unit = {
       classDecl.parent map { parentId =>
         lookupType(global, mainSymbol)(parentId) orElse {
           ctx.reporter.error(s"Class ${classDecl.id.value} extends undeclared type: ${parentId.value}", parentId)
@@ -325,9 +326,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       clazz.symbol orElse {
         sys.error(s"Class no longer has a symbol: ${clazz}")
         None
-      } map { classSymbol =>
-        setSymbolReferencesOnClass(global, mainSymbol, clazz, classSymbol)
-      }
+      } map setSymbolReferencesOnClass(global, mainSymbol, clazz)
     }
 
     if(ctx.reporter.hasErrors) None
