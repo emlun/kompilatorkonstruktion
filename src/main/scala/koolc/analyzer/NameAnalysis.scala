@@ -109,7 +109,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     // Make sure you check for all constraints
 
-    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main)
+    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main.id)
     program.main.setSymbol(mainSymbol)
     program.main.id.setSymbol(mainSymbol)
 
@@ -121,7 +121,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     }
 
     def createParameterSymbol(param: Formal): VariableSymbol = {
-      val symbol = new VariableSymbol(param.id.value).setPos(param)
+      val symbol = new VariableSymbol(param.id.value).setPos(param.id)
       param.setSymbol(symbol)
       param.id.setSymbol(symbol)
       symbol
@@ -144,7 +144,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       val methodSymbol = new MethodSymbol(method.id.value, classSymbol,
         makeMethodVariablesSymbolMap(method),
         makeMethodParameterSymbolsMap(method)
-      ).setPos(method)
+      ).setPos(method.id)
       method.setSymbol(methodSymbol)
       method.id.setSymbol(methodSymbol)
 
@@ -202,7 +202,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       })
 
     def createClassSymbol(clazz: ClassDecl): ClassSymbol = {
-      val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz)).setPos(clazz)
+      val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz)).setPos(clazz.id)
       clazz.setSymbol(classSymbol)
       clazz.id.setSymbol(classSymbol)
 
