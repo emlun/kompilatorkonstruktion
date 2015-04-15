@@ -145,14 +145,11 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     describe("attaches symbols to all declarations") {
       VALID_TEST_FILES foreach { path =>
         it(s"in ${path}") {
-          val input = new File(getClass.getResource(path).toURI())
-
-          val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+          checkResultForFile(path, (ctx, program) => {
             ctx.reporter shouldBe errorless
             program should not be None
             program foreach checkDeclarationSymbols _
           })
-          pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
         }
       }
     }
@@ -308,14 +305,11 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     describe("attaches symbol references to all identifiers") {
       VALID_TEST_FILES foreach { path =>
         it(s"in ${path}") {
-          val input = new File(getClass.getResource(path).toURI())
-
-          val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+          checkResultForFile(path, (ctx, program) => {
             ctx.reporter shouldBe errorless
             program should not be None
             program foreach checkRefs _
           })
-          pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
         }
       }
     }
