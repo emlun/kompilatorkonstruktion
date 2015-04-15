@@ -104,8 +104,10 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             case id: Identifier => setOnType(id)
             case _              => {}
           }
-          (method.retExpr +: method.args ++: method.vars ++: method.stats) foreach
+          (method.args ++: method.vars) foreach
             setSymbolReferences(lookupType, clazz, lookupVar)
+          method.stats foreach setOnStatement _
+          setOnExpression(method.retExpr)
         }
         case _                           => {}
       }
