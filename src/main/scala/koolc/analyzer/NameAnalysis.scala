@@ -238,37 +238,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     def setSymbolReferencesInClass(clazz: ClassDecl)(classSymbol: ClassSymbol): Unit = {
       var lookedUpVarsForClass: Set[VariableSymbol] = Set.empty
 
-      clazz.parent map { parentId =>
-        global.lookupClass(parentId.value) orElse {
-          ctx.reporter.error(s"Class ${clazz.id.value} extends undeclared type: ${parentId.value}", parentId)
-          None
-        } flatMap { parentSym =>
-          if(parentSym == mainSymbol) {
-            ctx.reporter.error(s"Class ${clazz.id.value} must not extend main object", parentId)
-            None
-          } else Some(parentSym)
-        } map { parentSym =>
-          classSymbol.parent = Some(parentSym)
-          parentId.setSymbol(parentSym)
-
-          def detectCyclicInheritance(ancestorSym: ClassSymbol): Option[Seq[String]] =
-            if(ancestorSym.name == classSymbol.name) {
-              Some(ancestorSym.name :: Nil)
-            } else {
-              ancestorSym.parent flatMap detectCyclicInheritance _ map { ancestorSym.name +: _ }
-            }
-
-          detectCyclicInheritance(parentSym) map { classSymbol.name +: _ } map { chain  =>
-            ctx.reporter.error("Cyclic inheritance detected: " + (chain.toList mkString " <: "), clazz)
-          }
-        }
-      }
-
-      clazz.vars foreach { varDecl =>
-        setSymbolReferences(lookupType, classSymbol, classSymbol.lookupVar _, varDecl)
-      }
-
-      clazz.methods foreach { method =>
+      def setSymbolReferencesInMethod(method: MethodDecl): Unit = {
         method.symbol orElse {
           sys.error(s"Method no longer has a symbol: ${method}")
           None
@@ -319,6 +289,38 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           }
         }
       }
+
+      clazz.parent map { parentId =>
+        global.lookupClass(parentId.value) orElse {
+          ctx.reporter.error(s"Class ${clazz.id.value} extends undeclared type: ${parentId.value}", parentId)
+          None
+        } flatMap { parentSym =>
+          if(parentSym == mainSymbol) {
+            ctx.reporter.error(s"Class ${clazz.id.value} must not extend main object", parentId)
+            None
+          } else Some(parentSym)
+        } map { parentSym =>
+          classSymbol.parent = Some(parentSym)
+          parentId.setSymbol(parentSym)
+
+          def detectCyclicInheritance(ancestorSym: ClassSymbol): Option[Seq[String]] =
+            if(ancestorSym.name == classSymbol.name) {
+              Some(ancestorSym.name :: Nil)
+            } else {
+              ancestorSym.parent flatMap detectCyclicInheritance _ map { ancestorSym.name +: _ }
+            }
+
+          detectCyclicInheritance(parentSym) map { classSymbol.name +: _ } map { chain  =>
+            ctx.reporter.error("Cyclic inheritance detected: " + (chain.toList mkString " <: "), clazz)
+          }
+        }
+      }
+
+      clazz.vars foreach { varDecl =>
+        setSymbolReferences(lookupType, classSymbol, classSymbol.lookupVar _, varDecl)
+      }
+
+      clazz.methods foreach setSymbolReferencesInMethod _
 
       clazz.vars foreach { varDecl =>
         varDecl.symbol map { varSymbol =>
