@@ -99,6 +99,14 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         case expr: ExprTree              => setOnExpression(expr)
         case VarDecl(tpe: Identifier, _) => setOnType(tpe)
         case Formal(tpe: Identifier, _)  => setOnType(tpe)
+        case method: MethodDecl          => {
+          method.retType match {
+            case id: Identifier => setOnType(id)
+            case _              => {}
+          }
+          (method.retExpr +: method.args ++: method.vars ++: method.stats) foreach
+            setSymbolReferences(lookupType, clazz, lookupVar)
+        }
         case _                           => {}
       }
     }
@@ -276,18 +284,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             varSymbol
           }
 
-          method.retType match {
-            case id: Identifier => lookupType(id) orElse {
-              ctx.reporter.error(
-                s"Method ${method.id.value} in class ${clazz.id.value} returns undeclared type: ${id.value}", id
-              )
-              None
-            } map id.setSymbol _
-            case _              => {}
-          }
-
-          (method.retExpr +: method.args ++: method.vars ++: method.stats) foreach
-            setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol))
+          setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol))(method)
 
           method.args ++ method.vars foreach warnIfUnused(usedVars, classSymbol, Some(methodSymbol))
         }
