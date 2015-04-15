@@ -227,7 +227,13 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       )
 
     val global = new GlobalScope(mainSymbol, classSymbols.map(clazz => (clazz.name, clazz)).toMap)
-    def lookupType(id: Identifier): Option[ClassSymbol] = global.lookupClass(id.value)
+    def lookupType(id: Identifier): Option[ClassSymbol] =
+      global.lookupClass(id.value) map { classSymbol =>
+        if(classSymbol == mainSymbol) {
+          ctx.reporter.error(s"Main object cannot be used as type.", id);
+        }
+        classSymbol
+      }
 
     program.main.stats foreach { statement =>
       setSymbolReferences(lookupType, mainSymbol, (_ => None), statement)
