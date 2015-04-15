@@ -36,17 +36,17 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
         case Println(expression) => setOnExpression(expression)
         case Assign(id, expression) => {
-          lookupVar(id.value) orElse {
+          lookupVar(id.value) map { id.setSymbol(_) } orElse {
             ctx.reporter.error(s"Assignment to undeclared identifier: ${id}", id)
             None
-          } map { symbol => id.setSymbol(symbol) }
+          }
           setOnExpression(expression)
         }
         case ArrayAssign(id, index, expression) => {
-          lookupVar(id.value) orElse {
+          lookupVar(id.value) map { id.setSymbol(_) } orElse {
             ctx.reporter.error(s"Array assignment to undeclared identifier: ${id}", id)
             None
-          } map { symbol => id.setSymbol(symbol) }
+          }
           setOnExpression(index)
           setOnExpression(expression)
         }
@@ -71,28 +71,28 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         case id: Identifier              => {
           // It can only be a variable if we end up here,
           // since we don't descend into MethodCall.meth or New.tpe
-          lookupVar(id.value) orElse {
+          lookupVar(id.value) map { id.setSymbol(_) } orElse {
             ctx.reporter.error(s"Reference to undeclared identifier: ${id.value}", id)
             None
-          } map { symbol => id.setSymbol(symbol) }
+          }
         }
         case ths: This                   => ths.setSymbol(clazz)
         case NewIntArray(size)           => setOnExpression(size)
         case New(tpe)                    => {
-          lookupType(tpe) orElse {
+          lookupType(tpe) map { tpe.setSymbol(_) } orElse {
             ctx.reporter.error(s"Reference to undeclared type: ${tpe.value}", tpe)
             None
-          } map { symbol => tpe.setSymbol(symbol) }
+          }
         }
         case Not(expr)                   => setOnExpression(expr)
         case _                           => {}
       }
 
       def setOnType(tpe: TypeTree): Unit = tpe match {
-          case id: Identifier => lookupType(id) orElse {
+          case id: Identifier => lookupType(id) map { id.setSymbol(_) } orElse {
               ctx.reporter.error(s"Reference to undeclared type: ${id.value}", tpe)
               None
-            } map { symbol => id.setSymbol(symbol) }
+            }
           case _ => {}
         }
 
