@@ -73,6 +73,10 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult(body)
     pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
   }
+  def checkResultForString(source: String, body: (Context, Option[Program]) => Unit) = {
+    val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult(body)
+    pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+  }
   val assertFileSucceeds: (String => Unit) = checkResultForFile(_, (ctx, program) => {
       ctx.reporter shouldBe errorless
       program should not be (None)
@@ -190,7 +194,7 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
               }
             }
           """
-          val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+          checkResultForString(source, (ctx, program) => {
             ctx.reporter shouldBe errorless
             program should not be (None)
 
@@ -206,7 +210,6 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
               case _ => fail("Expected first statement to be assignment, was: " + barMethod.stats.head)
             }
           })
-          pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
         }
 
         it("A method parameter can shadow a class member.") {
@@ -220,7 +223,7 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
               }
             }
           """
-          val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+          checkResultForString(source, (ctx, program) => {
             ctx.reporter shouldBe errorless
             program should not be (None)
 
@@ -236,7 +239,6 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
               case _ => fail("Expected first statement to be assignment, was: " + barMethod.stats.head)
             }
           })
-          pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
         }
 
         it("No other type of shadowing is allowed in KOOL.") {
