@@ -132,7 +132,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         setOnExpression(method.retExpr)
       }
 
-      def setSymbolReferencesInClass(classDecl: ClassDecl): Unit = {
+      def setOnClass(classDecl: ClassDecl): Unit = {
         var usedVarsForClass: Set[VariableSymbol] = Set.empty
 
         def setSymbolReferencesInMethod(method: MethodDecl): Unit = {
@@ -188,7 +188,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         case expr: ExprTree              => setOnExpression(expr)
         case VarDecl(tpe: Identifier, _) => setOnType(tpe)
         case method: MethodDecl          => setOnMethod(method)
-        case classDecl: ClassDecl        => setSymbolReferencesInClass(classDecl)
+        case classDecl: ClassDecl        => setOnClass(classDecl)
         case _                           => {}
       }
     }
