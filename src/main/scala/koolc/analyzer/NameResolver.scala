@@ -197,6 +197,8 @@ object NameResolver {
       }
       classDecl.vars foreach warnIfUnused(usedVars.toSet, clazz)
     }
+
+
     val global = new GlobalScope(mainSymbol, classSymbols.map(clazz => (clazz.name, clazz)).toMap)
 
     program.main.stats foreach setSymbolReferences(lookupType(global, mainSymbol), mainSymbol, (_ => None))
