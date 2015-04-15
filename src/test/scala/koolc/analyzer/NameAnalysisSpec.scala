@@ -3,6 +3,7 @@ package analyzer
 
 import java.io.File
 import scala.io.Source
+import scala.util.Try
 
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
@@ -67,16 +68,16 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     case t: TypeTree => {}
   }
 
-  def checkResultForFile(body: (Context, Option[Program]) => Unit)(path: String) = {
-    val input = new File(getClass.getResource(path).toURI())
+  def checkResultForFile(path: String, body: (Context, Option[Program]) => Unit) = {
+    val input = Try(new File(getClass.getResource(path).toURI())) getOrElse fail("File " + path + " not found.")
     val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult(body)
     pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
   }
-  val assertFileSucceeds: (String => Unit) = checkResultForFile((ctx, program) => {
+  val assertFileSucceeds: (String => Unit) = checkResultForFile(_, (ctx, program) => {
       ctx.reporter shouldBe errorless
       program should not be (None)
     })
-  val assertFileFails: (String => Unit) = checkResultForFile((ctx, program) => {
+  val assertFileFails: (String => Unit) = checkResultForFile(_, (ctx, program) => {
       ctx.reporter should not be errorless
       program should be (None)
     })
