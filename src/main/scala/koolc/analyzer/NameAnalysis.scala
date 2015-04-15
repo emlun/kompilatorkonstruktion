@@ -49,71 +49,81 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         lookupType: (Identifier => Option[ClassSymbol]),
         clazz: ClassSymbol,
         lookupVar: (String => Option[VariableSymbol])
-        )(tree: Tree): Unit = {
+        )(tree: Tree): Set[VariableSymbol] = {
 
-      def setOnStatement(statement: StatTree): Unit = statement match {
-        case Block(substats) => substats foreach setOnStatement _
+      def setOnStatement(statement: StatTree): Set[VariableSymbol] = statement match {
+        case Block(substats) => (substats flatMap setOnStatement _).toSet
         case If(expression, thn, els) => {
-          setOnExpression(expression)
-          setOnStatement(thn)
-          els foreach setOnStatement _
+          setOnExpression(expression) ++
+          setOnStatement(thn) ++
+          (els map setOnStatement _ getOrElse Set.empty)
         }
         case While(expression, statement) => {
-          setOnExpression(expression)
+          setOnExpression(expression) ++
           setOnStatement(statement)
         }
         case Println(expression) => setOnExpression(expression)
         case Assign(id, expression) => {
-          lookupVar(id.value) map { id.setSymbol(_) } orElse {
+          (lookupVar(id.value) map { symbol =>
+            id.setSymbol(symbol)
+            symbol
+          } orElse {
             ctx.reporter.error(s"Assignment to undeclared identifier: ${id}", id)
             None
-          }
+          }) ++:
           setOnExpression(expression)
         }
         case ArrayAssign(id, index, expression) => {
-          lookupVar(id.value) map { id.setSymbol(_) } orElse {
+          (lookupVar(id.value) map { symbol =>
+            id.setSymbol(symbol)
+            symbol
+          } orElse {
             ctx.reporter.error(s"Array assignment to undeclared identifier: ${id}", id)
             None
-          }
-          setOnExpression(index)
+          }) ++:
+          setOnExpression(index) ++:
           setOnExpression(expression)
         }
       }
 
-      def setOnExpression(expression: ExprTree): Unit = expression match {
-        case And(lhs, rhs)               => { setOnExpression(lhs); setOnExpression(rhs) }
-        case Or(lhs, rhs)                => { setOnExpression(lhs); setOnExpression(rhs) }
-        case Plus(lhs, rhs)              => { setOnExpression(lhs); setOnExpression(rhs) }
-        case Minus(lhs, rhs)             => { setOnExpression(lhs); setOnExpression(rhs) }
-        case Times(lhs, rhs)             => { setOnExpression(lhs); setOnExpression(rhs) }
-        case Div(lhs, rhs)               => { setOnExpression(lhs); setOnExpression(rhs) }
-        case LessThan(lhs, rhs)          => { setOnExpression(lhs); setOnExpression(rhs) }
-        case Equals(lhs, rhs)            => { setOnExpression(lhs); setOnExpression(rhs) }
-        case ArrayRead(arr, index)       => { setOnExpression(arr); setOnExpression(index) }
+      def setOnExpression(expression: ExprTree): Set[VariableSymbol] = expression match {
+        case And(lhs, rhs)               => { setOnExpression(lhs) ++ setOnExpression(rhs) }
+        case Or(lhs, rhs)                => { setOnExpression(lhs) ++ setOnExpression(rhs) }
+        case Plus(lhs, rhs)              => { setOnExpression(lhs) ++ setOnExpression(rhs) }
+        case Minus(lhs, rhs)             => { setOnExpression(lhs) ++ setOnExpression(rhs) }
+        case Times(lhs, rhs)             => { setOnExpression(lhs) ++ setOnExpression(rhs) }
+        case Div(lhs, rhs)               => { setOnExpression(lhs) ++ setOnExpression(rhs) }
+        case LessThan(lhs, rhs)          => { setOnExpression(lhs) ++ setOnExpression(rhs) }
+        case Equals(lhs, rhs)            => { setOnExpression(lhs) ++ setOnExpression(rhs) }
+        case ArrayRead(arr, index)       => { setOnExpression(arr) ++ setOnExpression(index) }
         case ArrayLength(arr)            => setOnExpression(arr)
         case MethodCall(obj, meth, args) => {
-          setOnExpression(obj)
+          setOnExpression(obj) ++
           // Process method identifier in a later stage with type checking
-          args foreach setOnExpression _
+          (args flatMap setOnExpression _)
         }
         case id: Identifier              => {
           // It can only be a variable if we end up here,
           // since we don't descend into MethodCall.meth or New.tpe
-          lookupVar(id.value) map { id.setSymbol(_) } orElse {
+          lookupVar(id.value) map { symbol =>
+            id.setSymbol(symbol)
+            Set(symbol)
+          } orElse {
             ctx.reporter.error(s"Reference to undeclared identifier: ${id.value}", id)
             None
-          }
+          } getOrElse Set.empty
         }
-        case ths: This                   => ths.setSymbol(clazz)
+        case ths: This                   => { ths.setSymbol(clazz); Set.empty }
         case NewIntArray(size)           => setOnExpression(size)
         case New(tpe)                    => {
           lookupType(tpe) map { tpe.setSymbol(_) } orElse {
             ctx.reporter.error(s"Reference to undeclared type: ${tpe.value}", tpe)
             None
           }
+          Set.empty
         }
         case Not(expr)                   => setOnExpression(expr)
-        case _                           => {}
+        case _                           => Set.empty
       }
 
       def setOnType(tpe: TypeTree): Unit = tpe match {
@@ -124,34 +134,25 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           case _ => {}
         }
 
-      def setOnMethod(method: MethodDecl): Unit = {
+      def setOnMethod(method: MethodDecl): Set[VariableSymbol] = {
         setOnType(method.retType)
         method.args foreach { param   => setOnType(param.tpe)   }
         method.vars foreach { varDecl => setOnType(varDecl.tpe) }
-        method.stats foreach setOnStatement _
+
+        (method.stats flatMap setOnStatement _) ++:
         setOnExpression(method.retExpr)
       }
 
       def setOnClass(classDecl: ClassDecl): Unit = {
         def setSymbolReferencesInMethod(method: MethodDecl): Set[VariableSymbol] = {
-          var usedVars: Set[VariableSymbol] = Set.empty
           method.symbol map { methodSymbol =>
-            def lookupVarAndRecordLookup(methodSymbol: MethodSymbol)(name: String): Option[VariableSymbol] = {
-              val varSymbol = methodSymbol.lookupVar(name)
-              varSymbol map { varSymbol =>
-                usedVars += varSymbol
-              }
-              varSymbol
-            }
-
-            setSymbolReferences(lookupType, clazz, lookupVarAndRecordLookup(methodSymbol))(method)
-
+            val usedVars = setSymbolReferences(lookupType, clazz, methodSymbol.lookupVar _)(method)
             method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(methodSymbol))
+            usedVars
           } orElse {
             sys.error(s"Method no longer has a symbol: ${method}")
             None
-          }
-          usedVars
+          } getOrElse Set.empty
         }
 
         classDecl.parent map { parentId =>
@@ -177,17 +178,17 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
         classDecl.vars foreach setSymbolReferences(lookupType, clazz, clazz.lookupVar _)
 
-        val usedVarsForClass = classDecl.methods flatMap setSymbolReferencesInMethod _
-        classDecl.vars foreach warnIfUnused(usedVarsForClass.toSet, clazz)
+        val usedVars = classDecl.methods flatMap setSymbolReferencesInMethod _
+        classDecl.vars foreach warnIfUnused(usedVars.toSet, clazz)
       }
 
       tree match {
         case statement: StatTree         => setOnStatement(statement)
         case expr: ExprTree              => setOnExpression(expr)
-        case VarDecl(tpe: Identifier, _) => setOnType(tpe)
+        case VarDecl(tpe: Identifier, _) => { setOnType(tpe); Set.empty }
         case method: MethodDecl          => setOnMethod(method)
-        case classDecl: ClassDecl        => setOnClass(classDecl)
-        case _                           => {}
+        case classDecl: ClassDecl        => { setOnClass(classDecl); Set.empty }
+        case _                           => Set.empty
       }
     }
 
