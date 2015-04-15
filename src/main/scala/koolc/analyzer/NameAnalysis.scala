@@ -17,6 +17,34 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
 
+    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main.id)
+    program.main.setSymbol(mainSymbol)
+    program.main.id.setSymbol(mainSymbol)
+
+    def detectCyclicInheritance(baseSym: ClassSymbol)(ancestorSym: ClassSymbol): Option[Seq[String]] =
+      if(ancestorSym == baseSym) {
+        Some(ancestorSym.name :: Nil)
+      } else {
+        ancestorSym.parent flatMap detectCyclicInheritance(baseSym) map { ancestorSym.name +: _ }
+      }
+
+    def warnIfUnused(used: Set[VariableSymbol], clazz: ClassSymbol, method: Option[MethodSymbol] = None)
+        (varOrParam: Symbolic[VariableSymbol] with Positioned) = {
+      val kind = varOrParam match {
+        case v: VarDecl => "Variable"
+        case p: Formal  => "Parameter"
+      }
+      val ancestors = method map {
+        methodSym => "Method " + clazz.name + "." + methodSym.name
+      } getOrElse { "Class " + clazz.name }
+
+      varOrParam.symbol map { symbol =>
+        if(!(used contains symbol)) {
+          ctx.reporter.warning(s"${kind} ${symbol.name} in ${ancestors} is never used.", symbol)
+        }
+      } orElse sys.error(s"${kind} has no symbol: ${varOrParam}")
+    }
+
     def setSymbolReferences(
         lookupType: (Identifier => Option[ClassSymbol]),
         clazz: ClassSymbol,
@@ -104,11 +132,63 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         setOnExpression(method.retExpr)
       }
 
+      def setSymbolReferencesInClass(classDecl: ClassDecl): Unit = {
+        var usedVarsForClass: Set[VariableSymbol] = Set.empty
+
+        def setSymbolReferencesInMethod(method: MethodDecl): Unit = {
+          method.symbol orElse {
+            sys.error(s"Method no longer has a symbol: ${method}")
+            None
+          } map { methodSymbol =>
+            var usedVars: Set[VariableSymbol] = Set.empty
+            def lookupVarAndRecordLookup(methodSymbol: MethodSymbol)(name: String): Option[VariableSymbol] = {
+              val varSymbol = methodSymbol.lookupVar(name)
+              varSymbol map { varSymbol =>
+                usedVars += varSymbol
+                usedVarsForClass += varSymbol
+              }
+              varSymbol
+            }
+
+            setSymbolReferences(lookupType, clazz, lookupVarAndRecordLookup(methodSymbol))(method)
+
+            method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(methodSymbol))
+          }
+        }
+
+        classDecl.parent map { parentId =>
+          lookupType(parentId) orElse {
+            ctx.reporter.error(s"Class ${classDecl.id.value} extends undeclared type: ${parentId.value}", parentId)
+            None
+          } filter { parentSym =>
+            if(parentSym == mainSymbol) {
+              ctx.reporter.error(s"Class ${classDecl.id.value} must not extend main object", parentId)
+              false
+            } else true
+          } map { parentSym =>
+            clazz.parent = Some(parentSym)
+            parentId.setSymbol(parentSym)
+
+            detectCyclicInheritance(clazz)(parentSym) map { ancestorNames  =>
+              ctx.reporter.error(
+                "Cyclic inheritance detected: " + ((clazz.name +: ancestorNames) mkString " <: "), clazz
+              )
+            }
+          }
+        }
+
+        classDecl.vars foreach setSymbolReferences(lookupType, clazz, clazz.lookupVar _)
+        classDecl.methods foreach setSymbolReferencesInMethod _
+
+        classDecl.vars foreach warnIfUnused(usedVarsForClass, clazz)
+      }
+
       tree match {
         case statement: StatTree         => setOnStatement(statement)
         case expr: ExprTree              => setOnExpression(expr)
         case VarDecl(tpe: Identifier, _) => setOnType(tpe)
         case method: MethodDecl          => setOnMethod(method)
+        case classDecl: ClassDecl        => setSymbolReferencesInClass(classDecl)
         case _                           => {}
       }
     }
@@ -118,10 +198,6 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     // (Step 3:) Print tree with symbol ids for debugging
 
     // Make sure you check for all constraints
-
-    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main.id)
-    program.main.setSymbol(mainSymbol)
-    program.main.id.setSymbol(mainSymbol)
 
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
       val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl.id)
@@ -244,88 +320,15 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         classSymbol
       }
 
-    def warnIfUnused(used: Set[VariableSymbol], clazz: ClassSymbol, method: Option[MethodSymbol] = None)
-        (varOrParam: Symbolic[VariableSymbol] with Positioned) = {
-      val kind = varOrParam match {
-        case v: VarDecl => "Variable"
-        case p: Formal  => "Parameter"
-      }
-      val ancestors = method map {
-        methodSym => "Method " + clazz.name + "." + methodSym.name
-      } getOrElse { "Class " + clazz.name }
-
-      varOrParam.symbol map { symbol =>
-        if(!(used contains symbol)) {
-          ctx.reporter.warning(s"${kind} ${symbol.name} in ${ancestors} is never used.", symbol)
-        }
-      } orElse sys.error(s"${kind} has no symbol: ${varOrParam}")
-    }
-
-    def detectCyclicInheritance(baseSym: ClassSymbol)(ancestorSym: ClassSymbol): Option[Seq[String]] =
-      if(ancestorSym == baseSym) {
-        Some(ancestorSym.name :: Nil)
-      } else {
-        ancestorSym.parent flatMap detectCyclicInheritance(baseSym) map { ancestorSym.name +: _ }
-      }
-
-    def setSymbolReferencesInClass(clazz: ClassDecl)(classSymbol: ClassSymbol): Unit = {
-      var usedVarsForClass: Set[VariableSymbol] = Set.empty
-
-      def setSymbolReferencesInMethod(method: MethodDecl): Unit = {
-        method.symbol orElse {
-          sys.error(s"Method no longer has a symbol: ${method}")
-          None
-        } map { methodSymbol =>
-          var usedVars: Set[VariableSymbol] = Set.empty
-          def lookupVarAndRecordLookup(methodSymbol: MethodSymbol)(name: String): Option[VariableSymbol] = {
-            val varSymbol = methodSymbol.lookupVar(name)
-            varSymbol map { varSymbol =>
-              usedVars += varSymbol
-              usedVarsForClass += varSymbol
-            }
-            varSymbol
-          }
-
-          setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol))(method)
-
-          method.args ++ method.vars foreach warnIfUnused(usedVars, classSymbol, Some(methodSymbol))
-        }
-      }
-
-      clazz.parent map { parentId =>
-        global.lookupClass(parentId.value) orElse {
-          ctx.reporter.error(s"Class ${clazz.id.value} extends undeclared type: ${parentId.value}", parentId)
-          None
-        } filter { parentSym =>
-          if(parentSym == mainSymbol) {
-            ctx.reporter.error(s"Class ${clazz.id.value} must not extend main object", parentId)
-            false
-          } else true
-        } map { parentSym =>
-          classSymbol.parent = Some(parentSym)
-          parentId.setSymbol(parentSym)
-
-          detectCyclicInheritance(classSymbol)(parentSym) map { ancestorNames  =>
-            ctx.reporter.error(
-              "Cyclic inheritance detected: " + ((classSymbol.name +: ancestorNames) mkString " <: "), clazz
-            )
-          }
-        }
-      }
-
-      clazz.vars foreach setSymbolReferences(lookupType, classSymbol, classSymbol.lookupVar _)
-      clazz.methods foreach setSymbolReferencesInMethod _
-
-      clazz.vars foreach warnIfUnused(usedVarsForClass, classSymbol)
-    }
-
     program.main.stats foreach setSymbolReferences(lookupType, mainSymbol, (_ => None))
 
     program.classes foreach { clazz =>
       clazz.symbol orElse {
         sys.error(s"Class no longer has a symbol: ${clazz}")
         None
-      } map setSymbolReferencesInClass(clazz)
+      } map { classSymbol =>
+        setSymbolReferences(lookupType, classSymbol, (_ => None))(clazz)
+      }
     }
 
     if(ctx.reporter.hasErrors) None
