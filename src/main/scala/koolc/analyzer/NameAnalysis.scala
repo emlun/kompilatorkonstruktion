@@ -309,7 +309,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           parentId.setSymbol(parentSym)
 
           def detectCyclicInheritance(ancestorSym: ClassSymbol): Option[Seq[String]] =
-            if(ancestorSym.name == classSymbol.name) {
+            if(ancestorSym == classSymbol) {
               Some(ancestorSym.name :: Nil)
             } else {
               ancestorSym.parent flatMap detectCyclicInheritance _ map { ancestorSym.name +: _ }
