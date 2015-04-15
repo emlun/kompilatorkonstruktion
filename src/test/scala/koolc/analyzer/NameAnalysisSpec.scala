@@ -13,7 +13,7 @@ import ast._
 import Trees._
 import Symbols._
 
-class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
+class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with SymbolMatchers {
 
   val VALID_TEST_FILES =
     "/helloworld.kool" ::
