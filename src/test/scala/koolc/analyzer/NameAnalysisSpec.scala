@@ -260,7 +260,9 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
         }
 
         it("When a class is declared as extending another one, the other class must be declared and cannot be the main object.") {
-          cancel("Test not implemented.")
+          assertFileFails("nonexistent-parent-class.kool")
+          assertFileFails("main-object-as-parent-class.kool")
+          assertFileSucceeds("good-parent-class.kool")
         }
 
         it("""The transitive closure of the "extends" relation must be irreflexive (no cycles in the inheritance graph).""") {

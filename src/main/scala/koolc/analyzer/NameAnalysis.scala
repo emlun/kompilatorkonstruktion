@@ -241,6 +241,11 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           global.lookupClass(parentId.value) orElse {
             ctx.reporter.error(s"Class ${clazz.id} extends undeclared type: ${parentId}", parentId)
             None
+          } flatMap { parentSym =>
+            if(parentSym == mainSymbol) {
+              ctx.reporter.error(s"Class ${clazz.id} must not extend main object", parentId)
+              None
+            } else Some(parentSym)
           } map { parentSym =>
             classSymbol.parent = Some(parentSym)
             parentId.setSymbol(parentSym)
