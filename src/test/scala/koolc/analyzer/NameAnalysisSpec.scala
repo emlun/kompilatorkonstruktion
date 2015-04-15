@@ -250,6 +250,7 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
           assertFileFails("redeclared-method-variable.kool")
           assertFileFails("redeclared-parameter.kool")
           assertFileFails("parameter-shadowed-by-method-variable.kool")
+          assertFileFails("variable-declaration-in-block.kool")
         }
       }
 
