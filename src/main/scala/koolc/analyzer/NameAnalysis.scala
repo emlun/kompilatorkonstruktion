@@ -20,9 +20,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     def setSymbolReferences(
         lookupType: (Identifier => Option[ClassSymbol]),
         clazz: ClassSymbol,
-        lookupVar: (String => Option[VariableSymbol]),
-        tree: Tree
-        ): Unit = {
+        lookupVar: (String => Option[VariableSymbol])
+        )(tree: Tree): Unit = {
 
       def setOnStatement(statement: StatTree): Unit = statement match {
         case Block(substats) => substats foreach setOnStatement _
@@ -286,16 +285,10 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             } map id.setSymbol _
             case _              => {}
           }
-          method.args foreach { param =>
-            setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, param)
-          }
-          method.vars foreach { varDecl =>
-            setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, varDecl)
-          }
-          method.stats foreach { statement =>
-            setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), statement)
-          }
-          setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), method.retExpr)
+          method.args foreach setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _)
+          method.vars foreach setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _)
+          method.stats foreach setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol))
+          setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol))(method.retExpr)
 
           method.args foreach warnIfUnused(usedVars, classSymbol, Some(methodSymbol))
           method.vars foreach warnIfUnused(usedVars, classSymbol, Some(methodSymbol))
@@ -323,18 +316,14 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
       }
 
-      clazz.vars foreach { varDecl =>
-        setSymbolReferences(lookupType, classSymbol, classSymbol.lookupVar _, varDecl)
-      }
-
+      clazz.vars foreach setSymbolReferences(lookupType, classSymbol, classSymbol.lookupVar _)
       clazz.methods foreach setSymbolReferencesInMethod _
 
       clazz.vars foreach warnIfUnused(usedVarsForClass, classSymbol)
     }
 
-    program.main.stats foreach { statement =>
-      setSymbolReferences(lookupType, mainSymbol, (_ => None), statement)
-    }
+    program.main.stats foreach setSymbolReferences(lookupType, mainSymbol, (_ => None))
+
     program.classes foreach { clazz =>
       clazz.symbol orElse {
         sys.error(s"Class no longer has a symbol: ${clazz}")
