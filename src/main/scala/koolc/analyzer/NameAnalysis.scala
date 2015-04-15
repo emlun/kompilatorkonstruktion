@@ -195,13 +195,6 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       classDecl.vars foreach warnIfUnused(usedVars.toSet, clazz)
     }
 
-
-    // Step 1: Collect symbols in declarations
-    // Step 2: Attach symbols to identifiers (except method calls) in method bodies
-    // (Step 3:) Print tree with symbol ids for debugging
-
-    // Make sure you check for all constraints
-    //
     val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main.id)
     program.main.setSymbol(mainSymbol)
     program.main.id.setSymbol(mainSymbol)
