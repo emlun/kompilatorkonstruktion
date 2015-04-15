@@ -349,7 +349,7 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
 
         val fooClass = program.get.classes.head
         val unusedSymbols: Seq[Symbol] =
-          (fooClass.vars map { _.symbol.get }) :::
+          (fooClass.vars.init map { _.symbol.get }) :::
           fooClass.methods.head.args.last.symbol.get ::
           fooClass.methods.head.vars.last.symbol.get ::
           Nil
