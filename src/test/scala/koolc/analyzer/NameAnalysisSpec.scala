@@ -182,21 +182,23 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
         assertFileFails("undeclared-variable-in-assignment.kool")
       }
 
-      it("A local variable in a method can shadow a class member.") {
-        assertFileSucceeds("member-shadowed-by-method-variable.kool")
-      }
+      describe("Shadowing:") {
+        it("A local variable in a method can shadow a class member.") {
+          assertFileSucceeds("member-shadowed-by-method-variable.kool")
+        }
 
-      it("A method parameter can shadow a class member.") {
-        cancel("Test disabled.")
-        assertFileSucceeds("member-shadowed-by-parameter.kool")
-      }
+        it("A method parameter can shadow a class member.") {
+          cancel("Test disabled.")
+          assertFileSucceeds("member-shadowed-by-parameter.kool")
+        }
 
-      it("No other type of shadowing is allowed in KOOL.") {
-        cancel("Test disabled.")
-        assertFileFails("redeclared-member.kool")
-        assertFileFails("redeclared-method-variable.kool")
-        assertFileFails("redeclared-parameter.kool")
-        assertFileFails("parameter-shadowed-by-method-variable.kool")
+        it("No other type of shadowing is allowed in KOOL.") {
+          cancel("Test disabled.")
+          assertFileFails("redeclared-member.kool")
+          assertFileFails("redeclared-method-variable.kool")
+          assertFileFails("redeclared-parameter.kool")
+          assertFileFails("parameter-shadowed-by-method-variable.kool")
+        }
       }
 
       it("Classes must be defined only once.") {
