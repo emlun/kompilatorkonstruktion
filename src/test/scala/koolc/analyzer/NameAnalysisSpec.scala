@@ -8,6 +8,8 @@ import scala.util.Try
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
 
+import org.scalamock.scalatest.MockFactory
+
 import utils._
 import lexer._
 import ast._
@@ -15,7 +17,7 @@ import ast._
 import Trees._
 import Symbols._
 
-class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with SymbolMatchers {
+class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with SymbolMatchers with MockFactory {
 
   val VALID_TEST_FILES =
     "/helloworld.kool" ::
@@ -313,7 +315,23 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     }
 
     it("emits a warning to the user when a declared variable is never accessed (read or written).") {
-      cancel("Test not implemented.")
+      val warningSpy = mockFunction[Any, Positioned]
+      val reporter = new Reporter {
+        override def warning(msg: Any, pos: Positioned = NoPosition): Unit = warningSpy(msg, pos)
+      }
+      warningSpy expects (*, Identifier("a"))
+      warningSpy expects (*, Identifier("b"))
+      warningSpy expects (*, Identifier("c"))
+      warningSpy expects (*, Formal(BooleanType(), Identifier("d")))
+      warningSpy expects (*, Identifier("e"))
+
+      val path = "unused-variables.kool"
+      val input = Try(new File(getClass.getResource(path).toURI())) getOrElse fail("File " + path + " not found.")
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program should not be None
+      })
+      pipeline.run(Context(reporter = reporter, outDir = None, file = Some(input)))(input)
     }
 
     describe("attaches symbol references to all identifiers") {

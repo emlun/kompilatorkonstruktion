@@ -243,6 +243,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         sys.error(s"Class no longer has a symbol: ${clazz}")
         None
       } map { classSymbol =>
+        var lookedUpVarsForClass: Set[VariableSymbol] = Set.empty
 
         clazz.parent map { parentId =>
           global.lookupClass(parentId.value) orElse {
@@ -279,6 +280,16 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             sys.error(s"Method no longer has a symbol: ${method}")
             None
           } map { methodSymbol =>
+            var lookedUpVars: Set[VariableSymbol] = Set.empty
+            def lookupVarAndRecordLookup(methodSymbol: MethodSymbol)(name: String): Option[VariableSymbol] = {
+              val varSymbol = methodSymbol.lookupVar(name)
+              varSymbol map { varSymbol =>
+                lookedUpVars += varSymbol
+                lookedUpVarsForClass += varSymbol
+              }
+              varSymbol
+            }
+
             method.retType match {
               case id: Identifier => lookupType(id) orElse {
                 ctx.reporter.error(
@@ -295,10 +306,36 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
               setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, varDecl)
             }
             method.stats foreach { statement =>
-              setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, statement)
+              setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), statement)
             }
-            setSymbolReferences(lookupType, classSymbol, methodSymbol.lookupVar _, method.retExpr)
+            setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), method.retExpr)
+
+            method.args foreach { param =>
+              param.symbol map { paramSymbol =>
+                if(!(lookedUpVars contains paramSymbol)) {
+                  ctx.reporter.warning(s"Parameter ${paramSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} is never used.", param)
+                }
+              } orElse sys.error(s"Parameter has no symbol: ${param}")
+            }
+            method.vars foreach { varDecl =>
+              varDecl.symbol map { varSymbol =>
+                if(!(lookedUpVars contains varSymbol)) {
+                  ctx.reporter.warning(s"Variable ${varSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} is never used.", varDecl.id)
+                }
+              } orElse sys.error(s"Variable has no symbol: ${varDecl}")
+            }
           }
+        }
+
+        clazz.vars foreach { varDecl =>
+          varDecl.symbol map { varSymbol =>
+            if(!(lookedUpVarsForClass contains varSymbol)) {
+              ctx.reporter.warning(
+                s"Member ${varSymbol.name} in class ${classSymbol.name} is never used.",
+                varDecl.id
+              )
+            }
+          } orElse sys.error(s"Variable has no symbol: ${varDecl}")
         }
       }
     }
