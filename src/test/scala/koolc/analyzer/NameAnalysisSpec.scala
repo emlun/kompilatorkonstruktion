@@ -2,6 +2,7 @@ package koolc
 package analyzer
 
 import java.io.File
+import scala.io.Source
 
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
@@ -13,7 +14,7 @@ import ast._
 import Trees._
 import Symbols._
 
-class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
+class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with SymbolMatchers {
 
   val VALID_TEST_FILES =
     "/helloworld.kool" ::
@@ -182,21 +183,74 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
         assertFileFails("undeclared-variable-in-assignment.kool")
       }
 
-      it("A local variable in a method can shadow a class member.") {
-        assertFileSucceeds("member-shadowed-by-method-variable.kool")
-      }
+      describe("Shadowing:") {
+        it("A local variable in a method can shadow a class member.") {
+          val source = """
+            object Main { def main(): Unit = {} }
+            class Foo {
+              var a: Bool;
+              def bar(): Bool = {
+                var a: Bool;
+                a = a;
+                return true;
+              }
+            }
+          """
+          val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be (None)
 
-      it("A method parameter can shadow a class member.") {
-        cancel("Test disabled.")
-        assertFileSucceeds("member-shadowed-by-parameter.kool")
-      }
+            val fooClass = program.get.classes.head
+            val barMethod = fooClass.methods.head
+            barMethod.stats.head match {
+              case Assign(assignId, assignValue: Identifier) => {
+                assignId should not (haveSameSymbolAs (fooClass.vars.head))
+                assignId should haveSameSymbolAs (barMethod.vars.head)
+                assignValue should not (haveSameSymbolAs (fooClass.vars.head))
+                assignValue should haveSameSymbolAs (barMethod.vars.head)
+              }
+              case _ => fail("Expected first statement to be assignment, was: " + barMethod.stats.head)
+            }
+          })
+          pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+        }
 
-      it("No other type of shadowing is allowed in KOOL.") {
-        cancel("Test disabled.")
-        assertFileFails("redeclared-member.kool")
-        assertFileFails("redeclared-method-variable.kool")
-        assertFileFails("redeclared-parameter.kool")
-        assertFileFails("parameter-shadowed-by-method-variable.kool")
+        it("A method parameter can shadow a class member.") {
+          val source = """
+            object Main { def main(): Unit = {} }
+            class Foo {
+              var a: Bool;
+              def bar(a: Bool): Bool = {
+                a = a;
+                return true;
+              }
+            }
+          """
+          val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be (None)
+
+            val fooClass = program.get.classes.head
+            val barMethod = fooClass.methods.head
+            barMethod.stats.head match {
+              case Assign(assignId, assignValue: Identifier) => {
+                assignId should not (haveSameSymbolAs (fooClass.vars.head))
+                assignId should haveSameSymbolAs (barMethod.args.head)
+                assignValue should not (haveSameSymbolAs (fooClass.vars.head))
+                assignValue should haveSameSymbolAs (barMethod.args.head)
+              }
+              case _ => fail("Expected first statement to be assignment, was: " + barMethod.stats.head)
+            }
+          })
+          pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
+        }
+
+        it("No other type of shadowing is allowed in KOOL.") {
+          assertFileFails("redeclared-member.kool")
+          assertFileFails("redeclared-method-variable.kool")
+          assertFileFails("redeclared-parameter.kool")
+          assertFileFails("parameter-shadowed-by-method-variable.kool")
+        }
       }
 
       it("Classes must be defined only once.") {
