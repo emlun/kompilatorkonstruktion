@@ -15,10 +15,6 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
 
-    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main.id)
-    program.main.setSymbol(mainSymbol)
-    program.main.id.setSymbol(mainSymbol)
-
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
       val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl.id)
       varDecl.setSymbol(symbol)
@@ -116,6 +112,10 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
       classSymbol
     }
+
+    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main.id)
+    program.main.setSymbol(mainSymbol)
+    program.main.id.setSymbol(mainSymbol)
 
     val classSymbols = mainSymbol :: ( program.classes map createClassSymbol _ )
 
