@@ -143,8 +143,11 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         method.args foreach { param   => setOnType(param.tpe)   }
         method.vars foreach { varDecl => setOnType(varDecl.tpe) }
 
-        (method.stats flatMap setOnStatement _) ++:
-        setOnExpression(method.retExpr)
+        val usedVars = (method.stats flatMap setOnStatement _) ++:
+          setOnExpression(method.retExpr)
+
+        method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, method.symbol)
+        usedVars
       }
 
       tree match {
@@ -159,9 +162,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     def setSymbolReferencesOnClass(global: GlobalScope, mainSymbol: ClassSymbol, classDecl: ClassDecl, clazz: ClassSymbol): Unit = {
       def setSymbolReferencesInMethod(method: MethodDecl): Set[VariableSymbol] = {
         method.symbol map { methodSymbol =>
-          val usedVars = setSymbolReferences(lookupType(global, mainSymbol), clazz, methodSymbol.lookupVar _)(method)
-          method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(methodSymbol))
-          usedVars
+          setSymbolReferences(lookupType(global, mainSymbol), clazz, methodSymbol.lookupVar _)(method)
         } orElse {
           sys.error(s"Method no longer has a symbol: ${method}")
           None
