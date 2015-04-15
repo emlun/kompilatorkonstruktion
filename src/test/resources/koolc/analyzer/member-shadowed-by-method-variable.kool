@@ -1,8 +1,0 @@
-object Main { def main(): Unit = {} }
-class Foo {
-  var a: Bool;
-  def bar(): Bool = {
-    var a: Bool;
-    return true;
-  }
-}

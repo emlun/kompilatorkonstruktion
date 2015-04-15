@@ -2,6 +2,7 @@ package koolc
 package analyzer
 
 import java.io.File
+import scala.io.Source
 
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
@@ -184,16 +185,67 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
 
       describe("Shadowing:") {
         it("A local variable in a method can shadow a class member.") {
-          assertFileSucceeds("member-shadowed-by-method-variable.kool")
+          val source = """
+            object Main { def main(): Unit = {} }
+            class Foo {
+              var a: Bool;
+              def bar(): Bool = {
+                var a: Bool;
+                a = a;
+                return true;
+              }
+            }
+          """
+          val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be (None)
+
+            val fooClass = program.get.classes.head
+            val barMethod = fooClass.methods.head
+            barMethod.stats.head match {
+              case Assign(assignId, assignValue: Identifier) => {
+                assignId should not (haveSameSymbolAs (fooClass.vars.head))
+                assignId should haveSameSymbolAs (barMethod.vars.head)
+                assignValue should not (haveSameSymbolAs (fooClass.vars.head))
+                assignValue should haveSameSymbolAs (barMethod.vars.head)
+              }
+              case _ => fail("Expected first statement to be assignment, was: " + barMethod.stats.head)
+            }
+          })
+          pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
         }
 
         it("A method parameter can shadow a class member.") {
-          cancel("Test disabled.")
-          assertFileSucceeds("member-shadowed-by-parameter.kool")
+          val source = """
+            object Main { def main(): Unit = {} }
+            class Foo {
+              var a: Bool;
+              def bar(a: Bool): Bool = {
+                a = a;
+                return true;
+              }
+            }
+          """
+          val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be (None)
+
+            val fooClass = program.get.classes.head
+            val barMethod = fooClass.methods.head
+            barMethod.stats.head match {
+              case Assign(assignId, assignValue: Identifier) => {
+                assignId should not (haveSameSymbolAs (fooClass.vars.head))
+                assignId should haveSameSymbolAs (barMethod.args.head)
+                assignValue should not (haveSameSymbolAs (fooClass.vars.head))
+                assignValue should haveSameSymbolAs (barMethod.args.head)
+              }
+              case _ => fail("Expected first statement to be assignment, was: " + barMethod.stats.head)
+            }
+          })
+          pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
         }
 
         it("No other type of shadowing is allowed in KOOL.") {
-          cancel("Test disabled.")
           assertFileFails("redeclared-member.kool")
           assertFileFails("redeclared-method-variable.kool")
           assertFileFails("redeclared-parameter.kool")
