@@ -160,15 +160,6 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     }
 
     def setSymbolReferencesOnClass(global: GlobalScope, mainSymbol: ClassSymbol, classDecl: ClassDecl, clazz: ClassSymbol): Unit = {
-      def setSymbolReferencesInMethod(method: MethodDecl): Set[VariableSymbol] = {
-        method.symbol map { methodSymbol =>
-          setSymbolReferences(lookupType(global, mainSymbol), clazz, methodSymbol.lookupVar _)(method)
-        } orElse {
-          sys.error(s"Method no longer has a symbol: ${method}")
-          None
-        } getOrElse Set.empty
-      }
-
       classDecl.parent map { parentId =>
         lookupType(global, mainSymbol)(parentId) orElse {
           ctx.reporter.error(s"Class ${classDecl.id.value} extends undeclared type: ${parentId.value}", parentId)
@@ -192,7 +183,14 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
       classDecl.vars foreach setSymbolReferences(lookupType(global, mainSymbol), clazz, clazz.lookupVar _)
 
-      val usedVars = classDecl.methods flatMap setSymbolReferencesInMethod _
+      val usedVars = classDecl.methods flatMap { method =>
+        method.symbol map { methodSymbol =>
+          setSymbolReferences(lookupType(global, mainSymbol), clazz, methodSymbol.lookupVar _)(method)
+        } orElse {
+          sys.error(s"Method no longer has a symbol: ${method}")
+          None
+        } getOrElse Set.empty
+      }
       classDecl.vars foreach warnIfUnused(usedVars.toSet, clazz)
     }
 
