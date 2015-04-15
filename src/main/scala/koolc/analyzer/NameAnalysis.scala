@@ -96,20 +96,22 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           case _ => {}
         }
 
+      def setOnMethod(method: MethodDecl): Unit = {
+        method.retType match {
+          case id: Identifier => setOnType(id)
+          case _              => {}
+        }
+        method.args foreach { param   => setOnType(param.tpe)   }
+        method.vars foreach { varDecl => setOnType(varDecl.tpe) }
+        method.stats foreach setOnStatement _
+        setOnExpression(method.retExpr)
+      }
+
       tree match {
         case statement: StatTree         => setOnStatement(statement)
         case expr: ExprTree              => setOnExpression(expr)
         case VarDecl(tpe: Identifier, _) => setOnType(tpe)
-        case method: MethodDecl          => {
-          method.retType match {
-            case id: Identifier => setOnType(id)
-            case _              => {}
-          }
-          method.args foreach { param   => setOnType(param.tpe)   }
-          method.vars foreach { varDecl => setOnType(varDecl.tpe) }
-          method.stats foreach setOnStatement _
-          setOnExpression(method.retExpr)
-        }
+        case method: MethodDecl          => setOnMethod(method)
         case _                           => {}
       }
     }
