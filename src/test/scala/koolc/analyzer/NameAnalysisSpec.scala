@@ -77,13 +77,17 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult(body)
     pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
   }
-  val assertFileSucceeds: (String => Unit) = checkResultForFile(_, (ctx, program) => {
-      ctx.reporter shouldBe errorless
-      program should not be (None)
+  def assertFileSucceeds(path: String) = checkResultForFile(path, (ctx, program) => {
+      withClue("Name analysis should succeed for file " + path) {
+        ctx.reporter shouldBe errorless
+        program should not be (None)
+      }
     })
-  val assertFileFails: (String => Unit) = checkResultForFile(_, (ctx, program) => {
-      ctx.reporter should not be errorless
-      program should be (None)
+  def assertFileFails(path: String) = checkResultForFile(path, (ctx, program) => {
+      withClue("Name analysis should fail for file " + path) {
+        ctx.reporter should not be errorless
+        program should be (None)
+      }
     })
 
   def checkRefs(tree: Tree): Unit = tree match {
