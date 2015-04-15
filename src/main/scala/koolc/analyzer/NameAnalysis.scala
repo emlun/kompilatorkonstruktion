@@ -88,24 +88,25 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         case _                           => {}
       }
 
-      def setOnType(tpe: Identifier): Unit =
-          lookupType(tpe) orElse {
-            ctx.reporter.error(s"Reference to undeclared type: ${tpe.value}", tpe)
-            None
-          } map { symbol => tpe.setSymbol(symbol) }
+      def setOnType(tpe: TypeTree): Unit = tpe match {
+          case id: Identifier => lookupType(id) orElse {
+              ctx.reporter.error(s"Reference to undeclared type: ${id.value}", tpe)
+              None
+            } map { symbol => id.setSymbol(symbol) }
+          case _ => {}
+        }
 
       tree match {
         case statement: StatTree         => setOnStatement(statement)
         case expr: ExprTree              => setOnExpression(expr)
         case VarDecl(tpe: Identifier, _) => setOnType(tpe)
-        case Formal(tpe: Identifier, _)  => setOnType(tpe)
         case method: MethodDecl          => {
           method.retType match {
             case id: Identifier => setOnType(id)
             case _              => {}
           }
-          (method.args ++: method.vars) foreach
-            setSymbolReferences(lookupType, clazz, lookupVar)
+          method.args foreach { param   => setOnType(param.tpe)   }
+          method.vars foreach { varDecl => setOnType(varDecl.tpe) }
           method.stats foreach setOnStatement _
           setOnExpression(method.retExpr)
         }
