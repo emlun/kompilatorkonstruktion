@@ -315,8 +315,10 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
               ancestorSym.parent flatMap detectCyclicInheritance _ map { ancestorSym.name +: _ }
             }
 
-          detectCyclicInheritance(parentSym) map { classSymbol.name +: _ } map { chain  =>
-            ctx.reporter.error("Cyclic inheritance detected: " + (chain.toList mkString " <: "), clazz)
+          detectCyclicInheritance(parentSym) map { ancestorNames  =>
+            ctx.reporter.error(
+              "Cyclic inheritance detected: " + ((classSymbol.name +: ancestorNames) mkString " <: "), clazz
+            )
           }
         }
       }
