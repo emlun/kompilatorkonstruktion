@@ -133,19 +133,16 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       }
 
       def setOnClass(classDecl: ClassDecl): Unit = {
-        var usedVarsForClass: Set[VariableSymbol] = Set.empty
-
-        def setSymbolReferencesInMethod(method: MethodDecl): Unit = {
+        def setSymbolReferencesInMethod(method: MethodDecl): Set[VariableSymbol] = {
+          var usedVars: Set[VariableSymbol] = Set.empty
           method.symbol orElse {
             sys.error(s"Method no longer has a symbol: ${method}")
             None
           } map { methodSymbol =>
-            var usedVars: Set[VariableSymbol] = Set.empty
             def lookupVarAndRecordLookup(methodSymbol: MethodSymbol)(name: String): Option[VariableSymbol] = {
               val varSymbol = methodSymbol.lookupVar(name)
               varSymbol map { varSymbol =>
                 usedVars += varSymbol
-                usedVarsForClass += varSymbol
               }
               varSymbol
             }
@@ -154,6 +151,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
             method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(methodSymbol))
           }
+          usedVars
         }
 
         classDecl.parent map { parentId =>
@@ -178,9 +176,9 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
 
         classDecl.vars foreach setSymbolReferences(lookupType, clazz, clazz.lookupVar _)
-        classDecl.methods foreach setSymbolReferencesInMethod _
 
-        classDecl.vars foreach warnIfUnused(usedVarsForClass, clazz)
+        val usedVarsForClass = classDecl.methods flatMap setSymbolReferencesInMethod _
+        classDecl.vars foreach warnIfUnused(usedVarsForClass.toSet, clazz)
       }
 
       tree match {
