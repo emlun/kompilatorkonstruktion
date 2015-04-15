@@ -311,7 +311,28 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     }
 
     it("does not resolve method name symbols in method calls.") {
-      cancel("Test not implemented.")
+      val source = """
+        object Main { def main(): Unit = {} }
+        class Foo {
+          def baz(): Bool = {
+            return this.bar();
+          }
+          def bar(): Bool = {
+            return true;
+          }
+        }
+      """
+      checkResultForString(source, (ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program should not be None
+        val retExpr: ExprTree = program.get.classes.head.methods.head.retExpr
+        retExpr match {
+          case MethodCall(_, id, _) => {
+            id.symbol should be (None)
+          }
+          case _ => fail("Expected baz return expression to be method call, was: " + retExpr)
+        }
+      })
     }
 
     it("emits a warning to the user when a declared variable is never accessed (read or written).") {
