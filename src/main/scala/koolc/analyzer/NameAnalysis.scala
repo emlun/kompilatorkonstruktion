@@ -135,10 +135,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       def setOnClass(classDecl: ClassDecl): Unit = {
         def setSymbolReferencesInMethod(method: MethodDecl): Set[VariableSymbol] = {
           var usedVars: Set[VariableSymbol] = Set.empty
-          method.symbol orElse {
-            sys.error(s"Method no longer has a symbol: ${method}")
-            None
-          } map { methodSymbol =>
+          method.symbol map { methodSymbol =>
             def lookupVarAndRecordLookup(methodSymbol: MethodSymbol)(name: String): Option[VariableSymbol] = {
               val varSymbol = methodSymbol.lookupVar(name)
               varSymbol map { varSymbol =>
@@ -150,6 +147,9 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
             setSymbolReferences(lookupType, clazz, lookupVarAndRecordLookup(methodSymbol))(method)
 
             method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(methodSymbol))
+          } orElse {
+            sys.error(s"Method no longer has a symbol: ${method}")
+            None
           }
           usedVars
         }
