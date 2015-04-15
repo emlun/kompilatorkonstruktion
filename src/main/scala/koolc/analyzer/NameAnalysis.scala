@@ -148,6 +148,18 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       ).setPos(method)
       method.setSymbol(methodSymbol)
       method.id.setSymbol(methodSymbol)
+
+      def detectShadowedParameter(param: VariableSymbol): Unit = {
+        methodSymbol.members.get(param.name) map { varSymbol =>
+          ctx.reporter.error(
+            s"Variable ${varSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} shadows parameter.",
+            varSymbol
+          )
+          ctx.reporter.info(s"Parameter ${param.name} declared here:", param)
+        }
+      }
+      methodSymbol.params.values map detectShadowedParameter _
+
       methodSymbol
     }
 

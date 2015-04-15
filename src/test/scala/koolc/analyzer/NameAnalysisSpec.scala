@@ -171,7 +171,6 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers {
 
     describe("enforces the constraint:") {
       it("No two variables can have the same name in the same scope, unless one of the two cases of shadowing occurs.") {
-        cancel("Test disabled.")
         assertFileFails("redeclared-member.kool")
         assertFileFails("redeclared-method-variable.kool")
         assertFileFails("redeclared-parameter.kool")
