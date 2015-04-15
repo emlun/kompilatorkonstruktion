@@ -254,24 +254,26 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
         }
       }
 
-      it("Classes must be defined only once.") {
-        assertFileFails("redeclared-class.kool")
-      }
+      describe("Classes:") {
+        it("Classes must be defined only once.") {
+          assertFileFails("redeclared-class.kool")
+        }
 
-      it("When a class is declared as extending another one, the other class must be declared and cannot be the main object.") {
-        cancel("Test not implemented.")
-      }
+        it("When a class is declared as extending another one, the other class must be declared and cannot be the main object.") {
+          cancel("Test not implemented.")
+        }
 
-      it("""The transitive closure of the "extends" relation must be irreflexive (no cycles in the inheritance graph).""") {
-        assertFileFails("circular-inheritance.kool")
-      }
+        it("""The transitive closure of the "extends" relation must be irreflexive (no cycles in the inheritance graph).""") {
+          assertFileFails("circular-inheritance.kool")
+        }
 
-      it("When a class name is used as a type, the class must be declared.") {
-        cancel("Test not implemented.")
-      }
+        it("When a class name is used as a type, the class must be declared.") {
+          cancel("Test not implemented.")
+        }
 
-      it("The main object cannot be used as a type.") {
-        assertFileFails("redeclared-main.kool")
+        it("The main object cannot be used as a type.") {
+          assertFileFails("redeclared-main.kool")
+        }
       }
 
       describe("Overloading is not permitted:") {
