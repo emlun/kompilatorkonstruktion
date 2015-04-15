@@ -7,6 +7,8 @@ Petter Lundahl
 package koolc
 package analyzer
 
+import scala.collection.mutable.ListBuffer
+
 import utils._
 import ast.Trees._
 import Symbols._
@@ -146,6 +148,18 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       ).setPos(method)
       method.setSymbol(methodSymbol)
       method.id.setSymbol(methodSymbol)
+
+      def detectShadowedParameter(param: VariableSymbol): Unit = {
+        methodSymbol.members.get(param.name) map { varSymbol =>
+          ctx.reporter.error(
+            s"Variable ${varSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} shadows parameter.",
+            varSymbol
+          )
+          ctx.reporter.info(s"Parameter ${param.name} declared here:", param)
+        }
+      }
+      methodSymbol.params.values map detectShadowedParameter _
+
       methodSymbol
     }
 
@@ -230,6 +244,17 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           } map { parentSym =>
             classSymbol.parent = Some(parentSym)
             parentId.setSymbol(parentSym)
+
+            def detectCyclicInheritance(ancestorSym: ClassSymbol): Option[Seq[String]] =
+              if(ancestorSym.name == classSymbol.name) {
+                Some(ancestorSym.name :: Nil)
+              } else {
+                ancestorSym.parent flatMap detectCyclicInheritance _ map { ancestorSym.name +: _ }
+              }
+
+            detectCyclicInheritance(parentSym) map { classSymbol.name +: _ } map { chain  =>
+              ctx.reporter.error("Cyclic inheritance detected: " + (chain.toList mkString " <: "), clazz)
+            }
           }
         }
 

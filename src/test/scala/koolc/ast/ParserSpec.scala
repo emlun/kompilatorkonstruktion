@@ -403,7 +403,7 @@ class ParserSpec extends FunSpec with Matchers with ReporterMatchers {
               vars = Nil,
               methods =
                 MethodDecl(
-                  retType = Identifier("Boolean"),
+                  retType = BooleanType(),
                   id = Identifier("secondMethod"),
                   args = Nil,
                   vars = Nil,

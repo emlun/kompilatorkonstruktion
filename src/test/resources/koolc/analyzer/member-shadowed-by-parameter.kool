@@ -1,7 +1,7 @@
 object Main { def main(): Unit = {} }
 class Foo {
-  var a: Boolean;
-  def bar(a: Boolean): Boolean = {
+  var a: Bool;
+  def bar(a: Bool): Bool = {
     return true;
   }
 }
