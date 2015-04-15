@@ -235,6 +235,23 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         classSymbol
       }
 
+    def warnIfUnused(used: Set[VariableSymbol], clazz: ClassSymbol, method: Option[MethodSymbol] = None)
+        (varOrParam: Symbolic[VariableSymbol] with Positioned) = {
+      val (kind, pos) = varOrParam match {
+        case v: VarDecl => ("Variable", v.id)
+        case p: Formal  => ("Parameter", p)
+      }
+      val ancestors = method map {
+        methodSym => "Method " + clazz.name + "." + methodSym.name
+      } getOrElse { "Class " + clazz.name }
+
+      varOrParam.symbol map { symbol =>
+        if(!(used contains symbol)) {
+          ctx.reporter.warning(s"${kind} ${symbol.name} in ${ancestors} is never used.", pos)
+        }
+      } orElse sys.error(s"${kind} has no symbol: ${varOrParam}")
+    }
+
     def setSymbolReferencesInClass(clazz: ClassDecl)(classSymbol: ClassSymbol): Unit = {
       var lookedUpVarsForClass: Set[VariableSymbol] = Set.empty
 
@@ -273,20 +290,8 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
           }
           setSymbolReferences(lookupType, classSymbol, lookupVarAndRecordLookup(methodSymbol), method.retExpr)
 
-          method.args foreach { param =>
-            param.symbol map { paramSymbol =>
-              if(!(lookedUpVars contains paramSymbol)) {
-                ctx.reporter.warning(s"Parameter ${paramSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} is never used.", param)
-              }
-            } orElse sys.error(s"Parameter has no symbol: ${param}")
-          }
-          method.vars foreach { varDecl =>
-            varDecl.symbol map { varSymbol =>
-              if(!(lookedUpVars contains varSymbol)) {
-                ctx.reporter.warning(s"Variable ${varSymbol.name} in method ${classSymbol.name}.${methodSymbol.name} is never used.", varDecl.id)
-              }
-            } orElse sys.error(s"Variable has no symbol: ${varDecl}")
-          }
+          method.args foreach warnIfUnused(lookedUpVars, classSymbol, Some(methodSymbol))
+          method.vars foreach warnIfUnused(lookedUpVars, classSymbol, Some(methodSymbol))
         }
       }
 
@@ -322,16 +327,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
       clazz.methods foreach setSymbolReferencesInMethod _
 
-      clazz.vars foreach { varDecl =>
-        varDecl.symbol map { varSymbol =>
-          if(!(lookedUpVarsForClass contains varSymbol)) {
-            ctx.reporter.warning(
-              s"Member ${varSymbol.name} in class ${classSymbol.name} is never used.",
-              varDecl.id
-            )
-          }
-        } orElse sys.error(s"Variable has no symbol: ${varDecl}")
-      }
+      clazz.vars foreach warnIfUnused(lookedUpVarsForClass, classSymbol)
     }
 
     program.main.stats foreach { statement =>
