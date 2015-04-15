@@ -109,19 +109,19 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     // Make sure you check for all constraints
 
-    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main)
+    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main.id)
     program.main.setSymbol(mainSymbol)
     program.main.id.setSymbol(mainSymbol)
 
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
-      val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl)
+      val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl.id)
       varDecl.setSymbol(symbol)
       varDecl.id.setSymbol(symbol)
       symbol
     }
 
     def createParameterSymbol(param: Formal): VariableSymbol = {
-      val symbol = new VariableSymbol(param.id.value).setPos(param)
+      val symbol = new VariableSymbol(param.id.value).setPos(param.id)
       param.setSymbol(symbol)
       param.id.setSymbol(symbol)
       symbol
@@ -132,7 +132,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val varSymbol = createVariableSymbol(varDecl)
         varSymbols.get(varDecl.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varDecl);
+            ctx.reporter.error(s"Member ${clazz.id.value}.${varDecl.id.value} declared multiple times", varSymbol);
             ctx.reporter.info(s"${clazz.id.value}.${varDecl.id.value} first declared here:", existingSymbol);
             varSymbols
           }
@@ -144,7 +144,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       val methodSymbol = new MethodSymbol(method.id.value, classSymbol,
         makeMethodVariablesSymbolMap(method),
         makeMethodParameterSymbolsMap(method)
-      ).setPos(method)
+      ).setPos(method.id)
       method.setSymbol(methodSymbol)
       method.id.setSymbol(methodSymbol)
 
@@ -167,7 +167,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val symbol = createMethodSymbol(classSymbol, method)
         symbols.get(method.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Method ${method.id.value} declared multiple times", method);
+            ctx.reporter.error(s"Method ${method.id.value} declared multiple times", symbol);
             ctx.reporter.info(s"${method.id.value} first declared here:", existingSymbol);
             symbols
           }
@@ -180,7 +180,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val symbol = createParameterSymbol(param)
         symbols.get(param.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", param);
+            ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", symbol);
             ctx.reporter.info(s"${param.id.value} first declared here:", existingSymbol);
             symbols
           }
@@ -193,7 +193,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         val varSymbol = createVariableSymbol(varDecl)
         varSymbols.get(varDecl.id.value) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Variable ${varDecl.id.value} declared multiple times", varDecl);
+            ctx.reporter.error(s"Variable ${varDecl.id.value} declared multiple times", varSymbol);
             ctx.reporter.info(s"${varDecl.id.value} first declared here:", existingSymbol);
             varSymbols
           }
@@ -202,7 +202,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       })
 
     def createClassSymbol(clazz: ClassDecl): ClassSymbol = {
-      val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz)).setPos(clazz)
+      val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz)).setPos(clazz.id)
       clazz.setSymbol(classSymbol)
       clazz.id.setSymbol(classSymbol)
 
@@ -236,9 +236,9 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
     def warnIfUnused(used: Set[VariableSymbol], clazz: ClassSymbol, method: Option[MethodSymbol] = None)
         (varOrParam: Symbolic[VariableSymbol] with Positioned) = {
-      val (kind, pos) = varOrParam match {
-        case v: VarDecl => ("Variable", v.id)
-        case p: Formal  => ("Parameter", p)
+      val kind = varOrParam match {
+        case v: VarDecl => "Variable"
+        case p: Formal  => "Parameter"
       }
       val ancestors = method map {
         methodSym => "Method " + clazz.name + "." + methodSym.name
@@ -246,7 +246,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
       varOrParam.symbol map { symbol =>
         if(!(used contains symbol)) {
-          ctx.reporter.warning(s"${kind} ${symbol.name} in ${ancestors} is never used.", pos)
+          ctx.reporter.warning(s"${kind} ${symbol.name} in ${ancestors} is never used.", symbol)
         }
       } orElse sys.error(s"${kind} has no symbol: ${varOrParam}")
     }
