@@ -244,10 +244,6 @@ object NameResolver {
     }
 
     classSymbols.foreach {checkMethods(_)}
-    println("---------------\n")
-    println(classSymbols)
-    println("---------------\n")
-
 
     if(ctx.reporter.hasErrors) None
     else Some(program)
