@@ -69,9 +69,9 @@ object Symbols {
       val name: String,
       val classSymbol: ClassSymbol,
       val members: Map[String,VariableSymbol],
-      val params: Map[String,VariableSymbol]
+      val argList: List[VariableSymbol]
       ) extends Symbol {
-    var argList: List[VariableSymbol] = Nil
+    var params = Map[String,VariableSymbol]()
     var overridden : Option[MethodSymbol] = None
 
     def lookupVar(n: String): Option[VariableSymbol] = {

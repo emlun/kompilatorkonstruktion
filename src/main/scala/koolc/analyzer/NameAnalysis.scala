@@ -45,10 +45,11 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
     def createMethodSymbol(classSymbol: ClassSymbol, method: MethodDecl): MethodSymbol = {
       val methodSymbol = new MethodSymbol(method.id.value, classSymbol,
         makeMethodVariablesSymbolMap(method),
-        makeMethodParameterSymbolsMap(method)
+        makeMethodArgList(method)
       ).setPos(method.id)
       method.setSymbol(methodSymbol)
       method.id.setSymbol(methodSymbol)
+      methodSymbol.params = makeMethodParameterSymbolsMap(methodSymbol)
 
       def detectShadowedParameter(param: VariableSymbol): Unit = {
         methodSymbol.members.get(param.name) map { varSymbol =>
@@ -77,18 +78,26 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
         }
       })
 
-    def makeMethodParameterSymbolsMap(method: MethodDecl): Map[String, VariableSymbol] =
-      method.args.foldLeft(Map[String, VariableSymbol]())((symbols, param) => {
-        val symbol = createParameterSymbol(param)
-        symbols.get(param.id.value) match {
+      def makeMethodArgList(method: MethodDecl): List[VariableSymbol] =
+        method.args.map (argDecl => {
+          createParameterSymbol(argDecl)
+          })
+
+
+    def makeMethodParameterSymbolsMap(methodSymbol: MethodSymbol): Map[String, VariableSymbol] =
+      methodSymbol.argList.foldLeft(Map[String, VariableSymbol]())((symbols, param) => {
+        symbols.get(param.name) match {
           case Some(existingSymbol) => {
-            ctx.reporter.error(s"Parameter ${param.id.value} declared multiple times", symbol);
-            ctx.reporter.info(s"${param.id.value} first declared here:", existingSymbol);
+            ctx.reporter.error(s"Parameter ${param.name} declared multiple times", param);
+            ctx.reporter.info(s"${param.name} first declared here:", existingSymbol);
             symbols
           }
-          case None => symbols + (param.id.value -> symbol)
+          case None => symbols + (param.name -> param)
         }
       })
+
+
+
 
     def makeMethodVariablesSymbolMap(method: MethodDecl): Map[String, VariableSymbol] =
       method.vars.foldLeft(Map[String, VariableSymbol]())((varSymbols, varDecl) => {
