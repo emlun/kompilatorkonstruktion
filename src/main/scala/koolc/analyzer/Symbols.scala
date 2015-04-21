@@ -19,12 +19,6 @@ object Symbols {
     }
 
     def symbol: Option[S] = _sym
-
-    def getSymbol: S = _sym match {
-      case Some(s) => s
-      case None => sys.error("Accessing undefined symbol.")
-    }
-
   }
 
   sealed abstract class Symbol extends Positioned {
