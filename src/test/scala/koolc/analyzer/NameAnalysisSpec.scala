@@ -16,6 +16,7 @@ import ast._
 
 import Trees._
 import Symbols._
+import Types._
 
 class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with SymbolMatchers with MockFactory {
 
@@ -150,6 +151,101 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
          False()       | True()         | IntLit(_) | StringLit(_) => {}
   }
 
+  def checkTypes(tree: Tree): Unit = {
+    def checkSymbolType(symbol: Option[Symbol]) = symbol match {
+        case Some(sym) => sym match {
+          case sym: ClassSymbol    => sym.tpe should be (TObject(sym))
+          case sym: MethodSymbol   => sym.tpe should be (TUntyped)
+          case sym: VariableSymbol => sym.tpeTree match {
+            case t: BooleanType  => sym.tpe should be (TBoolean)
+            case t: IntType      => sym.tpe should be (TInt)
+            case t: StringType   => sym.tpe should be (TString)
+            case t: IntArrayType => sym.tpe should be (TArray)
+            case id: Identifier  => id.symbol match {
+              case Some(classSym: ClassSymbol) => sym.tpe should be (TObject(classSym))
+              case _                           => fail("Expected Identifier symbol to be a ClassSymbol.")
+            }
+          }
+        }
+        case None => fail("Expected symbol to be set.")
+      }
+
+    tree match {
+      case id: Identifier => withClue("Identifier:") { checkSymbolType(id.symbol)  }
+      case ths: This      => withClue("This:")       { checkSymbolType(ths.symbol) }
+
+      case Program(main, classes) => {
+        checkTypes(main)
+        classes foreach checkTypes _
+      }
+      case main@MainObject(id, stats) => withClue("MainObject") {
+        checkSymbolType(main.symbol)
+        checkTypes(id)
+        stats foreach checkTypes _
+      }
+      case varDecl@VarDecl(tpe, id) => withClue("VarDecl") {
+        checkSymbolType(varDecl.symbol)
+        checkTypes(tpe)
+        checkTypes(id)
+      }
+      case formal@Formal(tpe, id) => withClue("Formal") {
+        checkSymbolType(formal.symbol)
+        checkTypes(tpe)
+        checkTypes(id)
+      }
+      case clazz: ClassDecl => withClue("ClassDecl") {
+        checkSymbolType(clazz.symbol)
+        checkTypes(clazz.id)
+        clazz.parent foreach checkTypes _
+        clazz.vars foreach checkTypes _
+        clazz.methods foreach checkTypes _
+      }
+      case method: MethodDecl => withClue("MethodDecl") {
+        checkSymbolType(method.symbol)
+        checkTypes(method.retType)
+        checkTypes(method.id)
+        method.args foreach checkTypes _
+        method.vars foreach checkTypes _
+        method.stats foreach checkTypes _
+        checkTypes(method.retExpr)
+      }
+
+      case Block(substats)              => withClue("Block") { substats foreach checkTypes _ }
+      case If(expr, thn, els)           => withClue("If")    {
+        checkTypes(expr);
+        checkTypes(thn);
+        els foreach checkTypes _
+      }
+      case While(expr, statement)       => withClue("While")       { checkTypes(expr); checkTypes(statement) }
+      case Println(expr)                => withClue("Println")     { checkTypes(expr)                       }
+      case Assign(id, expr)             => withClue("Assign")      { checkTypes(id); checkTypes(expr)        }
+      case ArrayAssign(id, index, expr) => withClue("ArrayAssign") {
+        checkTypes(id)
+        checkTypes(index)
+        checkTypes(expr)
+      }
+
+      case And(lhs, rhs)               => withClue("And")         { checkTypes(lhs); checkTypes(rhs)           }
+      case Or(lhs, rhs)                => withClue("Or")          { checkTypes(lhs); checkTypes(rhs)           }
+      case Plus(lhs, rhs)              => withClue("Plus")        { checkTypes(lhs); checkTypes(rhs)           }
+      case Minus(lhs, rhs)             => withClue("Minus")       { checkTypes(lhs); checkTypes(rhs)           }
+      case Times(lhs, rhs)             => withClue("Times")       { checkTypes(lhs); checkTypes(rhs)           }
+      case Div(lhs, rhs)               => withClue("Div")         { checkTypes(lhs); checkTypes(rhs)           }
+      case LessThan(lhs, rhs)          => withClue("LessThan")    { checkTypes(lhs); checkTypes(rhs)           }
+      case Equals(lhs, rhs)            => withClue("Equals")      { checkTypes(lhs); checkTypes(rhs)           }
+      case ArrayRead(arr, index)       => withClue("ArrayRead")   { checkTypes(arr); checkTypes(index)         }
+      case ArrayLength(arr)            => withClue("ArrayLength") { checkTypes(arr)                           }
+                                                                  // Method name symbols done later
+      case MethodCall(obj, meth, args) => withClue("MethodCall")  { checkTypes(obj); args foreach checkTypes _ }
+      case NewIntArray(size)           => withClue("NewIntArray") { checkTypes(size)                          }
+      case New(tpe)                    => withClue("New")         { checkTypes(tpe)                           }
+      case Not(expr)                   => withClue("Not")         { checkTypes(expr)                          }
+
+      case BooleanType() | IntArrayType() | IntType() | StringType() |
+           False()       | True()         | IntLit(_) | StringLit(_) => {}
+    }
+  }
+
   describe("The name analyzer") {
 
     describe("attaches symbols to all declarations") {
@@ -159,6 +255,18 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
             ctx.reporter shouldBe errorless
             program should not be None
             program foreach checkDeclarationSymbols _
+          })
+        }
+      }
+    }
+
+    describe("attaches types to all symbols") {
+      VALID_TEST_FILES foreach { path =>
+        it(s"in ${path}") {
+          checkResultForFile(path, (ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be None
+            program foreach checkTypes _
           })
         }
       }
