@@ -8,6 +8,8 @@ package koolc
 package analyzer
 
 import utils._
+import Types._
+import ast.Trees._
 
 object Symbols {
   trait Symbolic[S <: Symbol] {
@@ -24,6 +26,7 @@ object Symbols {
   sealed abstract class Symbol extends Positioned {
     val id: Int = ID.next
     val name: String
+    val tpe: Type
   }
 
   private object ID {
@@ -56,6 +59,8 @@ object Symbols {
     def lookupVar(n: String): Option[VariableSymbol] = members.get(n) orElse {
         parent flatMap ( _.lookupVar(n) )
       }
+
+    val tpe: Type = TUntyped
   }
 
   class MethodSymbol(
@@ -70,7 +75,12 @@ object Symbols {
     def lookupVar(n: String): Option[VariableSymbol] = {
       params.get(n) orElse { members.get(n) } orElse { classSymbol.lookupVar(n) }
     }
+
+    val tpe: Type = TUntyped
   }
 
-  class VariableSymbol(val name: String) extends Symbol
+  class VariableSymbol(val name: String) extends Symbol {
+    val tpe: Type = TUntyped
+  }
+
 }
