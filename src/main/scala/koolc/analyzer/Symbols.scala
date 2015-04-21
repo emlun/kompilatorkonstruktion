@@ -60,7 +60,7 @@ object Symbols {
         parent flatMap ( _.lookupVar(n) )
       }
 
-    val tpe: Type = TUntyped
+    val tpe: Type = TObject(this)
   }
 
   class MethodSymbol(
@@ -79,8 +79,17 @@ object Symbols {
     val tpe: Type = TUntyped
   }
 
-  class VariableSymbol(val name: String) extends Symbol {
-    val tpe: Type = TUntyped
+  class VariableSymbol(val name: String, val tpeTree: TypeTree) extends Symbol {
+    val tpe: Type = tpeTree match {
+      case t: BooleanType  => TBoolean
+      case t: IntType      => TInt
+      case t: StringType   => TString
+      case t: IntArrayType => TArray
+      case id: Identifier  => id.symbol match {
+        case Some(sym: ClassSymbol) => TObject(sym)
+        case _                      => TError
+      }
+    }
   }
 
 }

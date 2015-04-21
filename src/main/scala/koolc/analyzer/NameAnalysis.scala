@@ -16,14 +16,14 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
 
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
-      val symbol = new VariableSymbol(varDecl.id.value).setPos(varDecl.id)
+      val symbol = new VariableSymbol(varDecl.id.value, varDecl.tpe).setPos(varDecl.id)
       varDecl.setSymbol(symbol)
       varDecl.id.setSymbol(symbol)
       symbol
     }
 
     def createParameterSymbol(param: Formal): VariableSymbol = {
-      val symbol = new VariableSymbol(param.id.value).setPos(param.id)
+      val symbol = new VariableSymbol(param.id.value, param.tpe).setPos(param.id)
       param.setSymbol(symbol)
       param.id.setSymbol(symbol)
       symbol
