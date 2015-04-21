@@ -26,7 +26,8 @@ object Symbols {
   sealed abstract class Symbol extends Positioned {
     val id: Int = ID.next
     val name: String
-    val tpe: Type
+
+    def tpe: Type
   }
 
   private object ID {
@@ -80,16 +81,19 @@ object Symbols {
   }
 
   class VariableSymbol(val name: String, val tpeTree: TypeTree) extends Symbol {
-    val tpe: Type = tpeTree match {
-      case t: BooleanType  => TBoolean
-      case t: IntType      => TInt
-      case t: StringType   => TString
-      case t: IntArrayType => TArray
-      case id: Identifier  => id.symbol match {
-        case Some(sym: ClassSymbol) => TObject(sym)
-        case _                      => TError
-      }
+    private var _tpe: Type = tpeTree match {
+      case BooleanType()  => TBoolean
+      case IntType()      => TInt
+      case StringType()   => TString
+      case IntArrayType() => TArray
+      case id: Identifier => TUnresolved
     }
+
+    def setType(tpe: ClassSymbol): VariableSymbol = {
+      _tpe = TObject(tpe)
+      this
+    }
+    def tpe: Type = _tpe
   }
 
 }

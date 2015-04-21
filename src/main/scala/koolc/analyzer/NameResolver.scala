@@ -245,6 +245,25 @@ object NameResolver {
 
     classSymbols.foreach {checkMethods(_)}
 
+    def setTypeOnVarOrParam(tpe: TypeTree, symbol: Option[VariableSymbol]) = {
+      symbol map { symbol =>
+        tpe match {
+          case id: Identifier => lookupType(global, mainSymbol)(id) map { symbol.setType(_) }
+          case _ => {}
+        }
+      }
+    }
+
+    program.classes foreach { clazz =>
+      clazz.symbol map { classSymbol =>
+        clazz.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
+        clazz.methods foreach { method =>
+          method.args foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
+          method.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
+        }
+      }
+    }
+
     if(ctx.reporter.hasErrors) None
     else Some(program)
   }

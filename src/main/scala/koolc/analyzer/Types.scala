@@ -27,6 +27,14 @@ object Types {
     override def toString = "[untyped]"
   }
 
+  case object TUnresolved extends Type {
+    override def isSubTypeOf(tpe: Type): Boolean = tpe match {
+      case Types.anyObject => true
+      case _               => false
+    }
+    override def toString = "[unresolved class type]"
+  }
+
   case object TBoolean extends Type {
     override def isSubTypeOf(tpe: Type): Boolean = tpe match {
       case TBoolean => true
