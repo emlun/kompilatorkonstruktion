@@ -9,6 +9,7 @@ package ast
 
 import utils._
 import analyzer.Symbols._
+import analyzer.Types._
 
 object Trees {
   sealed trait Tree extends Positioned
@@ -37,7 +38,7 @@ object Trees {
       retExpr: ExprTree) extends SymbolicTree[MethodSymbol]
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
 
-  sealed trait TypeTree extends Tree
+  sealed trait TypeTree extends Tree with Typed
   case class IntArrayType() extends TypeTree
   case class IntType() extends TypeTree
   case class BooleanType() extends TypeTree
@@ -51,7 +52,7 @@ object Trees {
   case class Assign(id: Identifier, expr: ExprTree) extends StatTree
   case class ArrayAssign(id: Identifier, index: ExprTree, expr: ExprTree) extends StatTree
 
-  sealed trait ExprTree extends Tree
+  sealed trait ExprTree extends Tree with Typed
   case class And(lhs: ExprTree, rhs: ExprTree) extends ExprTree
   case class Or(lhs: ExprTree, rhs: ExprTree) extends ExprTree
   case class Plus(lhs: ExprTree, rhs: ExprTree) extends ExprTree
