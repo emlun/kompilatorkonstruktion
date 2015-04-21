@@ -27,15 +27,37 @@ object Types {
     override def toString = "[untyped]"
   }
 
+  case object TBoolean extends Type {
+    override def isSubTypeOf(tpe: Type): Boolean = tpe match {
+      case TBoolean => true
+      case _        => false
+    }
+    override def toString = "bool"
+  }
+
   case object TInt extends Type {
     override def isSubTypeOf(tpe: Type): Boolean = tpe match {
       case TInt => true
-      case _ => false
+      case _    => false
     }
     override def toString = "int"
   }
 
-  // TODO: Complete by creating necessary types
+  case object TString extends Type {
+    override def isSubTypeOf(tpe: Type): Boolean = tpe match {
+      case TString => true
+      case _       => false
+    }
+    override def toString = "string"
+  }
+
+  case object TArray extends Type {
+    override def isSubTypeOf(tpe: Type): Boolean = tpe match {
+      case TArray => true
+      case _      => false
+    }
+    override def toString = "array"
+  }
 
   case class TObject(classSymbol: ClassSymbol) extends Type {
     override def isSubTypeOf(tpe: Type): Boolean = ???
