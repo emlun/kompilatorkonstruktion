@@ -228,30 +228,6 @@ object NameResolver {
           case None =>
         }
       }
-      /*
-      clazz.parent match {
-        case Some(parent) => {
-          clazz.methods.foreach{
-            method => print(">>>>"); println(method._2.overridden)
-            parent.lookupMethod(method._1) match {
-              case Some(pMethod) => {
-                if(method._2.params.size != pMethod.params.size)
-                  ctx.reporter.error(s"${method._1} overrides previous definition from ${pMethod.position} with a different number of parameters.", method._2)
-              }
-            }
-          }
-          clazz.members.foreach{
-            member => //println(method._1)
-            parent.lookupVar(member._1) match {
-              case Some(pMember) => {
-                  ctx.reporter.error(s"${member._1}  test member declaration overrides previous declaration at ${pMember.position}.", member._2)
-              }
-              case None =>
-            }
-          }
-          }
-        case None => clazz.methods.foreach{method => print(">>>>"); println(method._2.overridden)}
-      }*/
     }
 
     def checkMembers(clazz: ClassSymbol):Unit =
