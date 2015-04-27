@@ -104,7 +104,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       })
 
     def createClassSymbol(clazz: ClassDecl): ClassSymbol = {
-      val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz)).setPos(clazz.id)
+      val classSymbol = new ClassSymbol(clazz.id.value, makeClassVariablesSymbolMap(clazz), clazz).setPos(clazz.id)
       clazz.setSymbol(classSymbol)
       clazz.id.setSymbol(classSymbol)
 
@@ -113,7 +113,7 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       classSymbol
     }
 
-    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty).setPos(program.main.id)
+    val mainSymbol = new ClassSymbol(program.main.id.value, Map.empty, ClassDecl(program.main.id, None, Nil, Nil)).setPos(program.main.id)
     program.main.setSymbol(mainSymbol)
     program.main.id.setSymbol(mainSymbol)
 

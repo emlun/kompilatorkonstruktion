@@ -50,7 +50,7 @@ object Symbols {
     }
   }
 
-  class ClassSymbol(val name: String, val members: Map[String, VariableSymbol]) extends Symbol {
+  class ClassSymbol(val name: String, val members: Map[String, VariableSymbol], val decl: ClassDecl) extends Symbol {
     var parent: Option[ClassSymbol] = None
     var methods = Map[String,MethodSymbol]()
 

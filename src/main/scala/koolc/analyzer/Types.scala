@@ -1,6 +1,7 @@
 package koolc
 package analyzer
 
+import ast.Trees._
 import Symbols._
 
 object Types {
@@ -80,5 +81,5 @@ object Types {
   }
 
   // special object to implement the fact that all objects are its subclasses
-  val anyObject = TObject(new ClassSymbol("Object", Map.empty))
+  val anyObject = TObject(new ClassSymbol("Object", Map.empty, ClassDecl(Identifier("Object"), None, Nil, Nil)))
 }
