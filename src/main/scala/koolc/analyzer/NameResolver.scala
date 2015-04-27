@@ -200,17 +200,43 @@ object NameResolver {
       setSymbolReferencesOnClass(lookupType(global, mainSymbol), mainSymbol, clazz)(clazz.symbol)
     }
 
-    def checkMethods(clazz: ClassSymbol): Boolean = {
+    def setParentReferencesOnClass(clazz: ClassSymbol):Unit =
+    {
       clazz.parent match {
         case Some(parent) => {
-          clazz.methods.foreach { case(methodName, methodSymbol) =>
-            //println(method._1)
-            parent.lookupMethod(methodName) map { pMethod =>
-              if(methodSymbol.params.size == pMethod.params.size) {
-                methodSymbol.overridden = Some(pMethod)
-              } else {
-                ctx.reporter.error(s"${methodName} overloads previous definition in ${parent.name} with a different number of parameters.", methodSymbol)
-                ctx.reporter.info(s"${parent.name}.${methodName} declared here:", pMethod)
+          clazz.methods.foreach{
+            method =>
+            parent.lookupMethod(method._1) match {
+              case Some(pMethod) => method._2.overridden = Some(pMethod)
+              case None =>
+            }
+          }
+        }
+        case None =>
+      }
+    }
+
+
+    def checkMethods(clazz: ClassSymbol):Unit =
+    {
+      clazz.methods.foreach{
+        method => method._2.overridden match{
+          case Some(pMethod) => {
+            if(method._2.params.size != pMethod.params.size)
+              ctx.reporter.error(s"${method._1} overrides previous definition from ${pMethod.position} with a different number of parameters.", method._2)
+          }
+          case None =>
+        }
+      }
+      /*
+      clazz.parent match {
+        case Some(parent) => {
+          clazz.methods.foreach{
+            method => print(">>>>"); println(method._2.overridden)
+            parent.lookupMethod(method._1) match {
+              case Some(pMethod) => {
+                if(method._2.params.size != pMethod.params.size)
+                  ctx.reporter.error(s"${method._1} overrides previous definition from ${pMethod.position} with a different number of parameters.", method._2)
               }
             }
           }
@@ -223,13 +249,33 @@ object NameResolver {
               case None =>
             }
           }
-          true
           }
-        case None => true
+        case None => clazz.methods.foreach{method => print(">>>>"); println(method._2.overridden)}
+      }*/
+    }
+
+    def checkMembers(clazz: ClassSymbol):Unit =
+    {
+      clazz.parent match {
+        case Some(parent) =>{
+          clazz.members.foreach{
+            member => //println(method._1)
+            parent.lookupVar(member._1) match {
+              case Some(pMember) => {
+                  ctx.reporter.error(s"${member._1}  test member declaration overrides previous declaration at ${pMember.position}.", member._2)
+              }
+              case None =>
+            }
+          }
+        }
+        case None =>
       }
     }
 
+    classSymbols.foreach {setParentReferencesOnClass(_)}
     classSymbols.foreach {checkMethods(_)}
+    classSymbols.foreach {checkMembers(_)}
+
 
     def setTypeOnVarOrParam(tpe: TypeTree, symbol: VariableSymbol) = tpe match {
         case id: Identifier => lookupType(global, mainSymbol)(id) map { symbol.setType(_) }

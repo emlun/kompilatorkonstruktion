@@ -8,8 +8,8 @@ package koolc
 package analyzer
 
 import utils._
-import Types._
 import ast.Trees._
+import Types._
 
 object Symbols {
   trait Symbolic[S <: Symbol] {
@@ -23,7 +23,7 @@ object Symbols {
     def symbol: S = _sym getOrElse sys.error("Accessing undefined symbol.")
   }
 
-  sealed abstract class Symbol extends Positioned {
+  sealed abstract class Symbol extends Positioned with Typed{
     val id: Int = ID.next
     val name: String
 
@@ -68,9 +68,9 @@ object Symbols {
       val name: String,
       val classSymbol: ClassSymbol,
       val members: Map[String,VariableSymbol],
-      val params: Map[String,VariableSymbol]
+      val argList: List[VariableSymbol]
       ) extends Symbol {
-    var argList: List[VariableSymbol] = Nil
+    var params = Map[String,VariableSymbol]()
     var overridden : Option[MethodSymbol] = None
 
     def lookupVar(n: String): Option[VariableSymbol] = {
