@@ -397,7 +397,6 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
         }
 
         it("In a given class, no method can have the same name as another method defined in a super class, unless overriding applies.") {
-          //cancel("Test not implemented.")
           assertFileFails("redeclared-superclass-method.kool")
         }
       }
