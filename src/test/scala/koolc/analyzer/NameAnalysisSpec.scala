@@ -447,7 +447,19 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
           })
         }
         it("Fields cannot be overridden.") {
-            cancel("Test not implemented.")
+          val source = """
+            object Main { def main(): Unit = {} }
+            class Foo {
+              var a: Bool;
+            }
+            class Bar extends Foo {
+              var a: Bool;
+            }
+          """
+          checkResultForString(source, (ctx, program) => {
+            ctx.reporter should not be errorless
+            program should be (None)
+          })
         }
       }
     }
