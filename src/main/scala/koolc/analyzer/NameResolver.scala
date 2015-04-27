@@ -206,11 +206,11 @@ object NameResolver {
           clazz.methods.foreach { case(methodName, methodSymbol) =>
             //println(method._1)
             parent.lookupMethod(methodName) map { pMethod =>
-              if(methodSymbol.params.size != pMethod.params.size) {
+              if(methodSymbol.params.size == pMethod.params.size) {
+                methodSymbol.overridden = Some(pMethod)
+              } else {
                 ctx.reporter.error(s"${methodName} overloads previous definition in ${parent.name} with a different number of parameters.", methodSymbol)
                 ctx.reporter.info(s"${parent.name}.${methodName} declared here:", pMethod)
-              } else {
-                methodSymbol.overridden = Some(pMethod)
               }
             }
           }
