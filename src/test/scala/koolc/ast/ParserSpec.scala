@@ -262,10 +262,11 @@ class ParserSpec extends FunSpec with Matchers with ReporterMatchers {
         program.get should be (Program(
           main = MainObject(id = Identifier("HelloWorld"),
             stats =
-              Assign(Identifier("greeter"), New(Identifier("Greeter"))) ::
-              Assign(Identifier("result"), MethodCall(
-                  Identifier("greeter"), Identifier("greet"), List(StringLit("World")))
-                ) ::
+              If(
+                MethodCall(New(Identifier("Greeter")), Identifier("greet"), List(StringLit("World"))),
+                Block(Nil),
+                None
+              ) ::
               Nil
           ),
           classes =
