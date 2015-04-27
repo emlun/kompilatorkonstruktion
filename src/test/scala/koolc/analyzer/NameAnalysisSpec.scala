@@ -465,7 +465,28 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     }
 
     it("assigns overriding methods a different symbol than their overridden counterparts.") {
-      cancel("Test not implemented.")
+      val source = """
+        object Main { def main(): Unit = {} }
+        class Foo {
+          def meth1(): Bool = {
+            return true;
+          }
+        }
+        class Bar extends Foo {
+          def meth1(): Bool = {
+            return false;
+          }
+        }
+      """
+      checkResultForString(source, (ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program should not be None
+        val fooMethod = program.get.classes.head.methods.head
+        val barMethod = program.get.classes.tail.head.methods.head
+
+        barMethod.symbol.overridden should be (Some(fooMethod.symbol))
+        barMethod should not (haveSameSymbolAs(fooMethod))
+      })
     }
 
     it("does not resolve method name symbols in method calls.") {
