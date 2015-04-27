@@ -29,7 +29,10 @@ object Symbols {
 
     def tpe: Type
 
-    def equals(other: Symbol) = this.id == other.id
+    override def equals(that: Any) = that match {
+      case that: Symbol => this.id == that.id
+      case _            => false
+    }
   }
 
   private object ID {
