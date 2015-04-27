@@ -34,11 +34,9 @@ object NameResolver {
         methodSym => "Method " + clazz.name + "." + methodSym.name
       } getOrElse { "Class " + clazz.name }
 
-      varOrParam.symbol map { symbol =>
-        if(!(used contains symbol)) {
-          ctx.reporter.warning(s"${kind} ${symbol.name} in ${ancestors} is never used.", symbol)
-        }
-      } orElse sys.error(s"${kind} has no symbol: ${varOrParam}")
+      if(!(used contains varOrParam.symbol)) {
+        ctx.reporter.warning(s"${kind} ${varOrParam.symbol.name} in ${ancestors} is never used.", varOrParam.symbol)
+      }
     }
 
     def lookupType(global: GlobalScope, mainSymbol: ClassSymbol)(id: Identifier): Option[ClassSymbol] =
@@ -146,7 +144,7 @@ object NameResolver {
         val usedVars = (method.stats flatMap setOnStatement _) ++:
           setOnExpression(method.retExpr)
 
-        method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, method.symbol)
+        method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(method.symbol))
         usedVars
       }
 
@@ -188,12 +186,7 @@ object NameResolver {
       classDecl.vars foreach setSymbolReferences(lookupType, clazz, clazz.lookupVar _)
 
       val usedVars = classDecl.methods flatMap { method =>
-        method.symbol map { methodSymbol =>
-          setSymbolReferences(lookupType, clazz, methodSymbol.lookupVar _)(method)
-        } orElse {
-          sys.error(s"Method no longer has a symbol: ${method}")
-          None
-        } getOrElse Set.empty
+        setSymbolReferences(lookupType, clazz, method.symbol.lookupVar _)(method)
       }
       classDecl.vars foreach warnIfUnused(usedVars.toSet, clazz)
     }
@@ -204,10 +197,7 @@ object NameResolver {
     program.main.stats foreach setSymbolReferences(lookupType(global, mainSymbol), mainSymbol, (_ => None))
 
     program.classes foreach { clazz =>
-      clazz.symbol orElse {
-        sys.error(s"Class no longer has a symbol: ${clazz}")
-        None
-      } map setSymbolReferencesOnClass(lookupType(global, mainSymbol), mainSymbol, clazz)
+      setSymbolReferencesOnClass(lookupType(global, mainSymbol), mainSymbol, clazz)(clazz.symbol)
     }
 
     def checkMap(classMap:Map[String,MethodSymbol]):Boolean ={
@@ -245,22 +235,16 @@ object NameResolver {
 
     classSymbols.foreach {checkMethods(_)}
 
-    def setTypeOnVarOrParam(tpe: TypeTree, symbol: Option[VariableSymbol]) = {
-      symbol map { symbol =>
-        tpe match {
-          case id: Identifier => lookupType(global, mainSymbol)(id) map { symbol.setType(_) }
-          case _ => {}
-        }
+    def setTypeOnVarOrParam(tpe: TypeTree, symbol: VariableSymbol) = tpe match {
+        case id: Identifier => lookupType(global, mainSymbol)(id) map { symbol.setType(_) }
+        case _ => {}
       }
-    }
 
     program.classes foreach { clazz =>
-      clazz.symbol map { classSymbol =>
-        clazz.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
-        clazz.methods foreach { method =>
-          method.args foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
-          method.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
-        }
+      clazz.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
+      clazz.methods foreach { method =>
+        method.args foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
+        method.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
       }
     }
 

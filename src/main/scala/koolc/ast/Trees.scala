@@ -18,7 +18,7 @@ object Trees {
   def trimLinesFromRight(s: String): String = s.lines map { _.replaceFirst("\\s+$", "") } mkString "\n"
 
   sealed trait SymbolicTree[S <: Symbol] extends Tree with Symbolic[S] {
-    def symbolComment: String = symbol map { sym => s"#${sym.id}" } getOrElse "#??"
+    def symbolComment: String = s"#${symbol.id}"
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree

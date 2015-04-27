@@ -7,6 +7,8 @@ Petter Lundahl
 package koolc
 package ast
 
+import scala.util.Try
+
 import Trees._
 
 object Printer extends (Tree => String) {
@@ -104,7 +106,7 @@ object Printer extends (Tree => String) {
       case Not(expr)         => "!" + print(expr,ident+1)
 
       case id:This       => "this" + id.symbolComment
-      case id:Identifier => id.value + id.symbolComment
+      case id:Identifier => id.value + (Try(id.symbolComment) getOrElse "#??")
 
       case _ => " >>> " + t.getClass.getSimpleName + "<<<"
     }

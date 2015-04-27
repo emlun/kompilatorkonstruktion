@@ -20,7 +20,7 @@ object Symbols {
       this
     }
 
-    def symbol: Option[S] = _sym
+    def symbol: S = _sym getOrElse sys.error("Accessing undefined symbol.")
   }
 
   sealed abstract class Symbol extends Positioned {
