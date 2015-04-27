@@ -403,7 +403,48 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
 
       describe("Overriding:") {
         it("A method in a given class overrides another one in a super class if they have the same name and the same number of arguments. (Of course this constraint will be tightened once we start checking types.)") {
-            cancel("Test not implemented.")
+          val source = """
+            object Main { def main(): Unit = {} }
+            class Foo {
+              def meth1(): Bool = {
+                return true;
+              }
+              def meth2(a: Int): Int = {
+                return a;
+              }
+              def meth3(a: Int, b: Int): Int = {
+                return a + b;
+              }
+              def meth4(a: Int, b: Int, c: Int): Int = {
+                return a + b + c;
+              }
+            }
+            class Bar extends Foo {
+              def meth1(): Bool = {
+                return false;
+              }
+              def meth2(a: Int): Int = {
+                return a;
+              }
+              def meth3(a: Bool, b: Bool): Bool = {
+                return a && b;
+              }
+              def meth4(a: Bool, b: Bool, c: Bool): Bool = {
+                return a && b && c;
+              }
+            }
+          """
+          checkResultForString(source, (ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be None
+            val fooClass = program.get.classes.head
+            val barClass = program.get.classes.tail.head
+            fooClass.methods zip barClass.methods map { case (fooMethod, barMethod) =>
+              withClue(s"${barMethod.id.value} should override ${fooMethod.id.value}") {
+                barMethod.symbol.overridden should be (Some(fooMethod.symbol))
+              }
+            }
+          })
         }
         it("Fields cannot be overridden.") {
             cancel("Test not implemented.")
