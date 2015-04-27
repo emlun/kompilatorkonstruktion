@@ -397,23 +397,96 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
         }
 
         it("In a given class, no method can have the same name as another method defined in a super class, unless overriding applies.") {
-          //cancel("Test not implemented.")
           assertFileFails("redeclared-superclass-method.kool")
         }
       }
 
       describe("Overriding:") {
         it("A method in a given class overrides another one in a super class if they have the same name and the same number of arguments. (Of course this constraint will be tightened once we start checking types.)") {
-            cancel("Test not implemented.")
+          val source = """
+            object Main { def main(): Unit = {} }
+            class Foo {
+              def meth1(): Bool = {
+                return true;
+              }
+              def meth2(a: Int): Int = {
+                return a;
+              }
+              def meth3(a: Int, b: Int): Int = {
+                return a + b;
+              }
+              def meth4(a: Int, b: Int, c: Int): Int = {
+                return a + b + c;
+              }
+            }
+            class Bar extends Foo {
+              def meth1(): Bool = {
+                return false;
+              }
+              def meth2(a: Int): Int = {
+                return a;
+              }
+              def meth3(a: Bool, b: Bool): Bool = {
+                return a && b;
+              }
+              def meth4(a: Bool, b: Bool, c: Bool): Bool = {
+                return a && b && c;
+              }
+            }
+          """
+          checkResultForString(source, (ctx, program) => {
+            ctx.reporter shouldBe errorless
+            program should not be None
+            val fooClass = program.get.classes.head
+            val barClass = program.get.classes.tail.head
+            fooClass.methods zip barClass.methods map { case (fooMethod, barMethod) =>
+              withClue(s"${barMethod.id.value} should override ${fooMethod.id.value}") {
+                barMethod.symbol.overridden should be (Some(fooMethod.symbol))
+              }
+            }
+          })
         }
         it("Fields cannot be overridden.") {
-            cancel("Test not implemented.")
+          val source = """
+            object Main { def main(): Unit = {} }
+            class Foo {
+              var a: Bool;
+            }
+            class Bar extends Foo {
+              var a: Bool;
+            }
+          """
+          checkResultForString(source, (ctx, program) => {
+            ctx.reporter should not be errorless
+            program should be (None)
+          })
         }
       }
     }
 
     it("assigns overriding methods a different symbol than their overridden counterparts.") {
-      cancel("Test not implemented.")
+      val source = """
+        object Main { def main(): Unit = {} }
+        class Foo {
+          def meth1(): Bool = {
+            return true;
+          }
+        }
+        class Bar extends Foo {
+          def meth1(): Bool = {
+            return false;
+          }
+        }
+      """
+      checkResultForString(source, (ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program should not be None
+        val fooMethod = program.get.classes.head.methods.head
+        val barMethod = program.get.classes.tail.head.methods.head
+
+        barMethod.symbol.overridden should be (Some(fooMethod.symbol))
+        barMethod should not (haveSameSymbolAs(fooMethod))
+      })
     }
 
     it("does not resolve method name symbols in method calls.") {

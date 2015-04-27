@@ -200,22 +200,18 @@ object NameResolver {
       setSymbolReferencesOnClass(lookupType(global, mainSymbol), mainSymbol, clazz)(clazz.symbol)
     }
 
-    def checkMap(classMap:Map[String,MethodSymbol]):Boolean ={
-      true
-    }
-
-    def checkMethods(clazz: ClassSymbol):Boolean =
-    {
+    def checkMethods(clazz: ClassSymbol): Boolean = {
       clazz.parent match {
         case Some(parent) => {
-          clazz.methods.foreach{
-            method => //println(method._1)
-            parent.lookupMethod(method._1) match {
-              case Some(pMethod) => {
-                if(method._2.params.size != pMethod.params.size)
-                  ctx.reporter.error(s"${method._1} overrides previous definition from ${pMethod.position} whit a different number of parameters.", method._2)
+          clazz.methods.foreach { case(methodName, methodSymbol) =>
+            //println(method._1)
+            parent.lookupMethod(methodName) map { pMethod =>
+              if(methodSymbol.params.size == pMethod.params.size) {
+                methodSymbol.overridden = Some(pMethod)
+              } else {
+                ctx.reporter.error(s"${methodName} overloads previous definition in ${parent.name} with a different number of parameters.", methodSymbol)
+                ctx.reporter.info(s"${parent.name}.${methodName} declared here:", pMethod)
               }
-              case None =>
             }
           }
           clazz.members.foreach{
