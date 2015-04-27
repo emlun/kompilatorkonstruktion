@@ -20,7 +20,7 @@ import Types._
 
 class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with ReporterMatchers with SymbolMatchers with MockFactory {
 
-  def pipeline: Pipeline[Iterator[Token], Option[Program]] = Parser andThen NameAnalysis
+  override def pipeline = Parser andThen NameAnalysis
 
   val VALID_TEST_FILES =
     "/helloworld.kool" ::
