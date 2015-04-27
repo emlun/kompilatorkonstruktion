@@ -200,10 +200,6 @@ object NameResolver {
       setSymbolReferencesOnClass(lookupType(global, mainSymbol), mainSymbol, clazz)(clazz.symbol)
     }
 
-    def checkMap(classMap:Map[String,MethodSymbol]):Boolean ={
-      true
-    }
-
     def checkMethods(clazz: ClassSymbol):Boolean =
     {
       clazz.parent match {
