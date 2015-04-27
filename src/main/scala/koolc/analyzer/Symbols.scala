@@ -28,6 +28,8 @@ object Symbols {
     val name: String
 
     def tpe: Type
+
+    def equals(other: Symbol) = this.id == other.id
   }
 
   private object ID {
