@@ -14,6 +14,21 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = {
     import ctx.reporter._
 
+    def resolveMethodCall(call: MethodCall): Option[MethodSymbol] = {
+      val objType = tcExpr(call.obj)
+
+      objType match {
+        case TObject(classSymbol) =>
+          classSymbol.lookupMethod(call.meth.value) map { methodSymbol =>
+            call.meth.setSymbol(methodSymbol)
+            methodSymbol
+          }
+        case _ => {
+          ctx.reporter.error(s"Type error: Expected class type, found: ${objType}", call.obj)
+          None
+        }
+      }
+    }
 
     def tcExpr(expr: ExprTree, expected: Type*): Type = {
       // TODO: Compute type for each kind of expression
@@ -68,9 +83,26 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
           tcExpr(arr,TArray)
           TInt
         }
-        case MethodCall(obj, meth, args) => {
-          println(meth)
-          tcExpr(obj,anyObject)
+        case call@MethodCall(obj, methId, args) => {
+          val objType = tcExpr(obj,anyObject)
+          resolveMethodCall(call) flatMap { methodSymbol =>
+            println(methId)
+
+            if(args.size == methodSymbol.argList.size) {
+              args zip methodSymbol.argList foreach { case (arg, argDef) => tcExpr(arg, argDef.tpe) }
+            } else if(args.size < methodSymbol.argList.size) {
+              ctx.reporter.error(s"Too few parameters for method ${methId.value}", call)
+            } else if(args.size > methodSymbol.argList.size) {
+              ctx.reporter.error(s"Too many parameters for method ${methId.value}", call)
+            }
+
+            methodSymbol.classSymbol.decl.methods.find { _.symbol == methodSymbol } map { decl =>
+              tcExpr(decl.retExpr)
+            }
+          } getOrElse {
+            ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")
+            TError
+          }
         }
 
         case id@Identifier(value) => {
