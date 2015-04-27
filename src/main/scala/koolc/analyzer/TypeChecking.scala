@@ -189,27 +189,24 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       }
     }
 
-    prog match {
-      case Some(p) => {
-        p.main.stats foreach { stat => tcStat(stat)}
-        p.classes foreach {
-          clazz => clazz.methods foreach {
-            method => {
-              method.stats foreach {
-                //println(_)
-                tcStat(_)
-              }
-              tcExpr(method.retExpr, tcTypeTree(method.retType))
+    prog map { p =>
+      p.main.stats foreach { stat => tcStat(stat)}
+      p.classes foreach {
+        clazz => clazz.methods foreach {
+          method => {
+            method.stats foreach {
+              //println(_)
+              tcStat(_)
             }
+            tcExpr(method.retExpr, tcTypeTree(method.retType))
           }
         }
       }
-      case None => ???
-
     }
 
-
-    prog
+    if(ctx.reporter.hasErrors) {
+      None
+    } else prog
   }
 
 }
