@@ -123,16 +123,10 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     var (nextToken, current, currentPos) = readNext("", source.pos)
 
     new Iterator[Token] {
-      override def hasNext = nextToken match {
-        case Some(_) => true
-        case None    => false
-      }
+      override def hasNext = nextToken.isDefined
 
       override def next = {
-        val result = nextToken match {
-          case Some(t) => t
-          case None    => null
-        }
+        val result = nextToken.get
 
         val readResult = readNext(current, currentPos)
         current = readResult._2
