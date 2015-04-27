@@ -539,6 +539,26 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
       pipeline.run(Context(reporter = reporter, outDir = None, file = Some(input)))(input)
     }
 
+    it("attaches the surrounding class symbol to the this keyword.") {
+      val source = """
+        object Main { def main(): Unit = {} }
+        class Foo {
+          def bar(): Foo = {
+            return this;
+          }
+        }
+      """
+      checkResultForString(source, (ctx, program) => {
+        ctx.reporter shouldBe errorless
+        program should not be None
+        val retExpr: ExprTree = program.get.classes.head.methods.head.retExpr
+        retExpr match {
+          case t: This => t should haveSameSymbolAs(program.get.classes.head)
+          case _ => fail("Expected baz return expression to be 'this' keyword, was: " + retExpr)
+        }
+      })
+    }
+
     describe("attaches symbol references to all identifiers") {
       VALID_TEST_FILES foreach { path =>
         it(s"in ${path}") {
