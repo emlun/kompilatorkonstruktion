@@ -535,6 +535,10 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
       })
     }
 
+    it("allows assignment to method parameters.") {
+      assertFileSucceeds("assignment-to-parameter.kool")
+    }
+
     describe("attaches symbol references to all identifiers") {
       VALID_TEST_FILES foreach { path =>
         it(s"in ${path}") {
