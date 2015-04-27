@@ -18,7 +18,9 @@ import Trees._
 import Symbols._
 import Types._
 
-class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with SymbolMatchers with MockFactory {
+class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with ReporterMatchers with SymbolMatchers with MockFactory {
+
+  def pipeline: Pipeline[Iterator[Token], Option[Program]] = Parser andThen NameAnalysis
 
   val VALID_TEST_FILES =
     "/helloworld.kool" ::
@@ -44,10 +46,6 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     "/testprograms/lab3/valid/VehicleRent.kool" ::
     Nil
 
-  def checkResult(body: (Context, Option[Program]) => Unit) = new Pipeline[Option[Program], Unit] {
-    def run(ctx: Context)(program: Option[Program]) = body(ctx, program)
-  }
-
   def checkSymbolicSymbol[S <: Symbol](symbolic: Symbolic[S]): Unit =
     withClue("Symbol:") { symbolic.symbol should not be None }
 
@@ -70,28 +68,6 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
     case t: StatTree => {}
     case t: TypeTree => {}
   }
-
-  def checkResultForFile(path: String, body: (Context, Option[Program]) => Unit) = {
-    val input = Try(new File(getClass.getResource(path).toURI())) getOrElse fail("File " + path + " not found.")
-    val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult(body)
-    pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(input)))(input)
-  }
-  def checkResultForString(source: String, body: (Context, Option[Program]) => Unit) = {
-    val pipeline = SourceLexer andThen Parser andThen NameAnalysis andThen checkResult(body)
-    pipeline.run(Context(reporter = new Reporter, outDir = None, file = None))(Source fromString source)
-  }
-  def assertFileSucceeds(path: String) = checkResultForFile(path, (ctx, program) => {
-      withClue("Name analysis should succeed for file " + path) {
-        ctx.reporter shouldBe errorless
-        program should not be (None)
-      }
-    })
-  def assertFileFails(path: String) = checkResultForFile(path, (ctx, program) => {
-      withClue("Name analysis should fail for file " + path) {
-        ctx.reporter should not be errorless
-        program should be (None)
-      }
-    })
 
   def checkRefs(tree: Tree): Unit = tree match {
     case id: Identifier => withClue("Identifier:") { id.symbol  should not be None }
