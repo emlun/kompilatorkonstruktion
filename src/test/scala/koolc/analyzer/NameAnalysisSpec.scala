@@ -152,22 +152,19 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
   }
 
   def checkTypes(tree: Tree): Unit = {
-    def checkSymbolType(symbol: Option[Symbol]) = symbol match {
-        case Some(sym) => sym match {
-          case sym: ClassSymbol    => sym.tpe should be (TObject(sym))
-          case sym: MethodSymbol   => sym.tpe should be (TUntyped)
-          case sym: VariableSymbol => sym.tpeTree match {
-            case t: BooleanType  => sym.tpe should be (TBoolean)
-            case t: IntType      => sym.tpe should be (TInt)
-            case t: StringType   => sym.tpe should be (TString)
-            case t: IntArrayType => sym.tpe should be (TArray)
-            case id: Identifier  => id.symbol match {
-              case Some(classSym: ClassSymbol) => sym.tpe should be (TObject(classSym))
-              case _                           => fail("Expected Identifier symbol to be a ClassSymbol.")
-            }
+    def checkSymbolType(symbol: Symbol) = symbol match {
+        case sym: ClassSymbol    => sym.tpe should be (TObject(sym))
+        case sym: MethodSymbol   => sym.tpe should be (TUntyped)
+        case sym: VariableSymbol => sym.tpeTree match {
+          case t: BooleanType  => sym.tpe should be (TBoolean)
+          case t: IntType      => sym.tpe should be (TInt)
+          case t: StringType   => sym.tpe should be (TString)
+          case t: IntArrayType => sym.tpe should be (TArray)
+          case id: Identifier  => id.symbol match {
+            case classSym: ClassSymbol => sym.tpe should be (TObject(classSym))
+            case _                     => fail("Expected Identifier symbol to be a ClassSymbol.")
           }
         }
-        case None => fail("Expected symbol to be set.")
       }
 
     tree match {
@@ -437,7 +434,9 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
         val retExpr: ExprTree = program.get.classes.head.methods.head.retExpr
         retExpr match {
           case MethodCall(_, id, _) => {
-            id.symbol should be (None)
+            if(Try(id.symbol).isSuccess) {
+              fail("Expected method call to not have a symbol attached yet.")
+            }
           }
           case _ => fail("Expected baz return expression to be method call, was: " + retExpr)
         }
@@ -458,9 +457,9 @@ class NameAnalysisSpec extends FunSpec with Matchers with ReporterMatchers with 
 
         val fooClass = program.get.classes.head
         val unusedSymbols: Seq[Symbol] =
-          (fooClass.vars.init map { _.symbol.get }) :::
-          fooClass.methods.head.args.last.symbol.get ::
-          fooClass.methods.head.vars.last.symbol.get ::
+          (fooClass.vars.init map { _.symbol }) :::
+          fooClass.methods.head.args.last.symbol ::
+          fooClass.methods.head.vars.last.symbol ::
           Nil
         unusedSymbols foreach { warningSpy verify (*, _) }
       })
