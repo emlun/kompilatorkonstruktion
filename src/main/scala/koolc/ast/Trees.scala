@@ -7,6 +7,8 @@ Petter Lundahl
 package koolc
 package ast
 
+import scala.util.Try
+
 import utils._
 import analyzer.Symbols._
 import analyzer.Types._
@@ -18,7 +20,7 @@ object Trees {
   def trimLinesFromRight(s: String): String = s.lines map { _.replaceFirst("\\s+$", "") } mkString "\n"
 
   sealed trait SymbolicTree[S <: Symbol] extends Tree with Symbolic[S] {
-    def symbolComment: String = s"#${symbol.id}"
+    def symbolComment: String = "#" + (Try(symbol.id) getOrElse "??")
   }
 
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree
