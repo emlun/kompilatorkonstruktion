@@ -1,41 +1,42 @@
-object ComplexNumbers /* ComplexNumbers#0 */ {
-  def main() : Unit = {
-    println( new ComplexNumber/**/().init/**/ ( 3, 5 ).multiply/**/ ( new ComplexNumber/**/().init/**/ ( 4, 6 ) ).inverse/**/ (  ).print/**/ (  ) );
-  }
+object ComplexNumbers {
+ def main() : Unit = {
+  println( new ComplexNumber().init ( 3, 5 ).multiply ( new ComplexNumber().init ( 4, 6 ) ).inverse (  ).print (  ) );
+ }
 }
 
-class ComplexNumber /* ComplexNumber#3 */ {
-  var re /* re#1 */ /* re#1 */ : Int;
-  var im /* im#2 */ /* im#2 */ : Int;
-  def init /* init#6 */ ( re_ /* re_#4 */ : Int, im_ /* im_#5 */ : Int ) : ComplexNumber/**/ = {
-    re/**/ = re_/**/;
-    im/**/ = im_/**/;
-    return this/**/;
-  }
+class ComplexNumber {
+ var re : Int;
+ var im : Int;
+ def init ( re_ : Int, im_ : Int ) : ComplexNumber = {
+  re = re_;
+  im = im_;
+  return this;
+ }
 
-  def inverse /* inverse#7 */ (  ) : ComplexNumber/**/ = {
-    return new ComplexNumber/**/().init/**/ ( (0 - re/**/), (0 - im/**/) );
-  }
+ def inverse (  ) : ComplexNumber = {
+  return new ComplexNumber().init ( (0 - re), (0 - im) );
+ }
 
-  def add /* add#9 */ ( b /* b#8 */ : ComplexNumber/**/ ) : ComplexNumber/**/ = {
-    return new ComplexNumber/**/().init/**/ ( (re/**/ + b/**/.real/**/ (  )), (im/**/ + b/**/.imaginary/**/ (  )) );
-  }
+ def add ( b : ComplexNumber ) : ComplexNumber = {
+  return new ComplexNumber().init ( (re + b.real (  )), (im + b.imaginary (  )) );
+ }
 
-  def multiply /* multiply#11 */ ( b /* b#10 */ : ComplexNumber/**/ ) : ComplexNumber/**/ = {
-    return new ComplexNumber/**/().init/**/ ( ((re/**/ * b/**/.real/**/ (  )) - (im/**/ * b/**/.imaginary/**/ (  ))), ((im/**/ * b/**/.real/**/ (  )) + (re/**/ * b/**/.imaginary/**/ (  ))) );
-  }
+ def multiply ( b : ComplexNumber ) : ComplexNumber = {
+  return new ComplexNumber().init ( ((re * b.real (  )) - (im * b.imaginary (  ))), ((im * b.real (  )) + (re * b.imaginary (  ))) );
+ }
 
-  def real /* real#12 */ (  ) : Int = {
-    return re/**/;
-  }
+ def real (  ) : Int = {
+  return re;
+ }
 
-  def imaginary /* imaginary#13 */ (  ) : Int = {
-    return im/**/;
-  }
+ def imaginary (  ) : Int = {
+  return im;
+ }
 
-  def print /* print#14 */ (  ) : String = {
-    println( re/**/ );
-    println( im/**/ );
-    return "";
-  }
+ def print (  ) : String = {
+  println( re );
+  println( im );
+  return "";
+ }
 }
+

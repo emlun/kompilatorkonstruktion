@@ -1,43 +1,46 @@
-object HelloWorld /* HelloWorld#0 */ {
-  def main() : Unit = {
-    greeter/**/ = new Greeter/**/();
-    result/**/ = greeter/**/.greet/**/ ( "World" );
-  }
+object HelloWorld {
+ def main() : Unit = {
+  if ( new Greeter().greet ( "World" ) )
+   {
+
+}
+ }
 }
 
-class Named /* Named#2 */ {
-  var name /* name#1 */ /* name#1 */ : String;
-  def setName /* setName#4 */ ( newName /* newName#3 */ : String ) : Bool = {
-    name/**/ = newName/**/;
-    return true;
-  }
+class Named {
+ var name : String;
+ def setName ( newName : String ) : Bool = {
+  name = newName;
+  return true;
+ }
 }
 
-class Greeter /* Greeter#5 */ extends Named/**/ {
-  def greet /* greet#8 */ ( greetee /* greetee#7 */ : String ) : Bool = {
-    var message /* message#6 */ /* message#6 */ : String;
-    message/**/ = (((("Hello, " + greetee/**/) + " from ") + name/**/) + "!");
-    println( message/**/ );
-    return true;
-  }
+class Greeter extends Named {
+ def greet ( greetee : String ) : Bool = {
+  var message : String;
+  message = (((("Hello, " + greetee) + " from ") + name) + "!");
+  println( message );
+  return true;
+ }
 
-  def greetTwo /* greetTwo#11 */ ( greetee1 /* greetee1#9 */ : String, greetee2 /* greetee2#10 */ : String ) : Bool = {
-    return (this/**/.greet/**/ ( greetee1/**/ ) && this/**/.greet/**/ ( greetee2/**/ ));
-  }
+ def greetTwo ( greetee1 : String, greetee2 : String ) : Bool = {
+  return (this.greet ( greetee1 ) && this.greet ( greetee2 ));
+ }
 
-  def greetYears /* greetYears#15 */ ( years /* years#14 */ : Int[ ] ) : Bool = {
-    var i /* i#12 */ /* i#12 */ : Int;
-    var allSucceeded /* allSucceeded#13 */ /* allSucceeded#13 */ : Bool;
-    i/**/ = 0;
-    if ( true )
-      {
+ def greetYears ( years : Int[ ] ) : Bool = {
+  var i : Int;
+  var allSucceeded : Bool;
+  i = 0;
+  if ( true )
+   {
 
-      }
-    while ( (i/**/ < years/**/.length) )
-      {
-        allSucceeded/**/ = (allSucceeded/**/ && this/**/.greet/**/ ( ("Year " + years/**/ [ i/**/ ]) ));
-        i/**/ = (i/**/ + 1);
-      }
-    return allSucceeded/**/;
-  }
 }
+  while ( (i < years.length) )
+{
+   allSucceeded = (allSucceeded && this.greet ( ("Year " + years [ i ]) ));
+   i = (i + 1);
+}
+  return allSucceeded;
+ }
+}
+

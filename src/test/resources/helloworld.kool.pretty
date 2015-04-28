@@ -1,6 +1,6 @@
-object HelloWorld /* HelloWorld#0 */ {
-  def main() : Unit = {
-    println( "Hello, World!" );
-  }
+object HelloWorld {
+ def main() : Unit = {
+  println( "Hello, World!" );
+ }
 }
 

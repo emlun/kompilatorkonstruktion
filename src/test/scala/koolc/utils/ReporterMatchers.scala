@@ -7,7 +7,7 @@ trait ReporterMatchers {
   class ReporterShouldBeErrorlessMatcher extends BeMatcher[Reporter] {
     override def apply(left: Reporter) = {
       val message = left.messages map (_.toString) mkString "\n"
-      MatchResult(!left.hasErrors, message, message)
+      MatchResult(!left.hasErrors, message, "Reporter has no messages.")
     }
   }
 

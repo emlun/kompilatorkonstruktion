@@ -114,6 +114,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
             methodSymbol.classSymbol.decl.methods.find { _.symbol == methodSymbol } map { decl =>
               tcExpr(decl.retExpr)
+              tcTypeTree(decl.retType)
             }
           } getOrElse {
             ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")

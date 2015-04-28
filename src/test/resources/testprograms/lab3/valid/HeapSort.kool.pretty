@@ -1,100 +1,101 @@
-object HeapSort /* HeapSort#0 */ {
-  def main() : Unit = {
-    println( new HS/**/().init/**/ (  ).start/**/ (  ) );
-  }
+object HeapSort {
+ def main() : Unit = {
+  println( new HS().init (  ).start (  ) );
+ }
 }
 
-class HS /* HS#5 */ {
-  var array /* array#1 */ /* array#1 */ : Int[ ];
-  var initialSize /* initialSize#2 */ /* initialSize#2 */ : Int;
-  var size /* size#3 */ /* size#3 */ : Int;
-  var foo /* foo#4 */ /* foo#4 */ : Int;
-  def start /* start#6 */ (  ) : String = {
-    foo/**/ = this/**/.print/**/ (  );
-    foo/**/ = this/**/.createHeap/**/ (  );
-    foo/**/ = this/**/.print/**/ (  );
-    while ( (1 < size/**/) )
-      {
-        size/**/ = (size/**/ - 1);
-        foo/**/ = this/**/.exchange/**/ ( 0, size/**/ );
-        foo/**/ = this/**/.siftDown/**/ ( 0 );
-        foo/**/ = this/**/.print/**/ (  );
-      }
-    return "Sorting using HeapSort algorithm completed";
-  }
-
-  def init /* init#7 */ (  ) : HS/**/ = {
-    size/**/ = 9;
-    initialSize/**/ = 9;
-    array/**/ = new Int [ size/**/ ];
-    array/**/[ 0 ] = 13;
-    array/**/[ 1 ] = 4;
-    array/**/[ 2 ] = 27;
-    array/**/[ 3 ] = 12;
-    array/**/[ 4 ] = 14;
-    array/**/[ 5 ] = 18;
-    array/**/[ 6 ] = 2;
-    array/**/[ 7 ] = 1;
-    array/**/[ 8 ] = 3;
-    return this/**/;
-  }
-
-  def createHeap /* createHeap#9 */ (  ) : Int = {
-    var k /* k#8 */ /* k#8 */ : Int;
-    k/**/ = ((size/**/ / 2) - 1);
-    while ( ((0 - 1) < k/**/) )
-      {
-        foo/**/ = this/**/.siftDown/**/ ( k/**/ );
-        k/**/ = (k/**/ - 1);
-      }
-    return 0;
-  }
-
-  def siftDown /* siftDown#13 */ ( kk /* kk#12 */ : Int ) : Int = {
-    var k /* k#10 */ /* k#10 */ : Int;
-    var desc /* desc#11 */ /* desc#11 */ : Int;
-    k/**/ = kk/**/;
-    desc/**/ = ((2 * k/**/) + 1);
-    while ( (desc/**/ < size/**/) )
-      {
-        if ( ((desc/**/ + 1) < size/**/) )
-          if ( (array/**/ [ desc/**/ ] < array/**/ [ (desc/**/ + 1) ]) )
-            desc/**/ = (desc/**/ + 1);
-        if ( ((array/**/ [ desc/**/ ] - 1) < array/**/ [ k/**/ ]) )
-          {
-            desc/**/ = size/**/;
-          }
-        else
-          {
-            foo/**/ = this/**/.exchange/**/ ( k/**/, desc/**/ );
-            k/**/ = desc/**/;
-            desc/**/ = ((2 * k/**/) + 1);
-          }
-      }
-    return 0;
-  }
-
-  def exchange /* exchange#17 */ ( i /* i#15 */ : Int, j /* j#16 */ : Int ) : Int = {
-    var temp /* temp#14 */ /* temp#14 */ : Int;
-    temp/**/ = array/**/ [ i/**/ ];
-    array/**/[ i/**/ ] = array/**/ [ j/**/ ];
-    array/**/[ j/**/ ] = temp/**/;
-    return 0;
-  }
-
-  def print /* print#20 */ (  ) : Int = {
-    var j /* j#18 */ /* j#18 */ : Int;
-    var str /* str#19 */ /* str#19 */ : String;
-    j/**/ = 0;
-    str/**/ = "";
-    while ( (j/**/ < initialSize/**/) )
-      {
-        str/**/ = (str/**/ + array/**/ [ j/**/ ]);
-        j/**/ = (j/**/ + 1);
-        if ( (j/**/ < initialSize/**/) )
-          str/**/ = (str/**/ + "-");
-      }
-    println( str/**/ );
-    return 0;
-  }
+class HS {
+ var array : Int[ ];
+ var initialSize : Int;
+ var size : Int;
+ var foo : Int;
+ def start (  ) : String = {
+  foo = this.print (  );
+  foo = this.createHeap (  );
+  foo = this.print (  );
+  while ( (1 < size) )
+{
+   size = (size - 1);
+   foo = this.exchange ( 0, size );
+   foo = this.siftDown ( 0 );
+   foo = this.print (  );
 }
+  return "Sorting using HeapSort algorithm completed";
+ }
+
+ def init (  ) : HS = {
+  size = 9;
+  initialSize = 9;
+  array = new Int [ size ];
+  array[ 0 ] = 13;
+  array[ 1 ] = 4;
+  array[ 2 ] = 27;
+  array[ 3 ] = 12;
+  array[ 4 ] = 14;
+  array[ 5 ] = 18;
+  array[ 6 ] = 2;
+  array[ 7 ] = 1;
+  array[ 8 ] = 3;
+  return this;
+ }
+
+ def createHeap (  ) : Int = {
+  var k : Int;
+  k = ((size / 2) - 1);
+  while ( ((0 - 1) < k) )
+{
+   foo = this.siftDown ( k );
+   k = (k - 1);
+}
+  return 0;
+ }
+
+ def siftDown ( kk : Int ) : Int = {
+  var k : Int;
+  var desc : Int;
+  k = kk;
+  desc = ((2 * k) + 1);
+  while ( (desc < size) )
+{
+   if ( ((desc + 1) < size) )
+    if ( (array [ desc ] < array [ (desc + 1) ]) )
+     desc = (desc + 1);
+   if ( ((array [ desc ] - 1) < array [ k ]) )
+    {
+     desc = size;
+}   
+else
+    {
+     foo = this.exchange ( k, desc );
+     k = desc;
+     desc = ((2 * k) + 1);
+}
+}
+  return 0;
+ }
+
+ def exchange ( i : Int, j : Int ) : Int = {
+  var temp : Int;
+  temp = array [ i ];
+  array[ i ] = array [ j ];
+  array[ j ] = temp;
+  return 0;
+ }
+
+ def print (  ) : Int = {
+  var j : Int;
+  var str : String;
+  j = 0;
+  str = "";
+  while ( (j < initialSize) )
+{
+   str = (str + array [ j ]);
+   j = (j + 1);
+   if ( (j < initialSize) )
+    str = (str + "-");
+}
+  println( str );
+  return 0;
+ }
+}
+

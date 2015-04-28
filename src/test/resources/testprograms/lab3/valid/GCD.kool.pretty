@@ -1,55 +1,56 @@
-object MainObject /* MainObject#0 */ {
-  def main() : Unit = {
-    {
-      println( new GreatestCommonDivisor/**/().init/**/ ( 28, 7856 ) );
-      println( new GreatestCommonDivisor/**/().init/**/ ( 344, 873 ) );
-      println( new GreatestCommonDivisor/**/().init/**/ ( 456, 0 ) );
-      println( new GreatestCommonDivisor/**/().init/**/ ( 33, 87 ) );
-      println( new GreatestCommonDivisor/**/().init/**/ ( 47, 6853 ) );
-    }
-  }
+object MainObject {
+ def main() : Unit = {
+  {
+   println( new GreatestCommonDivisor().init ( 28, 7856 ) );
+   println( new GreatestCommonDivisor().init ( 344, 873 ) );
+   println( new GreatestCommonDivisor().init ( 456, 0 ) );
+   println( new GreatestCommonDivisor().init ( 33, 87 ) );
+   println( new GreatestCommonDivisor().init ( 47, 6853 ) );
+}
+ }
 }
 
-class GreatestCommonDivisor /* GreatestCommonDivisor#6 */ {
-  var initA /* initA#1 */ /* initA#1 */ : Int;
-  var initB /* initB#2 */ /* initB#2 */ : Int;
-  var n /* n#3 */ /* n#3 */ : Int;
-  var t /* t#4 */ /* t#4 */ : Int;
-  var r /* r#5 */ /* r#5 */ : Int;
-  def init /* init#9 */ ( first /* first#7 */ : Int, second /* second#8 */ : Int ) : Int = {
-    initA/**/ = first/**/;
-    initB/**/ = second/**/;
-    return this/**/.findGcd/**/ (  );
-  }
+class GreatestCommonDivisor {
+ var initA : Int;
+ var initB : Int;
+ var n : Int;
+ var t : Int;
+ var r : Int;
+ def init ( first : Int, second : Int ) : Int = {
+  initA = first;
+  initB = second;
+  return this.findGcd (  );
+ }
 
-  def findGcd /* findGcd#10 */ (  ) : Int = {
-    if ( (initB/**/ < initA/**/) )
-      {
-        n/**/ = this/**/.gcd/**/ ( initA/**/, initB/**/ );
-      }
-    else
-      {
-        n/**/ = this/**/.gcd/**/ ( initB/**/, initA/**/ );
-      }
-    return n/**/;
-  }
-
-  def gcd /* gcd#13 */ ( a /* a#11 */ : Int, b /* b#12 */ : Int ) : Int = {
-    while ( !(b/**/ == 0) )
-      {
-        t/**/ = b/**/;
-        b/**/ = this/**/.modulo/**/ ( a/**/, b/**/ );
-        a/**/ = t/**/;
-      }
-    return a/**/;
-  }
-
-  def modulo /* modulo#16 */ ( number /* number#14 */ : Int, mod /* mod#15 */ : Int ) : Int = {
-    r/**/ = number/**/;
-    while ( ((mod/**/ < r/**/) || (mod/**/ == r/**/)) )
-      {
-        r/**/ = (r/**/ - mod/**/);
-      }
-    return r/**/;
-  }
+ def findGcd (  ) : Int = {
+  if ( (initB < initA) )
+   {
+    n = this.gcd ( initA, initB );
+}  
+else
+   {
+    n = this.gcd ( initB, initA );
 }
+  return n;
+ }
+
+ def gcd ( a : Int, b : Int ) : Int = {
+  while ( !(b == 0) )
+{
+   t = b;
+   b = this.modulo ( a, b );
+   a = t;
+}
+  return a;
+ }
+
+ def modulo ( number : Int, mod : Int ) : Int = {
+  r = number;
+  while ( ((mod < r) || (mod == r)) )
+{
+   r = (r - mod);
+}
+  return r;
+ }
+}
+

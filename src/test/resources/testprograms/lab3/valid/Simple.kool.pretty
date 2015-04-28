@@ -1,12 +1,13 @@
-object Factorial /* Factorial#0 */ {
-  def main() : Unit = {
-    println( (("f" + "oo") == ("fo" + "o")) );
-    println( (new Fact/**/() == new Fact/**/()) );
-  }
+object Factorial {
+ def main() : Unit = {
+  println( (("f" + "oo") == ("fo" + "o")) );
+  println( (new Fact() == new Fact()) );
+ }
 }
 
-class Fact /* Fact#1 */ {
-  def computeFactorial /* computeFactorial#3 */ ( num /* num#2 */ : Int ) : Int = {
-    return num/**/;
-  }
+class Fact {
+ def computeFactorial ( num : Int ) : Int = {
+  return num;
+ }
 }
+

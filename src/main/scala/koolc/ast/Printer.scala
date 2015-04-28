@@ -105,8 +105,8 @@ object Printer extends (Tree => String) {
       case New(tpe)          => "new " + print(tpe,ident+1) + "()"
       case Not(expr)         => "!" + print(expr,ident+1)
 
-      case id:This       => "this" + id.symbolComment
-      case id:Identifier => id.value + (Try(id.symbolComment) getOrElse "#??")
+      case id:This       => "this"
+      case id:Identifier => id.value
 
       case _ => " >>> " + t.getClass.getSimpleName + "<<<"
     }
