@@ -24,7 +24,12 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
 
   describe("The type checker") {
     describe("fails programs where") {
-      it("test expressions in if statements are not Boolean.") { cancel("Test not implemented.") }
+      it("test expressions in if statements are not Boolean.") {
+        assertFileFails("if-test-int.kool")
+        assertFileFails("if-test-string.kool")
+        assertFileFails("if-test-array.kool")
+        assertFileFails("if-test-class.kool")
+      }
       it("test expressions in while statements are not Boolean.") { cancel("Test not implemented.") }
       it("either operand of + is not a String or Int.") { cancel("Test not implemented.") }
       it("the operands of == are of different types.") { cancel("Test not implemented.") }
