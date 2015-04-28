@@ -91,7 +91,9 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("call-method-on-int.kool")
         assertFileFails("call-method-on-string.kool")
       }
-      it("undeclared methods are called.") { cancel("Test not implemented.") }
+      it("undeclared methods are called.") {
+        assertFileFails("call-undeclared-method.kool")
+      }
       it("methods are called with the wrong number of arguments.") { cancel("Test not implemented.") }
       it("methods are called with arguments that are not subtypes of the declared argument types.") { cancel("Test not implemented.") }
       it("assignments are made with values that are not subtypes of the declared variable type.") { cancel("Test not implemented.") }
