@@ -70,7 +70,7 @@ object Main {
         println()
       }
     } else if(printAST) {
-      val pipeline = Lexer andThen Parser andThen NameAnalysis
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
 
       if(printSYMID){
         println(
@@ -95,7 +95,7 @@ object Main {
 
       print(
         pipeline.run(ctx)(ctx.file.get)
-          map Printer getOrElse "Compilation failed.\n"
+          map Printer(printSYMID) getOrElse "Compilation failed.\n"
       )
     }
 
