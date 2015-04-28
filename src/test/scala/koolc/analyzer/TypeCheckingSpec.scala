@@ -144,7 +144,12 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("assign-string-class.kool")
         assertFileFails("assign-string-int.kool")
       }
-      it("array assignment indices are not Ints.") { cancel("Test not implemented.") }
+      it("array assignment indices are not Ints.") {
+        assertFileFails("arrayassign-index-array.kool")
+        assertFileFails("arrayassign-index-bool.kool")
+        assertFileFails("arrayassign-index-class.kool")
+        assertFileFails("arrayassign-index-string.kool")
+      }
       it("array assignment is done with a value that is not an Int.") { cancel("Test not implemented.") }
       it("a returned expression is not a subclass of the declared return type.") { cancel("Test not implemented.") }
       it("the argument to println is not a String, Int or Boolean.") { cancel("Test not implemented.") }
@@ -185,6 +190,9 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileSucceeds("assign-class1-subclass1.kool")
         assertFileSucceeds("assign-int-int.kool")
         assertFileSucceeds("assign-string-string.kool")
+      }
+      it("array assignment with int index.") {
+        assertFileSucceeds("arrayassign-index-int.kool")
       }
       it("nontrivial expressions as method call objects.") {
         assertFileSucceeds("call-nontrivial-lhs.kool")
