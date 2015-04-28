@@ -179,7 +179,10 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("return-string-from-class.kool")
         assertFileFails("return-string-from-int.kool")
       }
-      it("the argument to println is not a String, Int or Boolean.") { cancel("Test not implemented.") }
+      it("the argument to println is not a String, Int or Boolean.") {
+        assertFileFails("println-array.kool")
+        assertFileFails("println-class.kool")
+      }
     }
     describe("accepts programs with") {
       it("Boolean test expressions in if statements.") {
@@ -188,7 +191,11 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
       it("Boolean test expressions in while statements.") {
         assertFileSucceeds("while-test-bool.kool")
       }
-      it("arguments to println that are Strings, Ints or Booleans.") { cancel("Test not implemented.") }
+      it("arguments to println that are Strings, Ints or Booleans.") {
+        assertFileSucceeds("println-bool.kool")
+        assertFileSucceeds("println-int.kool")
+        assertFileSucceeds("println-string.kool")
+      }
       it("+ expressions where both operands are either Int or String.") {
         assertFileSucceeds("plus-int-int.kool")
         assertFileSucceeds("plus-int-string.kool")
