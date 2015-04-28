@@ -72,7 +72,9 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
       it("the argument to println is not a String, Int or Boolean.") { cancel("Test not implemented.") }
     }
     describe("accepts programs with") {
-      it("Boolean test expressions in if statements.") { cancel("Test not implemented.") }
+      it("Boolean test expressions in if statements.") {
+        assertFileSucceeds("if-test-bool.kool")
+      }
       it("Boolean test expressions in while statements.") { cancel("Test not implemented.") }
       it("arguments to println that are Strings, Ints or Booleans.") { cancel("Test not implemented.") }
       it("+ expressions where both operands are either Int or String.") {
