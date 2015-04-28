@@ -30,7 +30,12 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("if-test-array.kool")
         assertFileFails("if-test-class.kool")
       }
-      it("test expressions in while statements are not Boolean.") { cancel("Test not implemented.") }
+      it("test expressions in while statements are not Boolean.") {
+        assertFileFails("while-test-int.kool")
+        assertFileFails("while-test-string.kool")
+        assertFileFails("while-test-array.kool")
+        assertFileFails("while-test-class.kool")
+      }
       it("either operand of + is not a String or Int.") { cancel("Test not implemented.") }
       it("the operands of == are of different types.") { cancel("Test not implemented.") }
       it("the LHS operand of a method call expression is not of a class type.") { cancel("Test not implemented.") }
