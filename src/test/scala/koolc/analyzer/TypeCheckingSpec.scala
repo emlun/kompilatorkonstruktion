@@ -156,7 +156,29 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("arrayassign-value-class.kool")
         assertFileFails("arrayassign-value-string.kool")
       }
-      it("a returned expression is not a subclass of the declared return type.") { cancel("Test not implemented.") }
+      it("a returned expression is not a subclass of the declared return type.") {
+        assertFileFails("return-array-from-bool.kool")
+        assertFileFails("return-array-from-class.kool")
+        assertFileFails("return-array-from-int.kool")
+        assertFileFails("return-array-from-string.kool")
+        assertFileFails("return-bool-from-array.kool")
+        assertFileFails("return-bool-from-class.kool")
+        assertFileFails("return-bool-from-int.kool")
+        assertFileFails("return-bool-from-string.kool")
+        assertFileFails("return-class-from-array.kool")
+        assertFileFails("return-class-from-bool.kool")
+        assertFileFails("return-class-from-int.kool")
+        assertFileFails("return-class-from-string.kool")
+        assertFileFails("return-class2-from-class1.kool")
+        assertFileFails("return-int-from-array.kool")
+        assertFileFails("return-int-from-bool.kool")
+        assertFileFails("return-int-from-class.kool")
+        assertFileFails("return-int-from-string.kool")
+        assertFileFails("return-string-from-array.kool")
+        assertFileFails("return-string-from-bool.kool")
+        assertFileFails("return-string-from-class.kool")
+        assertFileFails("return-string-from-int.kool")
+      }
       it("the argument to println is not a String, Int or Boolean.") { cancel("Test not implemented.") }
     }
     describe("accepts programs with") {
@@ -204,6 +226,14 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
       }
       it("nontrivial expressions as method call objects.") {
         assertFileSucceeds("call-nontrivial-lhs.kool")
+      }
+      it("return expression that is subtype of the declared return type.") {
+        assertFileSucceeds("return-array-from-array.kool")
+        assertFileSucceeds("return-bool-from-bool.kool")
+        assertFileSucceeds("return-class1-from-class1.kool")
+        assertFileSucceeds("return-int-from-int.kool")
+        assertFileSucceeds("return-string-from-string.kool")
+        assertFileSucceeds("return-subsubclass1-from-class1.kool")
       }
     }
     it("does not stop at the first type error.") { cancel("Test not implemented.") }
