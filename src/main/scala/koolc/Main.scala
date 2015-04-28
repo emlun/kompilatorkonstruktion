@@ -11,16 +11,18 @@ import java.io.File
 
 import lexer._
 import ast._
+import analyzer._
 
 object Main {
 
-  private def processOptions(args: Array[String]): (Context, Boolean, Boolean) = {
+  private def processOptions(args: Array[String]): (Context, Boolean, Boolean, Boolean) = {
 
     val reporter = new Reporter()
     var outDir: Option[File] = None
     var files: List[File] = Nil
     var printTokens = false
     var printAST = false
+    var printSYMID = false
 
     def processOption(args: List[String]): Unit = args match {
       case "-d" :: out :: args =>
@@ -33,6 +35,10 @@ object Main {
 
       case "--ast" :: args =>
         printAST = true
+        processOption(args)
+
+      case "--symid" :: args =>
+        printSYMID = true
         processOption(args)
 
       case f ::args =>
@@ -48,30 +54,37 @@ object Main {
       reporter.fatal("Exactly one file expected, " + files.size + " file(s) given.")
     }
 
-    (Context(reporter = reporter, file = Some(files.head), outDir = outDir), printTokens, printAST)
+    (Context(reporter = reporter, file = Some(files.head), outDir = outDir), printTokens, printAST, printSYMID)
   }
 
   def main(args: Array[String]) {
-    val (ctx, printTokens, printAST) = processOptions(args)
+    val (ctx, printTokens, printAST, printSYMID) = processOptions(args)
 
     if(printTokens) {
       for(t <- (Lexer andThen PrintTokens).run(ctx)(ctx.file.get)) {
         println()
       }
     } else if(printAST) {
-      val pipeline = Lexer andThen Parser
+      val pipeline = Lexer andThen Parser andThen NameAnalysis
 
-      println(
-        pipeline.run(ctx)(ctx.file.get)
-          map PrintAST getOrElse "Failed to parse input."
-      )
+      if(printSYMID){
+        println(
+          pipeline.run(ctx)(ctx.file.get)
+            map PrintSYMID getOrElse "Invalid input program."
+        )
+      } else {
+        println(
+          pipeline.run(ctx)(ctx.file.get)
+            map PrintAST getOrElse "Failed to parse input."
+        )
+      }
 
     } else {
-      val pipeline = Lexer andThen Parser
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
 
       print(
         pipeline.run(ctx)(ctx.file.get)
-          map Printer getOrElse "Failed to parse input.\n"
+          map Printer getOrElse "Compilation failed.\n"
       )
     }
 

@@ -1,0 +1,7 @@
+object Main { def main(): Unit = {} }
+class Foo {
+  var a: Bool;
+  def bar(a: Bool): Bool = {
+    return true;
+  }
+}

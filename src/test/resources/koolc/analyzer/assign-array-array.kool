@@ -1,0 +1,13 @@
+object Main {
+  def main(): Unit = {
+    if(new RealMain().realMain()) {}
+  }
+}
+
+class RealMain {
+  def realMain(): Bool = {
+    var a: Int[];
+    a = new Int[1];
+    return false;
+  }
+}
