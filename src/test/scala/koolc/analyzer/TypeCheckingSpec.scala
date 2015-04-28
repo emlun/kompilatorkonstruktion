@@ -75,7 +75,12 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
       it("Boolean test expressions in if statements.") { cancel("Test not implemented.") }
       it("Boolean test expressions in while statements.") { cancel("Test not implemented.") }
       it("arguments to println that are Strings, Ints or Booleans.") { cancel("Test not implemented.") }
-      it("+ expressions where both operands are either Int or String.") { cancel("Test not implemented.") }
+      it("+ expressions where both operands are either Int or String.") {
+        assertFileSucceeds("plus-int-int.kool")
+        assertFileSucceeds("plus-int-string.kool")
+        assertFileSucceeds("plus-string-int.kool")
+        assertFileSucceeds("plus-string-string.kool")
+      }
       it("nontrivial expressions as method call objects.") { cancel("Test not implemented.") }
     }
     it("does not stop at the first type error.") { cancel("Test not implemented.") }
