@@ -18,7 +18,6 @@ class PrettyPrinterSpec extends FunSpec with Matchers {
     "/greeter.kool" ::
     "/noop.kool" ::
     "/plundahl.kool" ::
-    "/printed.kool" ::
     "/testprograms/lab3/valid/99bottles.kool" ::
     "/testprograms/lab3/valid/BinarySearch.kool" ::
     "/testprograms/lab3/valid/Calendar.kool" ::

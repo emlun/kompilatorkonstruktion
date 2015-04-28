@@ -1,0 +1,16 @@
+object Main {
+  def main(): Unit = {
+    if(new RealMain().realMain()) {}
+  }
+}
+
+class RealMain {
+  def realMain(): Bool = {
+    var a: RealMain;
+    a = this.foo();
+    return false;
+  }
+  def foo(): RealMain = {
+    return "a";
+  }
+}

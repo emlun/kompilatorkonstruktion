@@ -1,0 +1,7 @@
+object Main {
+  def main(): Unit = {
+    if(new Foo() == new Int[1]) {}
+  }
+}
+
+class Foo {}

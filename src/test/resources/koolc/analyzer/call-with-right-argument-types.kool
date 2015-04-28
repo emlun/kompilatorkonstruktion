@@ -1,0 +1,11 @@
+object Main {
+  def main(): Unit = {
+    if(new Foo().bar(true, 1, "a", new Int[1], new Foo())) {}
+  }
+}
+
+class Foo {
+  def bar(a: Bool, b: Int, c: String, d: Int[], e: Foo): Bool = {
+    return true;
+  }
+}

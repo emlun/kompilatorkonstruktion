@@ -1,0 +1,15 @@
+object Main { def main(): Unit = {} }
+class Foo {
+  var a: Bool;
+  var b: Bool;
+  var c: Bool;
+  var f: Bool;
+  def bar(b: Bool, d: Bool): Bool = {
+    var c: Bool;
+    var e: Bool;
+    b = false;
+    c = false;
+    f = false;
+    return true;
+  }
+}

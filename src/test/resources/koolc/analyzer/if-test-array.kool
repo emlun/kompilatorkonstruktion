@@ -1,0 +1,5 @@
+object Main {
+  def main(): Unit = {
+    if(new Int[1]) {}
+  }
+}
