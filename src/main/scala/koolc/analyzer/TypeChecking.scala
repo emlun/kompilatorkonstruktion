@@ -31,7 +31,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
     }
 
     def tcTypeTree (tTree: TypeTree): Type = {
-      tTree match {
+      val tpe = tTree match {
         case IntArrayType() => TArray
         case IntType() => TInt
         case BooleanType() => TBoolean
@@ -39,8 +39,9 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         case id@Identifier(value) => {
           id.symbol.tpe
         }
-
       }
+      tTree.setType(tpe)
+      tpe
     }
 
     def tcExpr(expr: ExprTree, expected: Type*): Type = {
