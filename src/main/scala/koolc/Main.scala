@@ -15,12 +15,13 @@ import analyzer._
 
 object Main {
 
-  private def processOptions(args: Array[String]): (Context, Boolean, Boolean, Boolean) = {
+  private def processOptions(args: Array[String]): (Context, Boolean, Boolean, Boolean, Boolean) = {
 
     val reporter = new Reporter()
     var outDir: Option[File] = None
     var files: List[File] = Nil
     var printTokens = false
+    var printPretty = false
     var printAST = false
     var printSYMID = false
 
@@ -31,6 +32,10 @@ object Main {
 
       case "--tokens" :: args =>
         printTokens = true
+        processOption(args)
+
+      case "--format" :: args =>
+        printPretty = true
         processOption(args)
 
       case "--ast" :: args =>
@@ -54,11 +59,11 @@ object Main {
       reporter.fatal("Exactly one file expected, " + files.size + " file(s) given.")
     }
 
-    (Context(reporter = reporter, file = Some(files.head), outDir = outDir), printTokens, printAST, printSYMID)
+    (Context(reporter = reporter, file = Some(files.head), outDir = outDir), printTokens, printPretty, printAST, printSYMID)
   }
 
   def main(args: Array[String]) {
-    val (ctx, printTokens, printAST, printSYMID) = processOptions(args)
+    val (ctx, printTokens, printPretty, printAST, printSYMID) = processOptions(args)
 
     if(printTokens) {
       for(t <- (Lexer andThen PrintTokens).run(ctx)(ctx.file.get)) {
@@ -78,7 +83,13 @@ object Main {
             map PrintAST getOrElse "Failed to parse input."
         )
       }
+    } else if(printPretty) {
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
 
+      print(
+        pipeline.run(ctx)(ctx.file.get)
+          map Printer(printSYMID) getOrElse "Compilation failed.\n"
+      )
     } else {
       val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
 
