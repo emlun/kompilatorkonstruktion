@@ -70,7 +70,7 @@ object Main {
       if(printSYMID){
         println(
           pipeline.run(ctx)(ctx.file.get)
-            map PrintSYMID getOrElse "Failed to parse input."
+            map PrintSYMID getOrElse "Invalid input program."
         )
       }
       else{
@@ -86,7 +86,7 @@ object Main {
 
       print(
         pipeline.run(ctx)(ctx.file.get)
-          map Printer getOrElse "Failed to parse input.\n"
+          map Printer getOrElse "Compilation failed.\n"
       )
     }
 
