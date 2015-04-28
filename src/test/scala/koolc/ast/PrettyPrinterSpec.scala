@@ -40,7 +40,7 @@ class PrettyPrinterSpec extends FunSpec with Matchers {
     Nil
 
   private object PrinterPipeline extends Pipeline[Option[Tree], String] {
-    def run(ctx: Context)(tree: Option[Tree]): String = tree map Printer getOrElse "<empty program>"
+    def run(ctx: Context)(tree: Option[Tree]): String = tree map Printer() getOrElse "<empty program>"
   }
 
   describe("The pretty printer") {

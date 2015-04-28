@@ -7,17 +7,16 @@ Petter Lundahl
 package koolc
 package ast
 
-import scala.util.Try
-
 import Trees._
+import analyzer.Symbols._
 
-object Printer extends (Tree => String) {
-  def apply(t: Tree): String = print(t,0)
+object Printer extends (Boolean => (Tree => String)) {
+  def apply(showSymbols: Boolean = false): (Tree => String) = printTree(showSymbols)
 
   def indent(ident: Int): String = " " * ident
 
-  def print(t: Tree, ident: Int): String ={
-    t match {
+  def printTree(showSymbols: Boolean): (Tree => String) = {
+    def print(t: Tree, ident: Int): String = t match {
       case Program(t1,t2) => {
         var tmp = ""
         t2.foreach {tmp += print(_,ident)}
@@ -105,8 +104,9 @@ object Printer extends (Tree => String) {
       case New(tpe)          => "new " + print(tpe,ident+1) + "()"
       case Not(expr)         => "!" + print(expr,ident+1)
 
-      case id:This       => "this"
-      case id:Identifier => id.value
+      case t: This              => "this" + (if(showSymbols) t.symbolComment else "")
+      case id@Identifier(value) => value + (if(showSymbols) id.symbolComment else "")
     }
+    print(_, 0)
   }
 }

@@ -95,7 +95,7 @@ object Main {
 
       print(
         pipeline.run(ctx)(ctx.file.get)
-          map Printer getOrElse "Compilation failed.\n"
+          map Printer(printSYMID) getOrElse "Compilation failed.\n"
       )
     }
 
