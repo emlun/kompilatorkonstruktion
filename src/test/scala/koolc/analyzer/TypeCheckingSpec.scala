@@ -60,7 +60,31 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("plus-string-bool.kool")
         assertFileFails("plus-string-class.kool")
       }
-      it("the operands of == are of different types.") { cancel("Test not implemented.") }
+      it("the operands of == are of different primitive types.") {
+        assertFileFails("equals-array-bool.kool")
+        assertFileFails("equals-array-int.kool")
+        assertFileFails("equals-array-string.kool")
+        assertFileFails("equals-bool-array.kool")
+        assertFileFails("equals-bool-int.kool")
+        assertFileFails("equals-bool-string.kool")
+        assertFileFails("equals-int-array.kool")
+        assertFileFails("equals-int-bool.kool")
+        assertFileFails("equals-int-string.kool")
+        assertFileFails("equals-string-array.kool")
+        assertFileFails("equals-string-bool.kool")
+        assertFileFails("equals-string-int.kool")
+      }
+      it("exactly one operand of == is of primitive type.") {
+        assertFileFails("equals-array-class.kool")
+        assertFileFails("equals-bool-class.kool")
+        assertFileFails("equals-int-class.kool")
+        assertFileFails("equals-string-class.kool")
+        assertFileFails("equals-class-array.kool")
+        assertFileFails("equals-class-bool.kool")
+        assertFileFails("equals-class-int.kool")
+        assertFileFails("equals-class-string.kool")
+      }
+
       it("the LHS operand of a method call expression is not of a class type.") { cancel("Test not implemented.") }
       it("undeclared methods are called.") { cancel("Test not implemented.") }
       it("methods are called with the wrong number of arguments.") { cancel("Test not implemented.") }
@@ -84,6 +108,11 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileSucceeds("plus-int-string.kool")
         assertFileSucceeds("plus-string-int.kool")
         assertFileSucceeds("plus-string-string.kool")
+      }
+      it("both operands of == are of class types.") {
+        assertFileSucceeds("equals-class1-class2.kool")
+        assertFileSucceeds("equals-class1-subclass1.kool")
+        assertFileSucceeds("equals-subclass1-class1.kool")
       }
       it("nontrivial expressions as method call objects.") { cancel("Test not implemented.") }
     }
