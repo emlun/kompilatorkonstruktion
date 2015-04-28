@@ -20,7 +20,6 @@ class ParserSpec extends FunSpec with Matchers with ReporterMatchers {
     "/greeter.kool" ::
     "/noop.kool" ::
     "/plundahl.kool" ::
-    "/printed.kool" ::
     "/testprograms/lab3/valid/99bottles.kool" ::
     "/testprograms/lab3/valid/BinarySearch.kool" ::
     "/testprograms/lab3/valid/Calendar.kool" ::
@@ -346,86 +345,6 @@ class ParserSpec extends FunSpec with Matchers with ReporterMatchers {
             ) ::
             Nil
         ))
-      })
-      pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(file)))(file)
-    }
-
-    it("parses a one-of-everything program correctly.") {
-      val file = new File(getClass.getResource("/plundahl.kool").toURI())
-
-      val pipeline = Lexer andThen Parser andThen checkResult((ctx, program) => {
-        ctx.reporter shouldBe errorless
-        program should be (Some(Program(
-          main = MainObject(Identifier("biggerTest"),
-            Assign(Identifier("aaa"), IntLit(1)) ::
-            Assign(Identifier("bbb"), Plus(IntLit(1), IntLit(1))) ::
-            Assign(Identifier("ccc"), Times(Identifier("aaa"), Identifier("bbb"))) ::
-            Assign(Identifier("ddd"), NewIntArray(IntLit(10))) ::
-            Assign(Identifier("eee"), ArrayLength(Identifier("ddd"))) ::
-            If(Equals(Identifier("aaa"), Identifier("bbb")),
-              While(LessThan(Identifier("aaa"),
-                Identifier("ccc")), Assign(Identifier("aaa"), Plus(Identifier("aaa"), IntLit(1)))
-              ),
-              Some(Block(
-                Assign(Identifier("aaa"), Plus(Identifier("aaa"), IntLit(2))) ::
-                Println(Identifier("aaa")) ::
-                Nil
-              ))
-            ) ::
-            Nil
-          ),
-          classes =
-            ClassDecl(
-              id = Identifier("firstClass"),
-              parent = None,
-              vars =
-                VarDecl(IntArrayType(), Identifier("a1")) ::
-                VarDecl(BooleanType(), Identifier("a2")) ::
-                VarDecl(IntType(), Identifier("a3")) ::
-                Nil,
-              methods =
-                MethodDecl(
-                  retType = IntType(),
-                  id = Identifier("firstMethod"),
-                  args = Formal(IntArrayType(), Identifier("input1")) ::
-                    Formal(IntType(), Identifier("input2")) ::
-                    Nil,
-                  vars = VarDecl(StringType(), Identifier("a4")) ::
-                    VarDecl(Identifier("a2"), Identifier("a5")) ::
-                    Nil,
-                  stats = Println(ArrayRead(Identifier("input1"), Identifier("input2"))) :: Nil,
-                  retExpr = ArrayRead(Identifier("input1"), Identifier("input2"))
-                ) ::
-                Nil
-            ) ::
-            ClassDecl(
-              id = Identifier("secondClass"),
-              parent = Some(Identifier("firstClass")),
-              vars = Nil,
-              methods =
-                MethodDecl(
-                  retType = BooleanType(),
-                  id = Identifier("secondMethod"),
-                  args = Nil,
-                  vars = Nil,
-                  stats = Println(This()) ::
-                    Assign(Identifier("a1"), Minus(Minus(Minus(Minus(Minus(Minus(Minus(Minus(
-                      IntLit(1), IntLit(2)), IntLit(3)), IntLit(4)), IntLit(5)),
-                      IntLit(6)), IntLit(7)), IntLit(8)), IntLit(9))
-                    ) ::
-                    Block(Assign(Identifier("a"), IntLit(1)) ::
-                      Block(Assign(Identifier("b"), IntLit(2)) ::
-                        Block(Assign(Identifier("c"), IntLit(3)) ::
-                          Nil) ::
-                      Nil) ::
-                    Nil) ::
-                    Nil,
-                  retExpr = False()
-                ) ::
-                Nil
-            ) ::
-            Nil
-        )))
       })
       pipeline.run(Context(reporter = new Reporter, outDir = None, file = Some(file)))(file)
     }

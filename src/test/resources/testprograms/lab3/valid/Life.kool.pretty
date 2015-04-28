@@ -1,229 +1,230 @@
-object Life /* Life#0 */ {
-  def main() : Unit = {
-    println( new Game/**/().init/**/ (  ).run/**/ ( 10 ) );
-  }
+object Life {
+ def main() : Unit = {
+  println( new Game().init (  ).run ( 10 ) );
+ }
 }
 
-class Matrix /* Matrix#3 */ {
-  var elements /* elements#1 */ /* elements#1 */ : Int[ ];
-  var cols /* cols#2 */ /* cols#2 */ : Int;
-  def init /* init#6 */ ( n /* n#4 */ : Int, m /* m#5 */ : Int ) : Matrix/**/ = {
-    cols/**/ = m/**/;
-    elements/**/ = new Int [ (n/**/ * m/**/) ];
-    return this/**/;
-  }
+class Matrix {
+ var elements : Int[ ];
+ var cols : Int;
+ def init ( n : Int, m : Int ) : Matrix = {
+  cols = m;
+  elements = new Int [ (n * m) ];
+  return this;
+ }
 
-  def unfold /* unfold#9 */ ( i /* i#7 */ : Int, j /* j#8 */ : Int ) : Int = {
-    return ((cols/**/ * (i/**/ - 1)) + (j/**/ - 1));
-  }
+ def unfold ( i : Int, j : Int ) : Int = {
+  return ((cols * (i - 1)) + (j - 1));
+ }
 
-  def index /* index#12 */ ( i /* i#10 */ : Int, j /* j#11 */ : Int ) : Int = {
-    return elements/**/ [ this/**/.unfold/**/ ( i/**/, j/**/ ) ];
-  }
+ def index ( i : Int, j : Int ) : Int = {
+  return elements [ this.unfold ( i, j ) ];
+ }
 
-  def assign /* assign#16 */ ( i /* i#13 */ : Int, j /* j#14 */ : Int, x /* x#15 */ : Int ) : Int = {
-    elements/**/[ this/**/.unfold/**/ ( i/**/, j/**/ ) ] = x/**/;
-    return x/**/;
-  }
+ def assign ( i : Int, j : Int, x : Int ) : Int = {
+  elements[ this.unfold ( i, j ) ] = x;
+  return x;
+ }
 }
 
-class Board /* Board#20 */ {
-  var cells /* cells#17 */ /* cells#17 */ : Matrix/**/;
-  var rows /* rows#18 */ /* rows#18 */ : Int;
-  var cols /* cols#19 */ /* cols#19 */ : Int;
-  def init /* init#26 */ ( n /* n#24 */ : Int, m /* m#25 */ : Int ) : Board/**/ = {
-    var i /* i#21 */ /* i#21 */ : Int;
-    var j /* j#22 */ /* j#22 */ : Int;
-    var bitbucket /* bitbucket#23 */ /* bitbucket#23 */ : Int;
-    cells/**/ = new Matrix/**/().init/**/ ( n/**/, m/**/ );
-    rows/**/ = n/**/;
-    cols/**/ = m/**/;
-    i/**/ = 1;
-    j/**/ = 1;
-    while ( ((i/**/ < rows/**/) || (i/**/ == rows/**/)) )
-      {
-        while ( ((j/**/ < cols/**/) || (j/**/ == cols/**/)) )
-          {
-            bitbucket/**/ = this/**/.kill/**/ ( i/**/, j/**/ );
-            j/**/ = (j/**/ + 1);
-          }
-        i/**/ = (i/**/ + 1);
-        j/**/ = 1;
-      }
-    return this/**/;
-  }
+class Board {
+ var cells : Matrix;
+ var rows : Int;
+ var cols : Int;
+ def init ( n : Int, m : Int ) : Board = {
+  var i : Int;
+  var j : Int;
+  var bitbucket : Int;
+  cells = new Matrix().init ( n, m );
+  rows = n;
+  cols = m;
+  i = 1;
+  j = 1;
+  while ( ((i < rows) || (i == rows)) )
+{
+   while ( ((j < cols) || (j == cols)) )
+{
+    bitbucket = this.kill ( i, j );
+    j = (j + 1);
+}
+   i = (i + 1);
+   j = 1;
+}
+  return this;
+ }
 
-  def alive /* alive#29 */ ( i /* i#27 */ : Int, j /* j#28 */ : Int ) : Bool = {
-    return (cells/**/.index/**/ ( i/**/, j/**/ ) == 1);
-  }
+ def alive ( i : Int, j : Int ) : Bool = {
+  return (cells.index ( i, j ) == 1);
+ }
 
-  def modulo /* modulo#33 */ ( left /* left#31 */ : Int, right /* right#32 */ : Int ) : Int = {
-    var m /* m#30 */ /* m#30 */ : Int;
-    m/**/ = (left/**/ - (right/**/ * (left/**/ / right/**/)));
-    if ( (m/**/ == 0) )
-      m/**/ = right/**/;
-    return m/**/;
-  }
+ def modulo ( left : Int, right : Int ) : Int = {
+  var m : Int;
+  m = (left - (right * (left / right)));
+  if ( (m == 0) )
+   m = right;
+  return m;
+ }
 
-  def vmodulo /* vmodulo#35 */ ( n /* n#34 */ : Int ) : Int = {
-    return this/**/.modulo/**/ ( n/**/, rows/**/ );
-  }
+ def vmodulo ( n : Int ) : Int = {
+  return this.modulo ( n, rows );
+ }
 
-  def hmodulo /* hmodulo#37 */ ( n /* n#36 */ : Int ) : Int = {
-    return this/**/.modulo/**/ ( n/**/, cols/**/ );
-  }
+ def hmodulo ( n : Int ) : Int = {
+  return this.modulo ( n, cols );
+ }
 
-  def n_neighbour /* n_neighbour#40 */ ( i /* i#38 */ : Int, j /* j#39 */ : Int ) : Int = {
-    return cells/**/.index/**/ ( this/**/.vmodulo/**/ ( (i/**/ - 1) ), this/**/.hmodulo/**/ ( j/**/ ) );
-  }
+ def n_neighbour ( i : Int, j : Int ) : Int = {
+  return cells.index ( this.vmodulo ( (i - 1) ), this.hmodulo ( j ) );
+ }
 
-  def ne_neighbour /* ne_neighbour#43 */ ( i /* i#41 */ : Int, j /* j#42 */ : Int ) : Int = {
-    return cells/**/.index/**/ ( this/**/.vmodulo/**/ ( (i/**/ - 1) ), this/**/.hmodulo/**/ ( (j/**/ + 1) ) );
-  }
+ def ne_neighbour ( i : Int, j : Int ) : Int = {
+  return cells.index ( this.vmodulo ( (i - 1) ), this.hmodulo ( (j + 1) ) );
+ }
 
-  def nw_neighbour /* nw_neighbour#46 */ ( i /* i#44 */ : Int, j /* j#45 */ : Int ) : Int = {
-    return cells/**/.index/**/ ( this/**/.vmodulo/**/ ( (i/**/ - 1) ), this/**/.hmodulo/**/ ( (j/**/ - 1) ) );
-  }
+ def nw_neighbour ( i : Int, j : Int ) : Int = {
+  return cells.index ( this.vmodulo ( (i - 1) ), this.hmodulo ( (j - 1) ) );
+ }
 
-  def e_neighbour /* e_neighbour#49 */ ( i /* i#47 */ : Int, j /* j#48 */ : Int ) : Int = {
-    return cells/**/.index/**/ ( this/**/.vmodulo/**/ ( i/**/ ), this/**/.hmodulo/**/ ( (j/**/ - 1) ) );
-  }
+ def e_neighbour ( i : Int, j : Int ) : Int = {
+  return cells.index ( this.vmodulo ( i ), this.hmodulo ( (j - 1) ) );
+ }
 
-  def w_neighbour /* w_neighbour#52 */ ( i /* i#50 */ : Int, j /* j#51 */ : Int ) : Int = {
-    return cells/**/.index/**/ ( this/**/.vmodulo/**/ ( i/**/ ), this/**/.hmodulo/**/ ( (j/**/ + 1) ) );
-  }
+ def w_neighbour ( i : Int, j : Int ) : Int = {
+  return cells.index ( this.vmodulo ( i ), this.hmodulo ( (j + 1) ) );
+ }
 
-  def s_neighbour /* s_neighbour#55 */ ( i /* i#53 */ : Int, j /* j#54 */ : Int ) : Int = {
-    return cells/**/.index/**/ ( this/**/.vmodulo/**/ ( (i/**/ + 1) ), this/**/.hmodulo/**/ ( j/**/ ) );
-  }
+ def s_neighbour ( i : Int, j : Int ) : Int = {
+  return cells.index ( this.vmodulo ( (i + 1) ), this.hmodulo ( j ) );
+ }
 
-  def se_neighbour /* se_neighbour#58 */ ( i /* i#56 */ : Int, j /* j#57 */ : Int ) : Int = {
-    return cells/**/.index/**/ ( this/**/.vmodulo/**/ ( (i/**/ + 1) ), this/**/.hmodulo/**/ ( (j/**/ + 1) ) );
-  }
+ def se_neighbour ( i : Int, j : Int ) : Int = {
+  return cells.index ( this.vmodulo ( (i + 1) ), this.hmodulo ( (j + 1) ) );
+ }
 
-  def sw_neighbour /* sw_neighbour#61 */ ( i /* i#59 */ : Int, j /* j#60 */ : Int ) : Int = {
-    return cells/**/.index/**/ ( this/**/.vmodulo/**/ ( (i/**/ + 1) ), this/**/.hmodulo/**/ ( (j/**/ - 1) ) );
-  }
+ def sw_neighbour ( i : Int, j : Int ) : Int = {
+  return cells.index ( this.vmodulo ( (i + 1) ), this.hmodulo ( (j - 1) ) );
+ }
 
-  def neighbours /* neighbours#64 */ ( i /* i#62 */ : Int, j /* j#63 */ : Int ) : Int = {
-    return (((((((this/**/.nw_neighbour/**/ ( i/**/, j/**/ ) + this/**/.n_neighbour/**/ ( i/**/, j/**/ )) + this/**/.ne_neighbour/**/ ( i/**/, j/**/ )) + this/**/.e_neighbour/**/ ( i/**/, j/**/ )) + this/**/.w_neighbour/**/ ( i/**/, j/**/ )) + this/**/.sw_neighbour/**/ ( i/**/, j/**/ )) + this/**/.s_neighbour/**/ ( i/**/, j/**/ )) + this/**/.se_neighbour/**/ ( i/**/, j/**/ ));
-  }
+ def neighbours ( i : Int, j : Int ) : Int = {
+  return (((((((this.nw_neighbour ( i, j ) + this.n_neighbour ( i, j )) + this.ne_neighbour ( i, j )) + this.e_neighbour ( i, j )) + this.w_neighbour ( i, j )) + this.sw_neighbour ( i, j )) + this.s_neighbour ( i, j )) + this.se_neighbour ( i, j ));
+ }
 
-  def kill /* kill#67 */ ( i /* i#65 */ : Int, j /* j#66 */ : Int ) : Int = {
-    return cells/**/.assign/**/ ( i/**/, j/**/, 0 );
-  }
+ def kill ( i : Int, j : Int ) : Int = {
+  return cells.assign ( i, j, 0 );
+ }
 
-  def birth /* birth#70 */ ( i /* i#68 */ : Int, j /* j#69 */ : Int ) : Int = {
-    return cells/**/.assign/**/ ( i/**/, j/**/, 1 );
-  }
+ def birth ( i : Int, j : Int ) : Int = {
+  return cells.assign ( i, j, 1 );
+ }
 }
 
-class Game /* Game#74 */ {
-  var board /* board#71 */ /* board#71 */ : Board/**/;
-  var rows /* rows#72 */ /* rows#72 */ : Int;
-  var cols /* cols#73 */ /* cols#73 */ : Int;
-  def init /* init#76 */ (  ) : Game/**/ = {
-    var bitbucket /* bitbucket#75 */ /* bitbucket#75 */ : Int;
-    rows/**/ = 22;
-    cols/**/ = 80;
-    board/**/ = new Board/**/().init/**/ ( rows/**/, cols/**/ );
-    bitbucket/**/ = board/**/.birth/**/ ( 1, 2 );
-    bitbucket/**/ = board/**/.birth/**/ ( 2, 3 );
-    bitbucket/**/ = board/**/.birth/**/ ( 3, 1 );
-    bitbucket/**/ = board/**/.birth/**/ ( 3, 2 );
-    bitbucket/**/ = board/**/.birth/**/ ( 3, 3 );
-    return this/**/;
-  }
+class Game {
+ var board : Board;
+ var rows : Int;
+ var cols : Int;
+ def init (  ) : Game = {
+  var bitbucket : Int;
+  rows = 22;
+  cols = 80;
+  board = new Board().init ( rows, cols );
+  bitbucket = board.birth ( 1, 2 );
+  bitbucket = board.birth ( 2, 3 );
+  bitbucket = board.birth ( 3, 1 );
+  bitbucket = board.birth ( 3, 2 );
+  bitbucket = board.birth ( 3, 3 );
+  return this;
+ }
 
-  def iterate /* iterate#82 */ (  ) : Int = {
-    var next /* next#77 */ /* next#77 */ : Board/**/;
-    var i /* i#78 */ /* i#78 */ : Int;
-    var j /* j#79 */ /* j#79 */ : Int;
-    var n /* n#80 */ /* n#80 */ : Int;
-    var bitbucket /* bitbucket#81 */ /* bitbucket#81 */ : Int;
-    next/**/ = new Board/**/().init/**/ ( rows/**/, cols/**/ );
-    i/**/ = 1;
-    j/**/ = 1;
-    while ( ((i/**/ < rows/**/) || (i/**/ == rows/**/)) )
-      {
-        while ( ((j/**/ < cols/**/) || (j/**/ == cols/**/)) )
-          {
-            n/**/ = board/**/.neighbours/**/ ( i/**/, j/**/ );
-            if ( board/**/.alive/**/ ( i/**/, j/**/ ) )
-              {
-                if ( (((n/**/ - 2) < 0) || ((3 - n/**/) < 0)) )
-                  bitbucket/**/ = next/**/.kill/**/ ( i/**/, j/**/ );
-                else
-                  bitbucket/**/ = next/**/.birth/**/ ( i/**/, j/**/ );
-              }
-            else
-              {
-                if ( (n/**/ == 3) )
-                  {
-                    bitbucket/**/ = next/**/.birth/**/ ( i/**/, j/**/ );
-                  }
-                else
-                  bitbucket/**/ = next/**/.kill/**/ ( i/**/, j/**/ );
-              }
-            j/**/ = (j/**/ + 1);
-          }
-        i/**/ = (i/**/ + 1);
-        j/**/ = 1;
-      }
-    board/**/ = next/**/;
-    return (rows/**/ * cols/**/);
-  }
-
-  def print /* print#86 */ (  ) : String = {
-    var i /* i#83 */ /* i#83 */ : Int;
-    var j /* j#84 */ /* j#84 */ : Int;
-    var m /* m#85 */ /* m#85 */ : String;
-    m/**/ = "";
-    i/**/ = 1;
-    j/**/ = 1;
-    while ( ((i/**/ < rows/**/) || (i/**/ == rows/**/)) )
-      {
-        while ( ((j/**/ < cols/**/) || (j/**/ == cols/**/)) )
-          {
-            if ( board/**/.alive/**/ ( i/**/, j/**/ ) )
-              m/**/ = (m/**/ + "o");
-            else
-              m/**/ = (m/**/ + ".");
-            j/**/ = (j/**/ + 1);
-          }
-        println( m/**/ );
-        i/**/ = (i/**/ + 1);
-        m/**/ = "";
-        j/**/ = 1;
-      }
-    return m/**/;
-  }
-
-  def wait /* wait#90 */ (  ) : Int = {
-    var i /* i#87 */ /* i#87 */ : Int;
-    var bitbucket1 /* bitbucket1#88 */ /* bitbucket1#88 */ : Game/**/;
-    var bitbucket2 /* bitbucket2#89 */ /* bitbucket2#89 */ : Int;
-    bitbucket1/**/ = new Game/**/().init/**/ (  );
-    i/**/ = 0;
-    while ( (i/**/ < 1000) )
-      {
-        bitbucket2/**/ = bitbucket1/**/.iterate/**/ (  );
-        i/**/ = (i/**/ + 1);
-      }
-    return i/**/;
-  }
-
-  def run /* run#94 */ ( n /* n#93 */ : Int ) : String = {
-    var i /* i#91 */ /* i#91 */ : Int;
-    var bitbucket /* bitbucket#92 */ /* bitbucket#92 */ : Int;
-    i/**/ = 0;
-    while ( (i/**/ < n/**/) )
-      {
-        println( this/**/.print/**/ (  ) );
-        bitbucket/**/ = this/**/.wait/**/ (  );
-        bitbucket/**/ = this/**/.iterate/**/ (  );
-        i/**/ = (i/**/ + 1);
-      }
-    return "";
-  }
+ def iterate (  ) : Int = {
+  var next : Board;
+  var i : Int;
+  var j : Int;
+  var n : Int;
+  var bitbucket : Int;
+  next = new Board().init ( rows, cols );
+  i = 1;
+  j = 1;
+  while ( ((i < rows) || (i == rows)) )
+{
+   while ( ((j < cols) || (j == cols)) )
+{
+    n = board.neighbours ( i, j );
+    if ( board.alive ( i, j ) )
+     {
+      if ( (((n - 2) < 0) || ((3 - n) < 0)) )
+       bitbucket = next.kill ( i, j );      
+else
+       bitbucket = next.birth ( i, j );
+}    
+else
+     {
+      if ( (n == 3) )
+       {
+        bitbucket = next.birth ( i, j );
+}      
+else
+       bitbucket = next.kill ( i, j );
 }
+    j = (j + 1);
+}
+   i = (i + 1);
+   j = 1;
+}
+  board = next;
+  return (rows * cols);
+ }
+
+ def print (  ) : String = {
+  var i : Int;
+  var j : Int;
+  var m : String;
+  m = "";
+  i = 1;
+  j = 1;
+  while ( ((i < rows) || (i == rows)) )
+{
+   while ( ((j < cols) || (j == cols)) )
+{
+    if ( board.alive ( i, j ) )
+     m = (m + "o");    
+else
+     m = (m + ".");
+    j = (j + 1);
+}
+   println( m );
+   i = (i + 1);
+   m = "";
+   j = 1;
+}
+  return m;
+ }
+
+ def wait (  ) : Int = {
+  var i : Int;
+  var bitbucket1 : Game;
+  var bitbucket2 : Int;
+  bitbucket1 = new Game().init (  );
+  i = 0;
+  while ( (i < 1000) )
+{
+   bitbucket2 = bitbucket1.iterate (  );
+   i = (i + 1);
+}
+  return i;
+ }
+
+ def run ( n : Int ) : String = {
+  var i : Int;
+  var bitbucket : Int;
+  i = 0;
+  while ( (i < n) )
+{
+   println( this.print (  ) );
+   bitbucket = this.wait (  );
+   bitbucket = this.iterate (  );
+   i = (i + 1);
+}
+  return "";
+ }
+}
+
