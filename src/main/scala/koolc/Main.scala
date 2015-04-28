@@ -70,23 +70,21 @@ object Main {
       if(printSYMID){
         println(
           pipeline.run(ctx)(ctx.file.get)
-            map PrintSYMID getOrElse "Failed to parse input."
+            map PrintSYMID getOrElse "Invalid input program."
         )
-      }
-      else{
+      } else {
         println(
           pipeline.run(ctx)(ctx.file.get)
             map PrintAST getOrElse "Failed to parse input."
         )
       }
 
-
     } else {
       val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
 
       print(
         pipeline.run(ctx)(ctx.file.get)
-          map Printer getOrElse "Failed to parse input.\n"
+          map Printer getOrElse "Compilation failed.\n"
       )
     }
 
