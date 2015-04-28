@@ -12,6 +12,8 @@ import java.io.File
 import lexer._
 import ast._
 import analyzer._
+import code._
+
 
 object Main {
 
@@ -80,12 +82,8 @@ object Main {
       }
 
     } else {
-      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
-
-      print(
-        pipeline.run(ctx)(ctx.file.get)
-          map Printer getOrElse "Compilation failed.\n"
-      )
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking andThen CodeGeneration
+      pipeline.run(ctx)(ctx.file.get)
     }
 
   }
