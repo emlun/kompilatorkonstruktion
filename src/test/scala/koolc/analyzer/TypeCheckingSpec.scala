@@ -186,7 +186,9 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileSucceeds("assign-int-int.kool")
         assertFileSucceeds("assign-string-string.kool")
       }
-      it("nontrivial expressions as method call objects.") { cancel("Test not implemented.") }
+      it("nontrivial expressions as method call objects.") {
+        assertFileSucceeds("call-nontrivial-lhs.kool")
+      }
     }
     it("does not stop at the first type error.") { cancel("Test not implemented.") }
   }
