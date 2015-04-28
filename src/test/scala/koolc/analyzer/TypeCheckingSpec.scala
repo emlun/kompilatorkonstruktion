@@ -36,7 +36,30 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("while-test-array.kool")
         assertFileFails("while-test-class.kool")
       }
-      it("either operand of + is not a String or Int.") { cancel("Test not implemented.") }
+      it("either operand of + is not a String or Int.") {
+        assertFileFails("plus-array-array.kool")
+        assertFileFails("plus-array-array.kool")
+        assertFileFails("plus-array-bool.kool")
+        assertFileFails("plus-array-class.kool")
+        assertFileFails("plus-array-int.kool")
+        assertFileFails("plus-array-string.kool")
+        assertFileFails("plus-bool-array.kool")
+        assertFileFails("plus-bool-bool.kool")
+        assertFileFails("plus-bool-class.kool")
+        assertFileFails("plus-bool-int.kool")
+        assertFileFails("plus-bool-string.kool")
+        assertFileFails("plus-class-array.kool")
+        assertFileFails("plus-class-bool.kool")
+        assertFileFails("plus-class-class.kool")
+        assertFileFails("plus-class-int.kool")
+        assertFileFails("plus-class-string.kool")
+        assertFileFails("plus-int-array.kool")
+        assertFileFails("plus-int-bool.kool")
+        assertFileFails("plus-int-class.kool")
+        assertFileFails("plus-string-array.kool")
+        assertFileFails("plus-string-bool.kool")
+        assertFileFails("plus-string-class.kool")
+      }
       it("the operands of == are of different types.") { cancel("Test not implemented.") }
       it("the LHS operand of a method call expression is not of a class type.") { cancel("Test not implemented.") }
       it("undeclared methods are called.") { cancel("Test not implemented.") }
