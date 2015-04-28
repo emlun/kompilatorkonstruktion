@@ -23,6 +23,7 @@ dependencies {
   compile(
     'org.scala-lang:scala-library:2.+',
     'org.scala-lang:scala-parser-combinators:2.+',
+    files('lib/cafebabe_2.11-1.2.jar'),
   )
   testCompile(
     'org.scalatest:scalatest_2.11:2.+',
