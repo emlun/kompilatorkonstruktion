@@ -84,7 +84,11 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         }
         case Equals(lhs,rhs) => {
           val tlhs = tcExpr(lhs)
-          tcExpr(rhs,tlhs)
+          tcExpr(rhs, tlhs match {
+              case tObj: TObject => anyObject
+              case _             => tlhs
+            }
+          )
           TBoolean
         }
         case ArrayRead(arr, index) => {
