@@ -72,14 +72,12 @@ object Main {
           pipeline.run(ctx)(ctx.file.get)
             map PrintSYMID getOrElse "Invalid input program."
         )
-      }
-      else{
+      } else {
         println(
           pipeline.run(ctx)(ctx.file.get)
             map PrintAST getOrElse "Failed to parse input."
         )
       }
-
 
     } else {
       val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
