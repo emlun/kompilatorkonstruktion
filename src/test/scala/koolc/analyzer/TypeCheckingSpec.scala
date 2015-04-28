@@ -98,7 +98,30 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("call-with-too-few-args.kool")
         assertFileFails("call-with-too-many-args.kool")
       }
-      it("methods are called with arguments that are not subtypes of the declared argument types.") { cancel("Test not implemented.") }
+      it("methods are called with arguments that are not subtypes of the declared argument types.") {
+        assertFileFails("call-array-with-bool.kool")
+        assertFileFails("call-array-with-class.kool")
+        assertFileFails("call-array-with-int.kool")
+        assertFileFails("call-array-with-string.kool")
+        assertFileFails("call-bool-with-array.kool")
+        assertFileFails("call-bool-with-class.kool")
+        assertFileFails("call-bool-with-int.kool")
+        assertFileFails("call-bool-with-string.kool")
+        assertFileFails("call-class-with-array.kool")
+        assertFileFails("call-class-with-bool.kool")
+        assertFileFails("call-class-with-int.kool")
+        assertFileFails("call-class-with-string.kool")
+        assertFileFails("call-class1-with-class2.kool")
+        assertFileFails("call-int-with-array.kool")
+        assertFileFails("call-int-with-bool.kool")
+        assertFileFails("call-int-with-class.kool")
+        assertFileFails("call-int-with-string.kool")
+        assertFileFails("call-string-with-array.kool")
+        assertFileFails("call-string-with-bool.kool")
+        assertFileFails("call-string-with-class.kool")
+        assertFileFails("call-string-with-int.kool")
+        assertFileFails("call-with-wrong-argument-types.kool")
+      }
       it("assignments are made with values that are not subtypes of the declared variable type.") { cancel("Test not implemented.") }
       it("array assignment indices are not Ints.") { cancel("Test not implemented.") }
       it("array assignment is done with a value that is not an Int.") { cancel("Test not implemented.") }
@@ -123,6 +146,16 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileSucceeds("equals-class1-class2.kool")
         assertFileSucceeds("equals-class1-subclass1.kool")
         assertFileSucceeds("equals-subclass1-class1.kool")
+      }
+      it("method calls where arguments are subclasses of the declared types.") {
+        assertFileSucceeds("call-array-with-array.kool")
+        assertFileSucceeds("call-bool-with-bool.kool")
+        assertFileSucceeds("call-class1-with-class1.kool")
+        assertFileSucceeds("call-class1-with-subclass1.kool")
+        assertFileSucceeds("call-class1-with-subsubclass1.kool")
+        assertFileSucceeds("call-int-with-int.kool")
+        assertFileSucceeds("call-string-with-string.kool")
+        assertFileSucceeds("call-with-right-argument-types.kool")
       }
       it("nontrivial expressions as method call objects.") { cancel("Test not implemented.") }
     }
