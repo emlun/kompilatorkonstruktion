@@ -60,10 +60,11 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     // of the stack frame
     def generateMethodCode(ch: CodeHandler, mt: MethodDecl): Unit = {
       val methSym = mt.symbol
+      ch << ILOAD_1 << DUP << IADD << IRETURN
 
       // TODO: Emit code
 
-      //ch.freeze
+      ch.freeze
     }
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
