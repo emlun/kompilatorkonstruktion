@@ -45,7 +45,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
     }
 
     def tcExpr(expr: ExprTree, expected: Type*): Type = {
-      // TODO: Compute type for each kind of expression
       val tpe: Type = expr match {
         case And(lhs,rhs) => {
           val tlhs = tcExpr(lhs)
@@ -151,7 +150,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         }
       }
 
-
       // Check result and return a valid type in case of error
       if (expected.isEmpty) {
         tpe
@@ -201,7 +199,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         clazz => clazz.methods foreach {
           method => {
             method.stats foreach {
-              //println(_)
               tcStat(_)
             }
             tcExpr(method.retExpr, tcTypeTree(method.retType))
