@@ -243,6 +243,24 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileSucceeds("return-subsubclass1-from-class1.kool")
       }
     }
-    it("does not stop at the first type error.") { cancel("Test not implemented.") }
+    it("does not stop at the first type error.") {
+      val errorSpy = stubFunction[Any, Positioned]
+      val reporter = new Reporter {
+        override def error(msg: Any, pos: Positioned = NoPosition): Unit = {
+          errorSpy(msg, pos)
+          super.error(msg, pos)
+        }
+      }
+
+      val path = "two-type-errors.kool"
+      val input = Try(new File(getClass.getResource(path).toURI())) getOrElse fail("File " + path + " not found.")
+      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking andThen checkResult((ctx, program) => {
+        ctx.reporter should not be errorless
+        program should be (None)
+
+        errorSpy.verify(*, *).twice()
+      })
+      pipeline.run(Context(reporter, None, Some(input)))(input)
+    }
   }
 }
