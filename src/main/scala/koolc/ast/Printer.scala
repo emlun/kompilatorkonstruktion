@@ -107,8 +107,6 @@ object Printer extends (Tree => String) {
 
       case id:This       => "this"
       case id:Identifier => id.value
-
-      case _ => " >>> " + t.getClass.getSimpleName + "<<<"
     }
   }
 }
