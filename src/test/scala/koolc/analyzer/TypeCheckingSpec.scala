@@ -85,7 +85,12 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("equals-class-string.kool")
       }
 
-      it("the LHS operand of a method call expression is not of a class type.") { cancel("Test not implemented.") }
+      it("the LHS operand of a method call expression is not of a class type.") {
+        assertFileFails("call-method-on-array.kool")
+        assertFileFails("call-method-on-bool.kool")
+        assertFileFails("call-method-on-int.kool")
+        assertFileFails("call-method-on-string.kool")
+      }
       it("undeclared methods are called.") { cancel("Test not implemented.") }
       it("methods are called with the wrong number of arguments.") { cancel("Test not implemented.") }
       it("methods are called with arguments that are not subtypes of the declared argument types.") { cancel("Test not implemented.") }
