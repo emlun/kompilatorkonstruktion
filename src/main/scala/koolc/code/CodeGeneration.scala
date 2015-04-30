@@ -94,7 +94,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
         generateMethodCode(ch, method)
       }
 
-      classFile.writeToFile("./"+ct.id.value+".class")
+      classFile.writeToFile("./" + ct.id.value + ".class")
     }
 
     // a mapping from variable symbols to positions in the local variables
@@ -108,8 +108,8 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       def lookupVar(name: String): Value =
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
 
-      mt.stats foreach {compileStat(ch,_, lookupVar _)}
-      compileExpr(ch,mt.retExpr, lookupVar _)
+      mt.stats foreach { compileStat(ch, _, lookupVar _) }
+      compileExpr(ch, mt.retExpr, lookupVar _)
 
       ch << returnInstruction(mt)
 
@@ -122,7 +122,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
 
-      stmts foreach {compileStat(ch,_, (_ => ???))}
+      stmts foreach { compileStat(ch, _, (_ => ???)) }
       // TODO: Emit code
       ch << RETURN
       println(">>>>> " + "main")
@@ -130,10 +130,10 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       //ch.freeze
     }
 
-    val outDir = ctx.outDir.map(_.getPath+"/").getOrElse("./")
+    val outDir = ctx.outDir.map(_.getPath + "/").getOrElse("./")
 
     val f = new java.io.File(outDir)
-    if (!f.exists()) {
+    if(!f.exists()) {
       f.mkdir()
     }
 
@@ -144,7 +144,6 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       ct => generateClassFile(sourceName, ct, outDir)
     }
 
-
     // Now do the main method
     // ...
     val main = prog.get.main
@@ -153,31 +152,30 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     classFile.addDefaultConstructor
     val ch = classFile.addMainMethod.codeHandler
     generateMainMethodCode(ch, main.stats, main.id.value)
-    classFile.writeToFile("./"+main.id.value+".class")
-
+    classFile.writeToFile("./" + main.id.value + ".class")
   }
 
   def compileStat(ch: CodeHandler, stmt: StatTree, lookupVar: (String => Value)): Unit = {
     stmt match {
-      case Block(stats) => stats foreach {compileStat(ch,_,lookupVar)}
+      case Block(stats) => stats foreach {compileStat(ch, _, lookupVar)}
       case If(expr, thn, els) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch,expr,lookupVar)
-        ch<<IfEq(nElse)
-        compileStat(ch,thn,lookupVar)
-        ch<<Goto(nAfter)
-        ch<<Label(nElse)
+        compileExpr(ch, expr, lookupVar)
+        ch << IfEq(nElse)
+        compileStat(ch, thn, lookupVar)
+        ch << Goto(nAfter)
+        ch << Label(nElse)
         els match {
-          case Some(stat) => compileStat(ch,stat,lookupVar)
+          case Some(stat) => compileStat(ch, stat, lookupVar)
           case None =>
         }
-        ch<<Label(nAfter)
+        ch << Label(nAfter)
         }
       case While(expr, stat) =>
       case Println(expr) => {
         ch << GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-        compileExpr(ch,expr,lookupVar)
+        compileExpr(ch, expr, lookupVar)
         ch << InvokeVirtual("java/io/PrintStream", "println", "(I)V")
       }
       case Assign(id, expr) => {
@@ -193,61 +191,65 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       case And(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch,lhs,lookupVar)
-        ch<<IfEq(nElse)
-        compileExpr(ch,rhs,lookupVar)
-        ch<<Goto(nAfter)
-        ch<<Label(nElse)
-        ch<<ICONST_0
-        ch<<Label(nAfter)
-        }
+        compileExpr(ch, lhs, lookupVar)
+        ch << IfEq(nElse)
+        compileExpr(ch, rhs, lookupVar)
+        ch << Goto(nAfter)
+        ch << Label(nElse)
+        ch << ICONST_0
+        ch << Label(nAfter)
+      }
       case Or(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch,lhs,lookupVar)
-        ch<<IfEq(nElse)
-        ch<<ICONST_1
-        ch<<Goto(nAfter)
-        ch<<Label(nElse)
-        compileExpr(ch,rhs,lookupVar)
-        ch<<Label(nAfter)
+        compileExpr(ch, lhs, lookupVar)
+        ch << IfEq(nElse)
+        ch << ICONST_1
+        ch << Goto(nAfter)
+        ch << Label(nElse)
+        compileExpr(ch, rhs, lookupVar)
+        ch << Label(nAfter)
       }
       case Plus(lhs, rhs) => {
-        compileExpr(ch,lhs,lookupVar)
-        compileExpr(ch,rhs,lookupVar)
-        ch<<IADD}
+        compileExpr(ch, lhs, lookupVar)
+        compileExpr(ch, rhs, lookupVar)
+        ch << IADD
+      }
       case Minus(lhs, rhs) => {
-        compileExpr(ch,lhs,lookupVar)
-        compileExpr(ch,rhs,lookupVar)
-        ch<<ISUB}
+        compileExpr(ch, lhs, lookupVar)
+        compileExpr(ch, rhs, lookupVar)
+        ch << ISUB
+      }
       case Times(lhs, rhs) => {
-        compileExpr(ch,lhs,lookupVar)
-        compileExpr(ch,rhs,lookupVar)
-        ch<<IMUL}
+        compileExpr(ch, lhs, lookupVar)
+        compileExpr(ch, rhs, lookupVar)
+        ch << IMUL
+      }
       case Div(lhs, rhs) => {
-        compileExpr(ch,lhs,lookupVar)
-        compileExpr(ch,rhs,lookupVar)
-        ch<<IDIV}
+        compileExpr(ch, lhs, lookupVar)
+        compileExpr(ch, rhs, lookupVar)
+        ch << IDIV
+      }
       case LessThan(lhs, rhs) => {
-        compileExpr(ch,lhs,lookupVar)
-        compileExpr(ch,rhs,lookupVar)
+        compileExpr(ch, lhs, lookupVar)
+        compileExpr(ch, rhs, lookupVar)
         val nTrue = ch.getFreshLabel("true")
         val nAfter = ch.getFreshLabel("after")
-        ch<<If_ICmpLt(nTrue)
-        ch<<ICONST_0
-        ch<<Goto(nAfter)
-        ch<<Label(nTrue)<<ICONST_1<<Label(nAfter)
-        }
+        ch << If_ICmpLt(nTrue)
+        ch << ICONST_0
+        ch << Goto(nAfter)
+        ch << Label(nTrue) << ICONST_1 << Label(nAfter)
+      }
       case Equals(lhs, rhs) => {
-        compileExpr(ch,lhs,lookupVar)
-        compileExpr(ch,rhs,lookupVar)
+        compileExpr(ch, lhs, lookupVar)
+        compileExpr(ch, rhs, lookupVar)
         val nTrue = ch.getFreshLabel("true")
         val nAfter = ch.getFreshLabel("after")
-        ch<<If_ICmpEq(nTrue)
-        ch<<ICONST_0
-        ch<<Goto(nAfter)
-        ch<<Label(nTrue)<<ICONST_1<<Label(nAfter)
-        }
+        ch << If_ICmpEq(nTrue)
+        ch << ICONST_0
+        ch << Goto(nAfter)
+        ch << Label(nTrue) << ICONST_1 << Label(nAfter)
+      }
       case ArrayRead(arr, index) => {}
       case ArrayLength(arr) => {}
       case MethodCall(obj, meth, args) => {
@@ -261,16 +263,16 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
         }
         println(expr)
       }
-      case IntLit(value) => ch << Ldc(value)
-      case StringLit(value) => {}
 
-      case True()  => ch << ICONST_1
-      case False()  => ch << ICONST_0
+      case IntLit(value)     => ch << Ldc(value)
+      case StringLit(value)  => {}
+      case True()            => ch << ICONST_1
+      case False()           => ch << ICONST_0
       case Identifier(value) => ch << lookupVar(value).load
+      case This()            =>
 
-      case This() =>
-      case NewIntArray(size)  =>
-      case New(tpe)  => println("AAAAAAAAAAAAA>>>>>" + tpe)
+      case NewIntArray(size) =>
+      case New(tpe)          => println("AAAAAAAAAAAAA>>>>>" + tpe)
 
       case Not(expr)  =>
 
