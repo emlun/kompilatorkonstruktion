@@ -22,6 +22,11 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     //[warn] It would fail on the following inputs: TError, TUnresolved, TUntyped
   }
 
+  private def returnInstruction(method: MethodDecl): ByteCode = method.retType.getType match {
+    case TInt    | TBoolean              => IRETURN
+    case TString | TArray   | TObject(_) => ARETURN
+  }
+
   def run(ctx: Context)(prog: Option[Program]): Unit = {
     import ctx.reporter._
 
@@ -73,7 +78,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
       mt.stats foreach {compileStat(ch,_, variables.get _)}
       compileExpr(ch,mt.retExpr, variables.get _)
-      ch << IRETURN
+      ch << returnInstruction(mt)
 
       // TODO: Emit code
       println(">>>>> " + mt.id.value)
