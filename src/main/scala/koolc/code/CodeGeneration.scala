@@ -135,7 +135,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
 
       mt.stats foreach { compileStat(ch, _, lookupVar _) }
-      compileExpr(ch, mt.retExpr, lookupVar _).dumpInstructions(ch)
+      compileExpr(ch, lookupVar _)(mt.retExpr).dumpInstructions(ch)
 
       ch << returnInstruction(mt)
 
@@ -187,7 +187,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case If(expr, thn, els) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch, expr, lookupVar).dumpInstructions(ch)
+        compileExpr(ch, lookupVar)(expr).dumpInstructions(ch)
         ch << IfEq(nElse)
         compileStat(ch, thn, lookupVar)
         ch << Goto(nAfter)
@@ -201,25 +201,26 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case While(expr, stat) =>
       case Println(expr) => {
         ch << GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-        compileExpr(ch, expr, lookupVar).dumpInstructions(ch)
+        compileExpr(ch, lookupVar)(expr).dumpInstructions(ch)
         ch << InvokeVirtual("java/io/PrintStream", "println", "(I)V")
       }
       case Assign(id, expr) => {
-        lookupVar(id.value).assign(compileExpr(ch, expr, lookupVar)).dumpInstructions(ch)
+        lookupVar(id.value).assign(compileExpr(ch, lookupVar)(expr)).dumpInstructions(ch)
       }
       case ArrayAssign(id, index, expr) =>
     }
   }
 
 
-  def compileExpr(ch: CodeHandler, expr: ExprTree, lookupVar: (String => Value)): InstructionSequence = {
+  def compileExpr(ch: CodeHandler, lookupVar: (String => Value))(expr: ExprTree): InstructionSequence = {
+    val recurse: (ExprTree => InstructionSequence) = compileExpr(ch, lookupVar)
     expr match {
       case And(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch, lhs, lookupVar) <<:
+        recurse(lhs) <<:
           IfEq(nElse) <<:
-          compileExpr(ch, rhs, lookupVar) <<:
+          recurse(rhs) <<:
           Goto(nAfter) <<:
           Label(nElse) <<:
           ICONST_0 <<:
@@ -229,44 +230,44 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case Or(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch, lhs, lookupVar) <<:
+        recurse(lhs) <<:
           IfEq(nElse) <<:
           ICONST_1 <<:
           Goto(nAfter) <<:
           Label(nElse) <<:
-          compileExpr(ch, rhs, lookupVar) <<:
+          recurse(rhs) <<:
           Label(nAfter) <<:
           InstructionSequence.empty
       }
       case Plus(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar) <<:
-          compileExpr(ch, rhs, lookupVar) <<:
+        recurse(lhs) <<:
+          recurse(rhs) <<:
           IADD <<:
           InstructionSequence.empty
       }
       case Minus(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar) <<:
-          compileExpr(ch, rhs, lookupVar) <<:
+        recurse(lhs) <<:
+          recurse(rhs) <<:
           ISUB <<:
           InstructionSequence.empty
       }
       case Times(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar) <<:
-          compileExpr(ch, rhs, lookupVar) <<:
+        recurse(lhs) <<:
+          recurse(rhs) <<:
           IMUL <<:
           InstructionSequence.empty
       }
       case Div(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar) <<:
-          compileExpr(ch, rhs, lookupVar) <<:
+        recurse(lhs) <<:
+          recurse(rhs) <<:
           IDIV <<:
           InstructionSequence.empty
       }
       case LessThan(lhs, rhs) => {
         val nTrue = ch.getFreshLabel("true")
         val nAfter = ch.getFreshLabel("after")
-        compileExpr(ch, lhs, lookupVar) <<:
-          compileExpr(ch, rhs, lookupVar) <<:
+        recurse(lhs) <<:
+          recurse(rhs) <<:
           If_ICmpLt(nTrue) <<:
           ICONST_0 <<:
           Goto(nAfter) <<:
@@ -276,8 +277,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case Equals(lhs, rhs) => {
         val nTrue = ch.getFreshLabel("true")
         val nAfter = ch.getFreshLabel("after")
-        compileExpr(ch, lhs, lookupVar) <<:
-          compileExpr(ch, rhs, lookupVar) <<:
+        recurse(lhs) <<:
+          recurse(rhs) <<:
           If_ICmpEq(nTrue) <<:
           ICONST_0 <<:
           Goto(nAfter) <<:
