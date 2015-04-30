@@ -118,7 +118,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
 
-      stmts foreach {compileStat(ch,_, (_ => None))}
+      stmts foreach {compileStat(ch,_, (_ => ???))}
       // TODO: Emit code
       ch << RETURN
       println(">>>>> " + "main")
