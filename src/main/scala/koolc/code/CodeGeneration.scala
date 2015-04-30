@@ -101,12 +101,16 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     // of the stack frame
     def generateMethodCode(ch: CodeHandler, mt: MethodDecl): Unit = {
       val methSym = mt.symbol
-      val variables: Map[String,Int] = Map.empty ++
-        (methSym.argList map      { (_.name -> ch.getFreshVar) }) ++
-        (methSym.members.keys map { (_      -> ch.getFreshVar) })
+      val variables: Map[String, LocalVariable] = (methSym.members ++ methSym.params) map {
+        case (name, sym) => (name, LocalVariable(sym, ch.getFreshVar))
+      }
 
-      mt.stats foreach {compileStat(ch,_, variables.get _)}
-      compileExpr(ch,mt.retExpr, variables.get _)
+      def lookupVar(name: String): Value =
+        variables.get(name) getOrElse getField(methSym.classSymbol, name)
+
+      mt.stats foreach {compileStat(ch,_, lookupVar _)}
+      compileExpr(ch,mt.retExpr, lookupVar _)
+
       ch << returnInstruction(mt)
 
       // TODO: Emit code
@@ -153,7 +157,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
   }
 
-  def compileStat(ch: CodeHandler, stmt: StatTree, lookupVar: (String => Option[Int])): Unit = {
+  def compileStat(ch: CodeHandler, stmt: StatTree, lookupVar: (String => Value)): Unit = {
     stmt match {
       case Block(stats) => stats foreach {compileStat(ch,_,lookupVar)}
       case If(expr, thn, els) => {
@@ -177,15 +181,14 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
         ch << InvokeVirtual("java/io/PrintStream", "println", "(I)V")
       }
       case Assign(id, expr) => {
-        compileExpr(ch,expr,lookupVar)
-        ch << IStore(lookupVar(id.value).get)
+        lookupVar(id.value).assign(ch, { compileExpr(ch, expr, lookupVar) })
       }
       case ArrayAssign(id, index, expr) =>
     }
   }
 
 
-  def compileExpr(ch: CodeHandler, expr: ExprTree, lookupVar: (String => Option[Int])): Unit = {
+  def compileExpr(ch: CodeHandler, expr: ExprTree, lookupVar: (String => Value)): Unit = {
     expr match {
       case And(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
@@ -263,7 +266,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
       case True()  => ch << ICONST_1
       case False()  => ch << ICONST_0
-      case Identifier(value) => ch << ILoad(lookupVar(value).get)
+      case Identifier(value) => ch << lookupVar(value).load
 
       case This() =>
       case NewIntArray(size)  =>
