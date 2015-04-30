@@ -67,12 +67,12 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     // of the stack frame
     def generateMethodCode(ch: CodeHandler, mt: MethodDecl): Unit = {
       val methSym = mt.symbol
-      val locals: Map[String,Int] = Map.empty ++
+      val variables: Map[String,Int] = Map.empty ++
         (methSym.argList map      { (_.name -> ch.getFreshVar) }) ++
         (methSym.members.keys map { (_      -> ch.getFreshVar) })
 
-      mt.stats foreach {compileStat(ch,_, locals.get _)}
-      compileExpr(ch,mt.retExpr, locals.get _)
+      mt.stats foreach {compileStat(ch,_, variables.get _)}
+      compileExpr(ch,mt.retExpr, variables.get _)
       ch << IRETURN
 
       // TODO: Emit code
