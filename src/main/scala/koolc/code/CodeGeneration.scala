@@ -62,6 +62,33 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     }
   }
 
+  case class InstructionSequence(
+      val head: Option[Either[AbstractByteCode, AbstractByteCodeGenerator]],
+      val tail: Option[InstructionSequence]
+    ) {
+    def <<:(h: AbstractByteCode) = InstructionSequence(Some(Left(h)), Some(this))
+    def <<:(h: AbstractByteCodeGenerator) = InstructionSequence(Some(Right(h)), Some(this))
+    def <<:(h: Either[AbstractByteCode, AbstractByteCodeGenerator]) = InstructionSequence(Some(h), Some(this))
+    def <<:(pre: InstructionSequence): InstructionSequence = pre match {
+      case InstructionSequence(Some(prehead), Some(pretail)) => prehead <<: (pretail <<: this)
+      case InstructionSequence(Some(prehead), None)          => prehead <<: this
+      case InstructionSequence(None, None)                   => this
+    }
+    def dumpInstructions(ch: CodeHandler): Unit =
+      head map { wrapper =>
+        wrapper match {
+          case Left(abytecode)  => ch << abytecode
+          case Right(generator) => ch << generator
+        }
+        tail map { tailSequence =>
+          tailSequence.dumpInstructions(ch)
+        }
+      }
+  }
+  object InstructionSequence {
+    def empty = InstructionSequence(None, None)
+  }
+
   def getField(clazz: ClassSymbol, name: String): Field =
     clazz.members.get(name) map { Field(clazz, _) } getOrElse {
       (clazz.parent map { getField(_, name) }).get
