@@ -66,18 +66,11 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     // a mapping from variable symbols to positions in the local variables
     // of the stack frame
     def generateMethodCode(ch: CodeHandler, mt: MethodDecl): Unit = {
-      def getClassMembers(classSymbol: Option[ClassSymbol]): Map[String, Int] =
-        classSymbol map { classSymbol =>
-          Map.empty ++
-            (classSymbol.members.keys map { name: String => (name -> ch.getFreshVar) }) ++
-            getClassMembers(classSymbol.parent)
-        } getOrElse Map.empty
-
       val methSym = mt.symbol
       val variables: Map[String,Int] = Map.empty ++
         (methSym.argList map                  { (_.name -> ch.getFreshVar) }) ++
         (methSym.members.keys map             { (_      -> ch.getFreshVar) }) ++
-        getClassMembers(Some(methSym.classSymbol))
+        (methSym.classSymbol.members.keys map { (_      -> ch.getFreshVar) })
 
       mt.stats foreach {compileStat(ch,_, variables.get _)}
       compileExpr(ch,mt.retExpr, variables.get _)
