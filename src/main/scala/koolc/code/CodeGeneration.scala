@@ -29,6 +29,35 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     case TString | TArray   | TObject(_) => ARETURN
   }
 
+  sealed trait Value {
+    def load:  AbstractByteCodeGenerator
+    def store: AbstractByteCodeGenerator
+    def assign(ch: CodeHandler, pushValue: => Unit): Unit = {
+      pushValue
+      ch << store
+    }
+  }
+  case class LocalVariable(val symbol: VariableSymbol, val id: Int) extends Value {
+    override def load = symbol.tpe match {
+      case TInt    | TBoolean              => ILoad(id)
+      case TString | TArray   | TObject(_) => ALoad(id)
+    }
+    override def store = symbol.tpe match {
+      case TInt    | TBoolean              => IStore(id)
+      case TString | TArray   | TObject(_) => AStore(id)
+    }
+  }
+  case class Field(val clazz: ClassSymbol, val varSym: VariableSymbol) extends Value {
+    override def load  = GetField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
+    override def store = PutField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
+    private def loadObject = ALoad(0)
+    override def assign(ch: CodeHandler, pushValue: => Unit) = {
+      ch << loadObject
+      pushValue
+      ch << store
+    }
+  }
+
   def run(ctx: Context)(prog: Option[Program]): Unit = {
     import ctx.reporter._
 
