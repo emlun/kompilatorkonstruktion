@@ -17,7 +17,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       case TArray        => "[I"
       case TInt          => "I"
       case TBoolean      => "Z"
-      case id@TObject(_) => "L" + id.toString + ";"
+      case TObject(clazz) => "L" + getJvmClassName(clazz) + ";"
     }
     //[warn] It would fail on the following inputs: TError, TUnresolved, TUntyped
   }
