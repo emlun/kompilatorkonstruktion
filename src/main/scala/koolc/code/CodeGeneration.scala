@@ -18,6 +18,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       case TInt          => "I"
       case TBoolean      => "Z"
       case TObject(clazz) => "L" + getJvmClassName(clazz) + ";"
+      case TError | TUnresolved | TUntyped => ???
     }
     //[warn] It would fail on the following inputs: TError, TUnresolved, TUntyped
   }
@@ -25,8 +26,9 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
   def getJvmClassName(classSymbol: ClassSymbol): String = classSymbol.name
 
   private def returnInstruction(method: MethodDecl): ByteCode = method.retType.getType match {
-    case TInt    | TBoolean              => IRETURN
-    case TString | TArray   | TObject(_) => ARETURN
+    case TInt    | TBoolean                 => IRETURN
+    case TString | TArray      | TObject(_) => ARETURN
+    case TError  | TUnresolved | TUntyped   => ???
   }
 
   sealed trait Value {
@@ -39,12 +41,14 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
   }
   case class LocalVariable(val symbol: VariableSymbol, val id: Int) extends Value {
     override def load = symbol.tpe match {
-      case TInt    | TBoolean              => ILoad(id)
-      case TString | TArray   | TObject(_) => ALoad(id)
+      case TInt    | TBoolean                 => ILoad(id)
+      case TString | TArray      | TObject(_) => ALoad(id)
+      case TError  | TUnresolved | TUntyped   => ???
     }
     override def store = symbol.tpe match {
-      case TInt    | TBoolean              => IStore(id)
-      case TString | TArray   | TObject(_) => AStore(id)
+      case TInt    | TBoolean                 => IStore(id)
+      case TString | TArray      | TObject(_) => AStore(id)
+      case TError  | TUnresolved | TUntyped   => ???
     }
   }
   case class Field(val clazz: ClassSymbol, val varSym: VariableSymbol) extends Value {
