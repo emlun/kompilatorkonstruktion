@@ -11,19 +11,19 @@ import utils._
 
 object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
+  private def typeToString(tpe: Type): String = {
+    tpe match{
+      case TString => "Ljava/lang/String;"
+      case TArray => "[I"
+      case TInt => "I"
+      case TBoolean => "Z"
+      case id@TObject(_) => "L" + id.toString + ";"
+    }
+    //[warn] It would fail on the following inputs: TError, TUnresolved, TUntyped
+  }
+
   def run(ctx: Context)(prog: Option[Program]): Unit = {
     import ctx.reporter._
-
-    def typeToString(tpe: Type): String = {
-      tpe match{
-        case TString => "Ljava/lang/String;"
-        case TArray => "[I"
-        case TInt => "I"
-        case TBoolean => "Z"
-        case id@TObject(_) => "L" + id.toString + ";"
-      }
-      //[warn] It would fail on the following inputs: TError, TUnresolved, TUntyped
-    }
 
     /** Writes the proper .class file in a given directory. An empty string for dir is equivalent to "./". */
     def generateClassFile(sourceName: String, ct: ClassDecl, dir: String): Unit = {
