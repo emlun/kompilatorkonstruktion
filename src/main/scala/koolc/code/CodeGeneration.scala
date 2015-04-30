@@ -76,8 +76,8 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       methSym.members foreach {value => locals += (value._1 -> ch.getFreshVar)}
 
 
-      mt.stats foreach {compileStat(ch,_,Some(methSym,locals))}
-      compileExpr(ch,mt.retExpr,Some(methSym,locals))
+      mt.stats foreach {compileStat(ch,_, locals.get _)}
+      compileExpr(ch,mt.retExpr, locals.get _)
       ch << IRETURN
 
       // TODO: Emit code
@@ -89,7 +89,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
 
-      stmts foreach {compileStat(ch,_,None)}
+      stmts foreach {compileStat(ch,_, (_ => None))}
       // TODO: Emit code
       ch << RETURN
       println(">>>>> " + "main")
@@ -124,19 +124,19 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
   }
 
-  def compileStat(ch: CodeHandler, stmt: StatTree, lookup: Option[(MethodSymbol, Map[String,Int])]): Unit = {
+  def compileStat(ch: CodeHandler, stmt: StatTree, lookupVar: (String => Option[Int])): Unit = {
     stmt match {
-      case Block(stats) => stats foreach {compileStat(ch,_,lookup)}
+      case Block(stats) => stats foreach {compileStat(ch,_,lookupVar)}
       case If(expr, thn, els) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch,expr,lookup)
+        compileExpr(ch,expr,lookupVar)
         ch<<IfEq(nElse)
-        compileStat(ch,thn,lookup)
+        compileStat(ch,thn,lookupVar)
         ch<<Goto(nAfter)
         ch<<Label(nElse)
         els match {
-          case Some(stat) => compileStat(ch,stat,lookup)
+          case Some(stat) => compileStat(ch,stat,lookupVar)
           case None =>
         }
         ch<<Label(nAfter)
@@ -144,26 +144,26 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       case While(expr, stat) =>
       case Println(expr) => {
         ch << GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-        compileExpr(ch,expr,lookup)
+        compileExpr(ch,expr,lookupVar)
         ch << InvokeVirtual("java/io/PrintStream", "println", "(I)V")
       }
       case Assign(id, expr) => {
-        compileExpr(ch,expr,lookup)
-        ch << IStore((lookup.get._2 get id.value).get)
+        compileExpr(ch,expr,lookupVar)
+        ch << IStore(lookupVar(id.value).get)
       }
       case ArrayAssign(id, index, expr) =>
     }
   }
 
 
-  def compileExpr(ch: CodeHandler, expr: ExprTree, lookup: Option[(MethodSymbol, Map[String,Int])]): Unit = {
+  def compileExpr(ch: CodeHandler, expr: ExprTree, lookupVar: (String => Option[Int])): Unit = {
     expr match {
       case And(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch,lhs,lookup)
+        compileExpr(ch,lhs,lookupVar)
         ch<<IfEq(nElse)
-        compileExpr(ch,rhs,lookup)
+        compileExpr(ch,rhs,lookupVar)
         ch<<Goto(nAfter)
         ch<<Label(nElse)
         ch<<ICONST_0
@@ -172,33 +172,33 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       case Or(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch,lhs,lookup)
+        compileExpr(ch,lhs,lookupVar)
         ch<<IfEq(nElse)
         ch<<ICONST_1
         ch<<Goto(nAfter)
         ch<<Label(nElse)
-        compileExpr(ch,rhs,lookup)
+        compileExpr(ch,rhs,lookupVar)
         ch<<Label(nAfter)
       }
       case Plus(lhs, rhs) => {
-        compileExpr(ch,lhs,lookup)
-        compileExpr(ch,rhs,lookup)
+        compileExpr(ch,lhs,lookupVar)
+        compileExpr(ch,rhs,lookupVar)
         ch<<IADD}
       case Minus(lhs, rhs) => {
-        compileExpr(ch,lhs,lookup)
-        compileExpr(ch,rhs,lookup)
+        compileExpr(ch,lhs,lookupVar)
+        compileExpr(ch,rhs,lookupVar)
         ch<<ISUB}
       case Times(lhs, rhs) => {
-        compileExpr(ch,lhs,lookup)
-        compileExpr(ch,rhs,lookup)
+        compileExpr(ch,lhs,lookupVar)
+        compileExpr(ch,rhs,lookupVar)
         ch<<IMUL}
       case Div(lhs, rhs) => {
-        compileExpr(ch,lhs,lookup)
-        compileExpr(ch,rhs,lookup)
+        compileExpr(ch,lhs,lookupVar)
+        compileExpr(ch,rhs,lookupVar)
         ch<<IDIV}
       case LessThan(lhs, rhs) => {
-        compileExpr(ch,lhs,lookup)
-        compileExpr(ch,rhs,lookup)
+        compileExpr(ch,lhs,lookupVar)
+        compileExpr(ch,rhs,lookupVar)
         val nTrue = ch.getFreshLabel("true")
         val nAfter = ch.getFreshLabel("after")
         ch<<If_ICmpLt(nTrue)
@@ -207,8 +207,8 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
         ch<<Label(nTrue)<<ICONST_1<<Label(nAfter)
         }
       case Equals(lhs, rhs) => {
-        compileExpr(ch,lhs,lookup)
-        compileExpr(ch,rhs,lookup)
+        compileExpr(ch,lhs,lookupVar)
+        compileExpr(ch,rhs,lookupVar)
         val nTrue = ch.getFreshLabel("true")
         val nAfter = ch.getFreshLabel("after")
         ch<<If_ICmpEq(nTrue)
@@ -234,7 +234,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
       case True()  => ch << ICONST_1
       case False()  => ch << ICONST_0
-      case Identifier(value) => ch << ILoad((lookup.get._2 get value).get)
+      case Identifier(value) => ch << ILoad(lookupVar(value).get)
 
       case This() =>
       case NewIntArray(size)  =>
