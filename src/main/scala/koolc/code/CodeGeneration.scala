@@ -12,11 +12,11 @@ import utils._
 object CodeGeneration extends Pipeline[ Option[Program], Unit] {
 
   private def typeToString(tpe: Type): String = {
-    tpe match{
-      case TString => "Ljava/lang/String;"
-      case TArray => "[I"
-      case TInt => "I"
-      case TBoolean => "Z"
+    tpe match {
+      case TString       => "Ljava/lang/String;"
+      case TArray        => "[I"
+      case TInt          => "I"
+      case TBoolean      => "Z"
       case id@TObject(_) => "L" + id.toString + ";"
     }
     //[warn] It would fail on the following inputs: TError, TUnresolved, TUntyped
