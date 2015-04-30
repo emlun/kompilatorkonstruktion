@@ -34,10 +34,8 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
   sealed trait Value {
     def load:  AbstractByteCodeGenerator
     def store: AbstractByteCodeGenerator
-    def assign(ch: CodeHandler, pushValue: => Unit): Unit = {
-      pushValue
-      ch << store
-    }
+    def assign(prepareValueInstructions: InstructionSequence): InstructionSequence =
+      prepareValueInstructions <<: store <<: InstructionSequence.empty
   }
   case class LocalVariable(val symbol: VariableSymbol, val id: Int) extends Value {
     override def load = symbol.tpe match {
@@ -55,11 +53,8 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     override def load  = GetField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
     override def store = PutField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
     private def loadObject = ALoad(0)
-    override def assign(ch: CodeHandler, pushValue: => Unit) = {
-      ch << loadObject
-      pushValue
-      ch << store
-    }
+    override def assign(prepareValueInstructions: InstructionSequence) =
+      loadObject <<: prepareValueInstructions <<: store <<: InstructionSequence.empty
   }
 
   case class InstructionSequence(
@@ -140,7 +135,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
 
       mt.stats foreach { compileStat(ch, _, lookupVar _) }
-      compileExpr(ch, mt.retExpr, lookupVar _)
+      compileExpr(ch, mt.retExpr, lookupVar _).dumpInstructions(ch)
 
       ch << returnInstruction(mt)
 
@@ -192,7 +187,7 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       case If(expr, thn, els) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch, expr, lookupVar)
+        compileExpr(ch, expr, lookupVar).dumpInstructions(ch)
         ch << IfEq(nElse)
         compileStat(ch, thn, lookupVar)
         ch << Goto(nAfter)
@@ -206,83 +201,91 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       case While(expr, stat) =>
       case Println(expr) => {
         ch << GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-        compileExpr(ch, expr, lookupVar)
+        compileExpr(ch, expr, lookupVar).dumpInstructions(ch)
         ch << InvokeVirtual("java/io/PrintStream", "println", "(I)V")
       }
       case Assign(id, expr) => {
-        lookupVar(id.value).assign(ch, { compileExpr(ch, expr, lookupVar) })
+        lookupVar(id.value).assign(compileExpr(ch, expr, lookupVar)).dumpInstructions(ch)
       }
       case ArrayAssign(id, index, expr) =>
     }
   }
 
 
-  def compileExpr(ch: CodeHandler, expr: ExprTree, lookupVar: (String => Value)): Unit = {
+  def compileExpr(ch: CodeHandler, expr: ExprTree, lookupVar: (String => Value)): InstructionSequence = {
     expr match {
       case And(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch, lhs, lookupVar)
-        ch << IfEq(nElse)
-        compileExpr(ch, rhs, lookupVar)
-        ch << Goto(nAfter)
-        ch << Label(nElse)
-        ch << ICONST_0
-        ch << Label(nAfter)
+        compileExpr(ch, lhs, lookupVar) <<:
+          IfEq(nElse) <<:
+          compileExpr(ch, rhs, lookupVar) <<:
+          Goto(nAfter) <<:
+          Label(nElse) <<:
+          ICONST_0 <<:
+          Label(nAfter) <<:
+          InstructionSequence.empty
       }
       case Or(lhs, rhs) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch, lhs, lookupVar)
-        ch << IfEq(nElse)
-        ch << ICONST_1
-        ch << Goto(nAfter)
-        ch << Label(nElse)
-        compileExpr(ch, rhs, lookupVar)
-        ch << Label(nAfter)
+        compileExpr(ch, lhs, lookupVar) <<:
+          IfEq(nElse) <<:
+          ICONST_1 <<:
+          Goto(nAfter) <<:
+          Label(nElse) <<:
+          compileExpr(ch, rhs, lookupVar) <<:
+          Label(nAfter) <<:
+          InstructionSequence.empty
       }
       case Plus(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar)
-        compileExpr(ch, rhs, lookupVar)
-        ch << IADD
+        compileExpr(ch, lhs, lookupVar) <<:
+          compileExpr(ch, rhs, lookupVar) <<:
+          IADD <<:
+          InstructionSequence.empty
       }
       case Minus(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar)
-        compileExpr(ch, rhs, lookupVar)
-        ch << ISUB
+        compileExpr(ch, lhs, lookupVar) <<:
+          compileExpr(ch, rhs, lookupVar) <<:
+          ISUB <<:
+          InstructionSequence.empty
       }
       case Times(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar)
-        compileExpr(ch, rhs, lookupVar)
-        ch << IMUL
+        compileExpr(ch, lhs, lookupVar) <<:
+          compileExpr(ch, rhs, lookupVar) <<:
+          IMUL <<:
+          InstructionSequence.empty
       }
       case Div(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar)
-        compileExpr(ch, rhs, lookupVar)
-        ch << IDIV
+        compileExpr(ch, lhs, lookupVar) <<:
+          compileExpr(ch, rhs, lookupVar) <<:
+          IDIV <<:
+          InstructionSequence.empty
       }
       case LessThan(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar)
-        compileExpr(ch, rhs, lookupVar)
         val nTrue = ch.getFreshLabel("true")
         val nAfter = ch.getFreshLabel("after")
-        ch << If_ICmpLt(nTrue)
-        ch << ICONST_0
-        ch << Goto(nAfter)
-        ch << Label(nTrue) << ICONST_1 << Label(nAfter)
+        compileExpr(ch, lhs, lookupVar) <<:
+          compileExpr(ch, rhs, lookupVar) <<:
+          If_ICmpLt(nTrue) <<:
+          ICONST_0 <<:
+          Goto(nAfter) <<:
+          Label(nTrue) <<: ICONST_1 <<: Label(nAfter) <<:
+          InstructionSequence.empty
       }
       case Equals(lhs, rhs) => {
-        compileExpr(ch, lhs, lookupVar)
-        compileExpr(ch, rhs, lookupVar)
         val nTrue = ch.getFreshLabel("true")
         val nAfter = ch.getFreshLabel("after")
-        ch << If_ICmpEq(nTrue)
-        ch << ICONST_0
-        ch << Goto(nAfter)
-        ch << Label(nTrue) << ICONST_1 << Label(nAfter)
+        compileExpr(ch, lhs, lookupVar) <<:
+          compileExpr(ch, rhs, lookupVar) <<:
+          If_ICmpEq(nTrue) <<:
+          ICONST_0 <<:
+          Goto(nAfter) <<:
+          Label(nTrue) <<: ICONST_1 <<: Label(nAfter) <<:
+          InstructionSequence.empty
       }
-      case ArrayRead(arr, index) => {}
-      case ArrayLength(arr) => {}
+      case ArrayRead(arr, index) => InstructionSequence.empty
+      case ArrayLength(arr) => InstructionSequence.empty
       case MethodCall(obj, meth, args) => {
         obj match {
           case New(tpe) => tpe.symbol match {
@@ -293,19 +296,23 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
           case _ =>
         }
         println(expr)
+        ???
       }
 
-      case IntLit(value)     => ch << Ldc(value)
-      case StringLit(value)  => {}
-      case True()            => ch << ICONST_1
-      case False()           => ch << ICONST_0
-      case Identifier(value) => ch << lookupVar(value).load
-      case This()            =>
+      case IntLit(value)     => Ldc(value) <<: InstructionSequence.empty
+      case StringLit(value)  => ???
+      case True()            => ICONST_1 <<: InstructionSequence.empty
+      case False()           => ICONST_0 <<: InstructionSequence.empty
+      case Identifier(value) => lookupVar(value).load <<: InstructionSequence.empty
+      case This()            => ???
 
-      case NewIntArray(size) =>
-      case New(tpe)          => println("AAAAAAAAAAAAA>>>>>" + tpe)
+      case NewIntArray(size) => ???
+      case New(tpe)          => {
+        println("AAAAAAAAAAAAA>>>>>" + tpe)
+        ???
+      }
 
-      case Not(expr)  =>
+      case Not(expr)  => ???
 
     }
   }
