@@ -92,13 +92,6 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
       classFile.writeToFile("./"+ct.id.value+".class")
     }
 
-    def getField(cs: ClassSymbol, field: String):cafebabe.AbstractByteCodes.AbstractByteCodeGenerator ={
-      cs.members.get(field) match {
-        case Some(vari) => GetField( cs.name, field, typeToString(vari.tpe) )
-        case None => getField(cs.parent.get, field)
-      }
-    }
-
     // a mapping from variable symbols to positions in the local variables
     // of the stack frame
     def generateMethodCode(ch: CodeHandler, mt: MethodDecl): Unit = {
