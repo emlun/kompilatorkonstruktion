@@ -9,7 +9,7 @@ import AbstractByteCodes.{New => _, _}
 import ByteCodes._
 import utils._
 
-object CodeGeneration extends Pipeline[ Option[Program], Unit] {
+object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
   private def typeToString(tpe: Type): String = {
     tpe match {
