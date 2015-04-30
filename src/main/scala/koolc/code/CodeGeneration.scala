@@ -58,6 +58,11 @@ object CodeGeneration extends Pipeline[ Option[Program], Unit] {
     }
   }
 
+  def getField(clazz: ClassSymbol, name: String): Field =
+    clazz.members.get(name) map { Field(clazz, _) } getOrElse {
+      (clazz.parent map { getField(_, name) }).get
+    }
+
   def run(ctx: Context)(prog: Option[Program]): Unit = {
     import ctx.reporter._
 
