@@ -48,7 +48,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     }
     override def store = symbol.tpe match {
       case TInt    | TBoolean                 => IStore(id)
-      case TString | TArray      | TObject(_) => AStore(id)
+      case TString | TObject(_) => AStore(id)
+      case TArray => ALoad(id) <<: Ldc(id) <<:  IASTORE <<: InstructionSequence.empty
       case TError  | TUnresolved | TUntyped   => ???
     }
   }
@@ -213,7 +214,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case Assign(id, expr) => lookupVar(id.value).assign(compileExpr(makeLabel, lookupVar)(expr))
-      case ArrayAssign(id, index, expr) => ???
+      case ArrayAssign(id, index, expr) => lookupVar(id.value).assign(compileExpr(makeLabel, lookupVar)(index)
+      <<: compileExpr(makeLabel, lookupVar)(expr) <<: InstructionSequence.empty)
     }
   }
 
@@ -291,8 +293,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           Label(nTrue) <<: ICONST_1 <<: Label(nAfter) <<:
           InstructionSequence.empty
       }
-      case ArrayRead(arr, index) => InstructionSequence.empty
-      case ArrayLength(arr) => InstructionSequence.empty
+      case ArrayRead(arr, index) => recurse(arr) <<: recurse(index) <<: IALOAD <<: InstructionSequence.empty
+      case ArrayLength(arr) => recurse(arr) <<: ARRAYLENGTH <<: InstructionSequence.empty
       case MethodCall(obj, meth, args) => {
         val prepareArgsInstructions = (args map recurse).foldRight(InstructionSequence.empty)(_ <<: _)
         val prepareObjInstructions = recurse(obj)
@@ -315,7 +317,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case Identifier(value) => lookupVar(value).load <<: InstructionSequence.empty
       case This()            => ALoad(0)              <<: InstructionSequence.empty
 
-      case NewIntArray(size) => ???
+      case NewIntArray(size) => recurse(size) <<: NewArray(10) <<: InstructionSequence.empty
       case New(tpe)          => DefaultNew( tpe.value ) <<: InstructionSequence.empty
 
       case Not(expr)  => ???
