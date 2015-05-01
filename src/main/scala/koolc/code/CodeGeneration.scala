@@ -135,7 +135,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
 
       mt.stats foreach { compileStat(ch, _, lookupVar _).dumpInstructions(ch) }
-      compileExpr(ch, lookupVar _)(mt.retExpr).dumpInstructions(ch)
+      compileExpr(ch.getFreshLabel _, lookupVar _)(mt.retExpr).dumpInstructions(ch)
 
       ch << returnInstruction(mt)
 
@@ -188,7 +188,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case If(expr, thn, els) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
-        compileExpr(ch, lookupVar)(expr) <<:
+        compileExpr(ch.getFreshLabel _, lookupVar)(expr) <<:
           IfNe(nElse) <<:
           recurse(thn) <<:
           Goto(nAfter) <<:
@@ -200,22 +200,22 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case While(expr, stat) => ???
       case Println(expr) => {
         GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;") <<:
-          compileExpr(ch, lookupVar)(expr) <<:
+          compileExpr(ch.getFreshLabel _, lookupVar)(expr) <<:
           InvokeVirtual("java/io/PrintStream", "println", "(I)V") <<:
           InstructionSequence.empty
       }
-      case Assign(id, expr) => lookupVar(id.value).assign(compileExpr(ch, lookupVar)(expr))
+      case Assign(id, expr) => lookupVar(id.value).assign(compileExpr(ch.getFreshLabel _, lookupVar)(expr))
       case ArrayAssign(id, index, expr) => ???
     }
   }
 
 
-  def compileExpr(ch: CodeHandler, lookupVar: (String => Value))(expr: ExprTree): InstructionSequence = {
-    val recurse: (ExprTree => InstructionSequence) = compileExpr(ch, lookupVar)
+  def compileExpr(makeLabel: (String => String), lookupVar: (String => Value))(expr: ExprTree): InstructionSequence = {
+    val recurse: (ExprTree => InstructionSequence) = compileExpr(makeLabel, lookupVar)
     expr match {
       case And(lhs, rhs) => {
-        val nAfter = ch.getFreshLabel("after")
-        val nElse = ch.getFreshLabel("else")
+        val nAfter = makeLabel("after")
+        val nElse = makeLabel("else")
         recurse(lhs) <<:
           IfEq(nElse) <<:
           recurse(rhs) <<:
@@ -226,8 +226,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case Or(lhs, rhs) => {
-        val nAfter = ch.getFreshLabel("after")
-        val nElse = ch.getFreshLabel("else")
+        val nAfter = makeLabel("after")
+        val nElse = makeLabel("else")
         recurse(lhs) <<:
           IfEq(nElse) <<:
           ICONST_1 <<:
@@ -262,8 +262,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case LessThan(lhs, rhs) => {
-        val nTrue = ch.getFreshLabel("true")
-        val nAfter = ch.getFreshLabel("after")
+        val nTrue = makeLabel("true")
+        val nAfter = makeLabel("after")
         recurse(lhs) <<:
           recurse(rhs) <<:
           If_ICmpLt(nTrue) <<:
@@ -273,8 +273,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case Equals(lhs, rhs) => {
-        val nTrue = ch.getFreshLabel("true")
-        val nAfter = ch.getFreshLabel("after")
+        val nTrue = makeLabel("true")
+        val nAfter = makeLabel("after")
         recurse(lhs) <<:
           recurse(rhs) <<:
           If_ICmpEq(nTrue) <<:
