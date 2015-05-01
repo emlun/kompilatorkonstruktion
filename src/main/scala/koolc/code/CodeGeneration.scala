@@ -207,7 +207,18 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           Label(nAfter) <<:
           InstructionSequence.empty
       }
-      case While(expr, stat) => ???
+      case While(expr, stat) => {
+        val nStart = makeLabel("start")
+        val nAfter = makeLabel("after")
+        Label(nStart)<<:
+        compileExpr(makeLabel, lookupVar)(expr)<<:
+        IfEq(nAfter)<<:
+        recurse(stat)<<:
+        Goto(nStart)<<:
+        Label(nAfter)<<:
+        InstructionSequence.empty
+
+      }
       case Println(expr) => {
         println(typeToString(expr.getType))
         GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;") <<:
@@ -344,7 +355,18 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case NewIntArray(size) => recurse(size) <<: NewArray(10) <<: InstructionSequence.empty
       case New(tpe)          => DefaultNew( tpe.value ) <<: InstructionSequence.empty
 
-      case Not(expr)  => ???
+      case Not(expr)  => {
+        val nAfter = makeLabel("after")
+        val nFalse = makeLabel("false")
+        recurse(expr) <<:
+          IfEq(nFalse) <<:
+          ICONST_0 <<:
+          Goto(nAfter) <<:
+          Label(nFalse) <<:
+          ICONST_1 <<:
+          Label(nAfter) <<:
+          InstructionSequence.empty
+      }
 
     }
   }
