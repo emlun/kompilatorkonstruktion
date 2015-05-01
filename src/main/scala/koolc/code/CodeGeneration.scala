@@ -134,7 +134,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       def lookupVar(name: String): Value =
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
 
-      mt.stats foreach { compileStat(ch, _, lookupVar _).dumpInstructions(ch) }
+      mt.stats foreach { compileStat(ch.getFreshLabel _, _, lookupVar _).dumpInstructions(ch) }
       compileExpr(ch.getFreshLabel _, lookupVar _)(mt.retExpr).dumpInstructions(ch)
 
       ch << returnInstruction(mt)
@@ -148,7 +148,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
 
-      stmts foreach { compileStat(ch, _, (_ => ???)).dumpInstructions(ch) }
+      stmts foreach { compileStat(ch.getFreshLabel _, _, (_ => ???)).dumpInstructions(ch) }
       // TODO: Emit code
       ch << RETURN
       println(">>>>> " + "main")
@@ -181,14 +181,14 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     classFile.writeToFile("./" + main.id.value + ".class")
   }
 
-  def compileStat(ch: CodeHandler, stmt: StatTree, lookupVar: (String => Value)): InstructionSequence = {
-    val recurse: (StatTree => InstructionSequence) = compileStat(ch, _, lookupVar)
+  def compileStat(makeLabel: (String => String), stmt: StatTree, lookupVar: (String => Value)): InstructionSequence = {
+    val recurse: (StatTree => InstructionSequence) = compileStat(makeLabel, _, lookupVar)
     stmt match {
       case Block(stats) => (stats map recurse).foldRight(InstructionSequence.empty)(_ <<: _)
       case If(expr, thn, els) => {
-        val nAfter = ch.getFreshLabel("after")
-        val nElse = ch.getFreshLabel("else")
-        compileExpr(ch.getFreshLabel _, lookupVar)(expr) <<:
+        val nAfter = makeLabel("after")
+        val nElse = makeLabel("else")
+        compileExpr(makeLabel, lookupVar)(expr) <<:
           IfNe(nElse) <<:
           recurse(thn) <<:
           Goto(nAfter) <<:
@@ -200,11 +200,11 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case While(expr, stat) => ???
       case Println(expr) => {
         GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;") <<:
-          compileExpr(ch.getFreshLabel _, lookupVar)(expr) <<:
+          compileExpr(makeLabel, lookupVar)(expr) <<:
           InvokeVirtual("java/io/PrintStream", "println", "(I)V") <<:
           InstructionSequence.empty
       }
-      case Assign(id, expr) => lookupVar(id.value).assign(compileExpr(ch.getFreshLabel _, lookupVar)(expr))
+      case Assign(id, expr) => lookupVar(id.value).assign(compileExpr(makeLabel, lookupVar)(expr))
       case ArrayAssign(id, index, expr) => ???
     }
   }
