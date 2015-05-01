@@ -216,8 +216,12 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case Assign(id, expr) => lookupVar(id.value).assign(compileExpr(makeLabel, lookupVar)(expr))
-      case ArrayAssign(id, index, expr) => lookupVar(id.value).assign(compileExpr(makeLabel, lookupVar)(index)
-      <<: compileExpr(makeLabel, lookupVar)(expr) <<: InstructionSequence.empty)
+      case ArrayAssign(id, index, expr) =>
+        lookupVar(id.value).load <<:
+        compileExpr(makeLabel, lookupVar)(index) <<:
+        compileExpr(makeLabel, lookupVar)(expr) <<:
+        IASTORE <<:
+        InstructionSequence.empty
     }
   }
 
