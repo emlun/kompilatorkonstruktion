@@ -134,7 +134,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       def lookupVar(name: String): Value =
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
 
-      mt.stats foreach { compileStat(ch.getFreshLabel _, _, lookupVar _).dumpInstructions(ch) }
+      mt.stats map compileStat(ch.getFreshLabel _, lookupVar _) foreach { _.dumpInstructions(ch) }
       compileExpr(ch.getFreshLabel _, lookupVar _)(mt.retExpr).dumpInstructions(ch)
 
       ch << returnInstruction(mt)
@@ -148,7 +148,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
 
-      stmts foreach { compileStat(ch.getFreshLabel _, _, (_ => ???)).dumpInstructions(ch) }
+      stmts map compileStat(ch.getFreshLabel _, (_ => ???)) foreach { _.dumpInstructions(ch) }
       // TODO: Emit code
       ch << RETURN
       println(">>>>> " + "main")
@@ -181,8 +181,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     classFile.writeToFile("./" + main.id.value + ".class")
   }
 
-  def compileStat(makeLabel: (String => String), stmt: StatTree, lookupVar: (String => Value)): InstructionSequence = {
-    val recurse: (StatTree => InstructionSequence) = compileStat(makeLabel, _, lookupVar)
+  def compileStat(makeLabel: (String => String), lookupVar: (String => Value))(stmt: StatTree): InstructionSequence = {
+    val recurse: (StatTree => InstructionSequence) = compileStat(makeLabel, lookupVar)
     stmt match {
       case Block(stats) => (stats map recurse).foldRight(InstructionSequence.empty)(_ <<: _)
       case If(expr, thn, els) => {
