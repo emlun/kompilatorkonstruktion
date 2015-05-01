@@ -182,18 +182,19 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
   }
 
   def compileStat(ch: CodeHandler, stmt: StatTree, lookupVar: (String => Value)): Unit = {
+    val recurse: (StatTree => Unit) = compileStat(ch, _, lookupVar)
     stmt match {
-      case Block(stats) => stats foreach {compileStat(ch, _, lookupVar)}
+      case Block(stats) => stats foreach recurse
       case If(expr, thn, els) => {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
         compileExpr(ch, lookupVar)(expr).dumpInstructions(ch)
         ch << IfEq(nElse)
-        compileStat(ch, thn, lookupVar)
+        recurse(thn)
         ch << Goto(nAfter)
         ch << Label(nElse)
         els match {
-          case Some(stat) => compileStat(ch, stat, lookupVar)
+          case Some(stat) => recurse(stat)
           case None =>
         }
         ch << Label(nAfter)
