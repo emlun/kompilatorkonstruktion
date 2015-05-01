@@ -20,7 +20,6 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case TObject(clazz) => "L" + getJvmClassName(clazz) + ";"
       case TError | TUnresolved | TUntyped => ???
     }
-    //[warn] It would fail on the following inputs: TError, TUnresolved, TUntyped
   }
 
   def getJvmClassName(classSymbol: ClassSymbol): String = classSymbol.name
@@ -149,7 +148,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       println(">>>>> " + mt.id.value)
       ch.print
       println(">>>>> " + mt.id.value)
-      //ch.freeze
+      ch.freeze
     }
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
@@ -161,7 +160,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
       println(">>>>> " + "main")
       ch.print
-      //ch.freeze
+      ch.freeze
     }
 
     val outDir = ctx.outDir.map(_.getPath + "/").getOrElse("./")
@@ -197,7 +196,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
         val nAfter = makeLabel("after")
         val nElse = makeLabel("else")
         compileExpr(makeLabel, lookupVar)(expr) <<:
-          IfNe(nElse) <<:
+          IfEq(nElse) <<:
           recurse(thn) <<:
           Goto(nAfter) <<:
           Label(nElse) <<:
@@ -207,9 +206,10 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       }
       case While(expr, stat) => ???
       case Println(expr) => {
+        println(typeToString(expr.getType))
         GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;") <<:
           compileExpr(makeLabel, lookupVar)(expr) <<:
-          InvokeVirtual("java/io/PrintStream", "println", "(I)V") <<:
+          InvokeVirtual("java/io/PrintStream", "println", "("+typeToString(expr.getType)+")V") <<:
           InstructionSequence.empty
       }
       case Assign(id, expr) => lookupVar(id.value).assign(compileExpr(makeLabel, lookupVar)(expr))
@@ -316,10 +316,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case This()            => ALoad(0)              <<: InstructionSequence.empty
 
       case NewIntArray(size) => ???
-      case New(tpe)          => {
-        println("AAAAAAAAAAAAA>>>>>" + tpe)
-        ???
-      }
+      case New(tpe)          => DefaultNew( tpe.value ) <<: InstructionSequence.empty
 
       case Not(expr)  => ???
 
