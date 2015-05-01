@@ -148,6 +148,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         }
       }
 
+      expr.setType(tpe)
+
       // Check result and return a valid type in case of error
       if (expected.isEmpty) {
         tpe
