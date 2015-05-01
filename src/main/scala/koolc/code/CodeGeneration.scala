@@ -60,7 +60,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
   case class InstructionSequence(
       val head: Option[Either[AbstractByteCode, AbstractByteCodeGenerator]],
       val tail: Option[InstructionSequence]
-    ) {
+    ) extends AbstractByteCodeGenerator {
     def <<:(h: AbstractByteCode) = InstructionSequence(Some(Left(h)), Some(this))
     def <<:(h: AbstractByteCodeGenerator) = InstructionSequence(Some(Right(h)), Some(this))
     def <<:(h: Either[AbstractByteCode, AbstractByteCodeGenerator]) = InstructionSequence(Some(h), Some(this))
@@ -69,16 +69,18 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case InstructionSequence(Some(prehead), None)          => prehead <<: this
       case InstructionSequence(None, None)                   => this
     }
-    def dumpInstructions(ch: CodeHandler): Unit =
+    override def apply(ch: CodeHandler): CodeHandler = {
       head map { wrapper =>
         wrapper match {
           case Left(abytecode)  => ch << abytecode
           case Right(generator) => ch << generator
         }
         tail map { tailSequence =>
-          tailSequence.dumpInstructions(ch)
+          ch << tailSequence
         }
       }
+      ch
+    }
   }
   object InstructionSequence {
     def empty = InstructionSequence(None, None)
@@ -134,8 +136,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       def lookupVar(name: String): Value =
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
 
-      mt.stats map compileStat(ch.getFreshLabel _, lookupVar _) foreach { _.dumpInstructions(ch) }
-      compileExpr(ch.getFreshLabel _, lookupVar _)(mt.retExpr).dumpInstructions(ch)
+      mt.stats map compileStat(ch.getFreshLabel _, lookupVar _) foreach { ch << _ }
+      ch << compileExpr(ch.getFreshLabel _, lookupVar _)(mt.retExpr)
 
       ch << returnInstruction(mt)
 
@@ -148,7 +150,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
 
-      stmts map compileStat(ch.getFreshLabel _, (_ => ???)) foreach { _.dumpInstructions(ch) }
+      stmts map compileStat(ch.getFreshLabel _, (_ => ???)) foreach { ch << _ }
       // TODO: Emit code
       ch << RETURN
       println(">>>>> " + "main")
