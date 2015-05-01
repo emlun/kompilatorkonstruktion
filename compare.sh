@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEST_FILES=src/test/resources/testprograms/lab3/valid/*.kool
+TEST_FILES="src/test/resources/testprograms/lab3/valid/*.kool src/test/resources/inherited-fields.kool"
 OUR_CLASSPATH="build/classes/main:lib/cafebabe_2.11-1.2.jar:"
 OUR_OUT_CLASSES="build/tmp/our/"
 OUR_OUT_TXT="build/tmp/our.txt"
