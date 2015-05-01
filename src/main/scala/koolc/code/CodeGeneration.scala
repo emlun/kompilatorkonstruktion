@@ -53,7 +53,10 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     }
   }
   case class Field(val clazz: ClassSymbol, val varSym: VariableSymbol) extends Value {
-    override def load  = GetField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
+    override def load  =
+      loadObject <<:
+      GetField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe)) <<:
+      InstructionSequence.empty
     override def store = PutField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
     private def loadObject = ALoad(0)
     override def assign(prepareValueInstructions: InstructionSequence) =
