@@ -54,7 +54,10 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     }
   }
   case class Field(val clazz: ClassSymbol, val varSym: VariableSymbol) extends Value {
-    override def load  = GetField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
+    override def load  =
+      loadObject <<:
+      GetField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe)) <<:
+      InstructionSequence.empty
     override def store = PutField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
     private def loadObject = ALoad(0)
     override def assign(prepareValueInstructions: InstructionSequence) =
@@ -133,9 +136,9 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     // of the stack frame
     def generateMethodCode(ch: CodeHandler, mt: MethodDecl): Unit = {
       val methSym = mt.symbol
-      val variables: Map[String, LocalVariable] = (methSym.members ++ methSym.params) map {
-        case (name, sym) => (name, LocalVariable(sym, ch.getFreshVar))
-      }
+      val variables: Map[String, LocalVariable] =
+        methSym.argList.zipWithIndex.map({ case (sym, i) => (sym.name, LocalVariable(sym, i+1)) }).toMap ++
+        (methSym.members map { case (name, sym) => (name, LocalVariable(sym, ch.getFreshVar)) })
 
       def lookupVar(name: String): Value =
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
@@ -248,10 +251,28 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case Plus(lhs, rhs) => {
-        recurse(lhs) <<:
-          recurse(rhs) <<:
-          IADD <<:
-          InstructionSequence.empty
+        (lhs.getType, rhs.getType) match {
+          case (TInt, TInt) =>
+            recurse(lhs) <<:
+            recurse(rhs) <<:
+            IADD <<:
+            InstructionSequence.empty
+          case (lhsType, rhsType) => {
+              DefaultNew("java/lang/StringBuilder") <<:
+              recurse(lhs) <<:
+              InvokeVirtual(
+                "java/lang/StringBuilder", "append", "(" + typeToString(lhsType) + ")Ljava/lang/StringBuilder;"
+              ) <<:
+              recurse(rhs) <<:
+              InvokeVirtual(
+                "java/lang/StringBuilder", "append", "(" + typeToString(rhsType) + ")Ljava/lang/StringBuilder;"
+              ) <<:
+              InvokeVirtual(
+                "java/lang/StringBuilder", "toString", "()Ljava/lang/String;"
+              ) <<:
+              InstructionSequence.empty
+          }
+        }
       }
       case Minus(lhs, rhs) => {
         recurse(lhs) <<:
@@ -307,7 +328,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           meth.value,
           getMethodSignatureString(methodSym)
         )
-        prepareArgsInstructions <<: prepareObjInstructions <<: callInstruction <<: InstructionSequence.empty
+        prepareObjInstructions <<: prepareArgsInstructions <<: callInstruction <<: InstructionSequence.empty
       }
 
       case IntLit(value)     => Ldc(value)            <<: InstructionSequence.empty
