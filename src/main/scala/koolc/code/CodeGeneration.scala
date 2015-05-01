@@ -135,9 +135,9 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     // of the stack frame
     def generateMethodCode(ch: CodeHandler, mt: MethodDecl): Unit = {
       val methSym = mt.symbol
-      val variables: Map[String, LocalVariable] = (methSym.members ++ methSym.params) map {
-        case (name, sym) => (name, LocalVariable(sym, ch.getFreshVar))
-      }
+      val variables: Map[String, LocalVariable] =
+        methSym.argList.zipWithIndex.map({ case (sym, i) => (sym.name, LocalVariable(sym, i+1)) }).toMap ++
+        (methSym.members map { case (name, sym) => (name, LocalVariable(sym, ch.getFreshVar)) })
 
       def lookupVar(name: String): Value =
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
