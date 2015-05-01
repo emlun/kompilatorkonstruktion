@@ -256,12 +256,12 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
             IADD <<:
             InstructionSequence.empty
           case (lhsType, rhsType) => {
-              recurse(rhs) <<:
-              recurse(lhs) <<:
               DefaultNew("java/lang/StringBuilder") <<:
+              recurse(lhs) <<:
               InvokeVirtual(
                 "java/lang/StringBuilder", "append", "(" + typeToString(lhsType) + ")Ljava/lang/StringBuilder;"
               ) <<:
+              recurse(rhs) <<:
               InvokeVirtual(
                 "java/lang/StringBuilder", "append", "(" + typeToString(rhsType) + ")Ljava/lang/StringBuilder;"
               ) <<:
@@ -315,7 +315,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case ArrayRead(arr, index) => ???
       case ArrayLength(arr) => ???
       case MethodCall(obj, meth, args) => {
-        val prepareArgsInstructions = (args map recurse).reverse.foldRight(InstructionSequence.empty)(_ <<: _)
+        val prepareArgsInstructions = (args map recurse).foldRight(InstructionSequence.empty)(_ <<: _)
         val prepareObjInstructions = recurse(obj)
         val methodSym = meth.symbol match {
           case sym: MethodSymbol => sym
@@ -326,7 +326,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           meth.value,
           getMethodSignatureString(methodSym)
         )
-        prepareArgsInstructions <<: prepareObjInstructions <<: callInstruction <<: InstructionSequence.empty
+        prepareObjInstructions <<: prepareArgsInstructions <<: callInstruction <<: InstructionSequence.empty
       }
 
       case IntLit(value)     => Ldc(value)            <<: InstructionSequence.empty
