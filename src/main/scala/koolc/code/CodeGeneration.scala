@@ -60,7 +60,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     override def store = PutField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
     private def loadObject = ALoad(0)
     override def assign(prepareValueInstructions: InstructionSequence) =
-      prepareValueInstructions <<: loadObject <<: store <<: InstructionSequence.empty
+      loadObject <<: prepareValueInstructions <<: store <<: InstructionSequence.empty
   }
 
   case class InstructionSequence(
