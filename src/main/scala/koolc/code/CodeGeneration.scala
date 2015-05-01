@@ -294,16 +294,18 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case ArrayRead(arr, index) => InstructionSequence.empty
       case ArrayLength(arr) => InstructionSequence.empty
       case MethodCall(obj, meth, args) => {
-        obj match {
-          case New(tpe) => tpe.symbol match {
-            case id:ClassSymbol => println(id.methods)
-            case _ =>
-          }
-          case id@Identifier(value) => println(id.symbol.tpe)
-          case _ =>
+        val prepareArgsInstructions = (args map recurse).foldRight(InstructionSequence.empty)(_ <<: _)
+        val prepareObjInstructions = recurse(obj)
+        val methodSym = meth.symbol match {
+          case sym: MethodSymbol => sym
+          case _                 => ???
         }
-        println(expr)
-        ???
+        val callInstruction = InvokeVirtual(
+          getJvmClassName(methodSym.classSymbol),
+          meth.value,
+          getMethodSignatureString(methodSym)
+        )
+        prepareArgsInstructions <<: prepareObjInstructions <<: callInstruction <<: InstructionSequence.empty
       }
 
       case IntLit(value)     => Ldc(value)            <<: InstructionSequence.empty
