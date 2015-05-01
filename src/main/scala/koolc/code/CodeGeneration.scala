@@ -249,10 +249,28 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case Plus(lhs, rhs) => {
-        recurse(lhs) <<:
-          recurse(rhs) <<:
-          IADD <<:
-          InstructionSequence.empty
+        (lhs.getType, rhs.getType) match {
+          case (TInt, TInt) =>
+            recurse(lhs) <<:
+            recurse(rhs) <<:
+            IADD <<:
+            InstructionSequence.empty
+          case (lhsType, rhsType) => {
+              recurse(rhs) <<:
+              recurse(lhs) <<:
+              DefaultNew("java/lang/StringBuilder") <<:
+              InvokeVirtual(
+                "java/lang/StringBuilder", "append", "(" + typeToString(lhsType) + ")Ljava/lang/StringBuilder;"
+              ) <<:
+              InvokeVirtual(
+                "java/lang/StringBuilder", "append", "(" + typeToString(rhsType) + ")Ljava/lang/StringBuilder;"
+              ) <<:
+              InvokeVirtual(
+                "java/lang/StringBuilder", "toString", "()Ljava/lang/String;"
+              ) <<:
+              InstructionSequence.empty
+          }
+        }
       }
       case Minus(lhs, rhs) => {
         recurse(lhs) <<:
