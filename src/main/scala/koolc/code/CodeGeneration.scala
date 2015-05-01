@@ -145,9 +145,6 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       ch << compileExpr(ch.getFreshLabel _, lookupVar _)(mt.retExpr)
       ch << returnInstruction(mt)
 
-      println(">>>>> " + mt.id.value)
-      ch.print
-      println(">>>>> " + mt.id.value)
       ch.freeze
     }
 
@@ -157,8 +154,6 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
             .foldRight(InstructionSequence.empty)(_ <<: _)
       ch << RETURN
 
-      println(">>>>> " + "main")
-      ch.print
       ch.freeze
     }
 
@@ -217,7 +212,6 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
       }
       case Println(expr) => {
-        println(typeToString(expr.getType))
         LineNumber(stmt.line) <<:
         GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;") <<:
         compileExpr(makeLabel, lookupVar)(expr) <<:
