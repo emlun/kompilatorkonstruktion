@@ -315,7 +315,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case ArrayRead(arr, index) => ???
       case ArrayLength(arr) => ???
       case MethodCall(obj, meth, args) => {
-        val prepareArgsInstructions = (args map recurse).foldRight(InstructionSequence.empty)(_ <<: _)
+        val prepareArgsInstructions = (args map recurse).reverse.foldRight(InstructionSequence.empty)(_ <<: _)
         val prepareObjInstructions = recurse(obj)
         val methodSym = meth.symbol match {
           case sym: MethodSymbol => sym
