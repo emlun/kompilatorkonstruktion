@@ -126,7 +126,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
         generateMethodCode(ch, method)
       }
 
-      classFile.writeToFile("./" + ct.id.value + ".class")
+      classFile.writeToFile(dir + ct.id.value + ".class")
     }
 
     // a mapping from variable symbols to positions in the local variables
@@ -184,7 +184,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     classFile.addDefaultConstructor
     val ch = classFile.addMainMethod.codeHandler
     generateMainMethodCode(ch, main.stats, main.id.value)
-    classFile.writeToFile("./" + main.id.value + ".class")
+    classFile.writeToFile(outDir + main.id.value + ".class")
   }
 
   def compileStat(makeLabel: (String => String), lookupVar: (String => Value))(stmt: StatTree): InstructionSequence = {
