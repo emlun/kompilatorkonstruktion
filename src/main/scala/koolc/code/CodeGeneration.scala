@@ -147,7 +147,6 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       ch << compileExpr(ch.getFreshLabel _, lookupVar _)(mt.retExpr)
       ch << returnInstruction(mt)
 
-      // TODO: Emit code
       println(">>>>> " + mt.id.value)
       ch.print
       println(">>>>> " + mt.id.value)
@@ -156,7 +155,6 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
 
-      // TODO: Emit code
       ch << (stmts map compileStat(ch.getFreshLabel _, (_ => ???)))
             .foldRight(InstructionSequence.empty)(_ <<: _)
       ch << RETURN
