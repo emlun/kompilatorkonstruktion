@@ -189,7 +189,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
         val nAfter = ch.getFreshLabel("after")
         val nElse = ch.getFreshLabel("else")
         compileExpr(ch, lookupVar)(expr) <<:
-          IfEq(nElse) <<:
+          IfNe(nElse) <<:
           recurse(thn) <<:
           Goto(nAfter) <<:
           Label(nElse) <<:
