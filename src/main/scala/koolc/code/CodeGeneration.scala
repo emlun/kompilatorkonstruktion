@@ -60,7 +60,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     override def store = PutField(getJvmClassName(clazz), varSym.name, typeToString(varSym.tpe))
     private def loadObject = ALoad(0)
     override def assign(prepareValueInstructions: InstructionSequence) =
-      prepareValueInstructions <<: loadObject <<: store <<: InstructionSequence.empty
+      loadObject <<: prepareValueInstructions <<: store <<: InstructionSequence.empty
   }
 
   case class InstructionSequence(
@@ -198,14 +198,15 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case If(expr, thn, els) => {
         val nAfter = makeLabel("after")
         val nElse = makeLabel("else")
+        LineNumber(stmt.line) <<:
         compileExpr(makeLabel, lookupVar)(expr) <<:
-          IfEq(nElse) <<:
-          recurse(thn) <<:
-          Goto(nAfter) <<:
-          Label(nElse) <<:
-          (els map recurse getOrElse InstructionSequence.empty) <<:
-          Label(nAfter) <<:
-          InstructionSequence.empty
+        IfEq(nElse) <<:
+        recurse(thn) <<:
+        Goto(nAfter) <<:
+        Label(nElse) <<:
+        (els map recurse getOrElse InstructionSequence.empty) <<:
+        Label(nAfter) <<:
+        InstructionSequence.empty
       }
       case While(expr, stat) => {
         val nStart = makeLabel("start")
@@ -221,13 +222,17 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       }
       case Println(expr) => {
         println(typeToString(expr.getType))
+        LineNumber(stmt.line) <<:
         GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;") <<:
-          compileExpr(makeLabel, lookupVar)(expr) <<:
-          InvokeVirtual("java/io/PrintStream", "println", "("+typeToString(expr.getType)+")V") <<:
-          InstructionSequence.empty
+        compileExpr(makeLabel, lookupVar)(expr) <<:
+        InvokeVirtual("java/io/PrintStream", "println", "("+typeToString(expr.getType)+")V") <<:
+        InstructionSequence.empty
       }
-      case Assign(id, expr) => lookupVar(id.value).assign(compileExpr(makeLabel, lookupVar)(expr))
+      case Assign(id, expr) =>
+        LineNumber(stmt.line) <<:
+        lookupVar(id.value).assign(compileExpr(makeLabel, lookupVar)(expr))
       case ArrayAssign(id, index, expr) =>
+        LineNumber(stmt.line) <<:
         lookupVar(id.value).load <<:
         compileExpr(makeLabel, lookupVar)(index) <<:
         compileExpr(makeLabel, lookupVar)(expr) <<:
@@ -239,7 +244,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
   def compileExpr(makeLabel: (String => String), lookupVar: (String => Value))(expr: ExprTree): InstructionSequence = {
     val recurse: (ExprTree => InstructionSequence) = compileExpr(makeLabel, lookupVar)
-    expr match {
+    LineNumber(expr.line) <<: (expr match {
       case And(lhs, rhs) => {
         val nAfter = makeLabel("after")
         val nElse = makeLabel("else")
@@ -342,7 +347,10 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           meth.value,
           getMethodSignatureString(methodSym)
         )
-        prepareObjInstructions <<: prepareArgsInstructions <<: callInstruction <<: InstructionSequence.empty
+        LineNumber(obj.line) <<: prepareObjInstructions <<:
+        prepareArgsInstructions <<:
+        LineNumber(meth.line) <<: callInstruction <<:
+        InstructionSequence.empty
       }
 
       case IntLit(value)     => Ldc(value)            <<: InstructionSequence.empty
@@ -368,7 +376,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
 
-    }
+    })
   }
 
 }
