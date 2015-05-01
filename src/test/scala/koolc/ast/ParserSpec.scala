@@ -51,6 +51,7 @@ class ParserSpec extends FunSpec with Matchers with ReporterMatchers {
     "/testprograms/lab3/invalid/XX-Fail10.kool" ::
     "/testprograms/lab3/invalid/XX-Fail12.kool" ::
     "/testprograms/lab3/invalid/XX-Fail15.kool" ::
+    "/testprograms/lab3/invalid/XX-Fail17.kool" ::
     "/testprograms/lab3/invalid/XX-Fail18.kool" ::
     "/testprograms/lab3/invalid/XX-Fail24.kool" ::
     "/testprograms/lab3/invalid/XX-Fail33.kool" ::
