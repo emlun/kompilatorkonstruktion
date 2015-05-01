@@ -312,8 +312,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           Label(nTrue) <<: ICONST_1 <<: Label(nAfter) <<:
           InstructionSequence.empty
       }
-      case ArrayRead(arr, index) => InstructionSequence.empty
-      case ArrayLength(arr) => InstructionSequence.empty
+      case ArrayRead(arr, index) => ???
+      case ArrayLength(arr) => ???
       case MethodCall(obj, meth, args) => {
         val prepareArgsInstructions = (args map recurse).foldRight(InstructionSequence.empty)(_ <<: _)
         val prepareObjInstructions = recurse(obj)
