@@ -105,7 +105,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       // TODO: Create code handler, save to files ...
 
       //Setting up the classfile
-      val classFile = new ClassFile(ct.id.value, None)
+      val classFile = new ClassFile(ct.id.value, ct.parent map { _.value })
       classFile.setSourceFile(sourceName)
       classFile.addDefaultConstructor
 
