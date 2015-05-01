@@ -102,7 +102,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         }
         case call@MethodCall(obj, methId, args) => {
           val objType = tcExpr(obj,anyObject)
-          resolveMethodCall(call) flatMap { methodSymbol =>
+          resolveMethodCall(call) map { methodSymbol =>
 
             if(args.size == methodSymbol.argList.size) {
               args zip methodSymbol.argList foreach { case (arg, argDef) => tcExpr(arg, argDef.tpe) }
@@ -112,10 +112,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               ctx.reporter.error(s"Too many parameters for method ${methId.value}", call)
             }
 
-            methodSymbol.classSymbol.decl.methods.find { _.symbol == methodSymbol } map { decl =>
-              tcExpr(decl.retExpr)
-              tcTypeTree(decl.retType)
-            }
+            tcExpr(methodSymbol.decl.retExpr)
+            tcTypeTree(methodSymbol.decl.retType)
           } getOrElse {
             ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")
             TError
