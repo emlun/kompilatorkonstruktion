@@ -321,13 +321,18 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case Equals(lhs, rhs) => {
         val nTrue = makeLabel("true")
         val nAfter = makeLabel("after")
+
         recurse(lhs) <<:
-          recurse(rhs) <<:
-          If_ICmpEq(nTrue) <<:
-          ICONST_0 <<:
-          Goto(nAfter) <<:
-          Label(nTrue) <<: ICONST_1 <<: Label(nAfter) <<:
-          InstructionSequence.empty
+        recurse(rhs) <<:
+        ((lhs.getType, rhs.getType) match {
+          case (TInt, TInt)         => If_ICmpEq(nTrue)
+          case (TBoolean, TBoolean) => If_ICmpEq(nTrue)
+          case _                    => If_ACmpEq(nTrue)
+        }) <<:
+        ICONST_0 <<:
+        Goto(nAfter) <<:
+        Label(nTrue) <<: ICONST_1 <<: Label(nAfter) <<:
+        InstructionSequence.empty
       }
       case ArrayRead(arr, index) => recurse(arr) <<: recurse(index) <<: IALOAD <<: InstructionSequence.empty
       case ArrayLength(arr) => recurse(arr) <<: ARRAYLENGTH <<: InstructionSequence.empty
