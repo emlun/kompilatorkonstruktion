@@ -48,8 +48,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     }
     override def store = symbol.tpe match {
       case TInt    | TBoolean                 => IStore(id)
-      case TString | TObject(_) => AStore(id)
-      case TArray => ALoad(id) <<: Ldc(id) <<:  IASTORE <<: InstructionSequence.empty
+      case TString | TArray      | TObject(_) => AStore(id)
       case TError  | TUnresolved | TUntyped   => ???
     }
   }
