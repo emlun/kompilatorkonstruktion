@@ -136,9 +136,9 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       def lookupVar(name: String): Value =
         variables.get(name) getOrElse getField(methSym.classSymbol, name)
 
-      mt.stats map compileStat(ch.getFreshLabel _, lookupVar _) foreach { ch << _ }
+      ch << (mt.stats map compileStat(ch.getFreshLabel _, lookupVar _))
+            .foldRight(InstructionSequence.empty)(_ <<: _)
       ch << compileExpr(ch.getFreshLabel _, lookupVar _)(mt.retExpr)
-
       ch << returnInstruction(mt)
 
       // TODO: Emit code
@@ -150,9 +150,11 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
     def generateMainMethodCode(ch: CodeHandler, stmts: List[StatTree], cname: String): Unit = {
 
-      stmts map compileStat(ch.getFreshLabel _, (_ => ???)) foreach { ch << _ }
       // TODO: Emit code
+      ch << (stmts map compileStat(ch.getFreshLabel _, (_ => ???)))
+            .foldRight(InstructionSequence.empty)(_ <<: _)
       ch << RETURN
+
       println(">>>>> " + "main")
       ch.print
       //ch.freeze
