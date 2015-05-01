@@ -25,6 +25,10 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
 
   def getJvmClassName(classSymbol: ClassSymbol): String = classSymbol.name
 
+  def getMethodSignatureString(method: MethodSymbol): String =
+    "(" + (method.argList map { arg => typeToString(arg.tpe) } mkString "") + ")" +
+      typeToString(method.decl.retType.getType)
+
   private def returnInstruction(method: MethodDecl): ByteCode = method.retType.getType match {
     case TInt    | TBoolean                 => IRETURN
     case TString | TArray      | TObject(_) => ARETURN
