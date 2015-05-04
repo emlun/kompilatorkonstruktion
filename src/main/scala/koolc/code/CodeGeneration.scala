@@ -75,6 +75,10 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case InstructionSequence(Some(prehead), None)          => prehead <<: this
       case InstructionSequence(None, None)                   => this
     }
+    def <<:(pre: List[InstructionSequence]): InstructionSequence = pre match {
+      case prehead :: pretail => prehead <<: (pretail <<: this)
+      case Nil                => this
+    }
     override def apply(ch: CodeHandler): CodeHandler = {
       head map { wrapper =>
         wrapper match {
