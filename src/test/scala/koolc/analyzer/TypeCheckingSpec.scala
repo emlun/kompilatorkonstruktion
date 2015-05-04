@@ -85,6 +85,10 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("equals-class-string.kool")
       }
 
+      it("methods are overridden with the wrong types.") {
+        assertFileFails("wrong-override.kool");
+      }
+
       it("the LHS operand of a method call expression is not of a class type.") {
         assertFileFails("call-method-on-array.kool")
         assertFileFails("call-method-on-bool.kool")
