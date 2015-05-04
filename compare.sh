@@ -4,7 +4,7 @@ TEST_FILES="src/test/resources/testprograms/lab3/valid/*.kool src/test/resources
 OUR_CLASSPATH="build/classes/main:lib/cafebabe_2.11-1.2.jar:"
 OUR_OUT_CLASSES="build/tmp/our/"
 OUR_OUT_TXT="build/tmp/our.txt"
-THEIR_CLASSPATH="lib/koolc_2.11-1.2.jar:lib/cafebabe_2.11-1.2.jar:"
+THEIR_CLASSPATH="lib/koolc_2.11-1.3.1.jar:lib/cafebabe_2.11-1.2.jar:"
 THEIR_OUT_CLASSES="build/tmp/their/"
 THEIR_OUT_TXT="build/tmp/their.txt"
 
