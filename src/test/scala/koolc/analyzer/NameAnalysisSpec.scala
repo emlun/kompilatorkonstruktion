@@ -493,24 +493,29 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
     }
 
     it("emits a warning to the user when a declared variable is never accessed (read or written).") {
-      val warningSpy = stubFunction[Any, Positioned]
+      val warningSpy = mockFunction[Any, Positioned, Unit]
       val reporter = new Reporter {
         override def warning(msg: Any, pos: Positioned = NoPosition): Unit = warningSpy(msg, pos)
       }
+
+      def symbolWithNameAtLine(name: String, line: Int) =
+        where { (msg: Any, pos: Positioned) =>
+          pos match {
+            case sym: Symbol => sym.name == name && sym.line == line
+            case _           => false
+          }
+        }
+
+      warningSpy expects (symbolWithNameAtLine("g", 10))
+      warningSpy expects (symbolWithNameAtLine("c", 5))
+      warningSpy expects (symbolWithNameAtLine("e", 7))
+      warningSpy expects (symbolWithNameAtLine("b", 4))
 
       val path = "unused-variables.kool"
       val input = Try(new File(getClass.getResource(path).toURI())) getOrElse fail("File " + path + " not found.")
       val pipeline = Lexer andThen Parser andThen NameAnalysis andThen checkResult((ctx, program) => {
         ctx.reporter shouldBe errorless
         program should not be None
-
-        val fooClass = program.get.classes.head
-        val unusedSymbols: Seq[Symbol] =
-          (fooClass.vars.init map { _.symbol }) :::
-          fooClass.methods.head.args.last.symbol ::
-          fooClass.methods.head.vars.last.symbol ::
-          Nil
-        unusedSymbols foreach { warningSpy verify (*, _) }
       })
       pipeline.run(Context(reporter = reporter, outDir = None, file = Some(input)))(input)
     }
