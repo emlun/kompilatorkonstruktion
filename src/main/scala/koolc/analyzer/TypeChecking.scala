@@ -198,6 +198,22 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       p.classes foreach {
         clazz => clazz.methods foreach {
           method => {
+            method.symbol.overridden map { overridden =>
+              method.args zip overridden.decl.args foreach { case(overridingArg, overriddenArg) =>
+                if(tcTypeTree(overridingArg.tpe) != tcTypeTree(overriddenArg.tpe)) {
+                  ctx.reporter.error(
+                    s"Formal type in overriding method ${method.id.value} does not match type in overridden method.",
+                    overridingArg
+                  )
+                }
+              }
+              if(tcTypeTree(method.retType) != tcTypeTree(overridden.decl.retType)) {
+                ctx.reporter.error(
+                  s"Method ${method.id.value} overrides parent method with a dirrerent return type (${method.retType.name} and ${overridden.decl.retType.name})",
+                  method.retType
+                )
+              }
+            }
             method.stats foreach {
               tcStat(_)
             }
