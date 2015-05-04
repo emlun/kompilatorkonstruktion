@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEST_FILES=src/test/resources/testprograms/lab3/valid/*.kool
+TEST_FILES="src/test/resources/testprograms/lab3/valid/*.kool src/test/resources/inherited-fields.kool"
 OUR_CLASSPATH="build/classes/main:lib/cafebabe_2.11-1.2.jar:"
 OUR_OUT_CLASSES="build/tmp/our/"
 OUR_OUT_TXT="build/tmp/our.txt"
@@ -9,7 +9,7 @@ THEIR_OUT_CLASSES="build/tmp/their/"
 THEIR_OUT_TXT="build/tmp/their.txt"
 
 classname() {
-  grep "object" "$1" | cut -d " " -f 2
+  grep "object" "$1" | head -n1 | cut -d " " -f 2
 }
 
 echo "Compiling koolc..."

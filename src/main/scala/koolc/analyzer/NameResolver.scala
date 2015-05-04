@@ -17,6 +17,9 @@ object NameResolver {
   def run(ctx: Context)
          (program: Program, mainSymbol: ClassSymbol, classSymbols: List[ClassSymbol]): Option[Program] = {
 
+    var everyUsedVariable: List[VariableSymbol] = List.empty;
+
+
     def detectCyclicInheritance(baseSym: ClassSymbol)(ancestorSym: ClassSymbol): Option[Seq[String]] =
       if(ancestorSym == baseSym) {
         Some(ancestorSym.name :: Nil)
@@ -136,6 +139,7 @@ object NameResolver {
           case _ => {}
         }
 
+
       def setOnMethod(method: MethodDecl): Set[VariableSymbol] = {
         setOnType(method.retType)
         method.args foreach { param   => setOnType(param.tpe)   }
@@ -144,9 +148,12 @@ object NameResolver {
         val usedVars = (method.stats flatMap setOnStatement _) ++:
           setOnExpression(method.retExpr)
 
-        method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(method.symbol))
+        everyUsedVariable = everyUsedVariable ++ usedVars.toList
+
+        //method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(method.symbol))
         usedVars
       }
+
 
       tree match {
         case statement: StatTree         => setOnStatement(statement)
@@ -156,6 +163,7 @@ object NameResolver {
         case _                           => Set.empty
       }
     }
+
 
     def setSymbolReferencesOnClass(
         lookupType: (Identifier => Option[ClassSymbol]),
@@ -188,9 +196,11 @@ object NameResolver {
       val usedVars = classDecl.methods flatMap { method =>
         setSymbolReferences(lookupType, clazz, method.symbol.lookupVar _)(method)
       }
-      classDecl.vars foreach warnIfUnused(usedVars.toSet, clazz)
-    }
 
+      everyUsedVariable = everyUsedVariable ++ usedVars
+
+      //classDecl.vars foreach warnIfUnused(usedVars.toSet, clazz)
+    }
 
     val global = new GlobalScope(mainSymbol, classSymbols.map(clazz => (clazz.name, clazz)).toMap)
 
@@ -265,6 +275,15 @@ object NameResolver {
         method.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
       }
     }
+
+    program.classes foreach { clazz =>
+      clazz.vars foreach warnIfUnused(everyUsedVariable.toSet, clazz.symbol)
+      clazz.methods foreach { method =>
+        /*We are not suposed to check if method arguments are used (they aren't atleast)*/
+        /*method.args ++ */method.vars foreach warnIfUnused(everyUsedVariable.toSet, clazz.symbol, Some(method.symbol))
+      }
+    }
+
 
     if(ctx.reporter.hasErrors) None
     else Some(program)
