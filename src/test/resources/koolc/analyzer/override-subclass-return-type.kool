@@ -6,20 +6,20 @@ object Main {
 
 class RealMain {
   def realMain(f: Foo): Bool = {
-    return f.print("a");
-  }
-}
-
-class Foo {
-  def print(printee: String): Bool = {
-    println(printee);
+    var newF: Foo;
+    newF = f.make();
     return true;
   }
 }
 
+class Foo {
+  def make(): Foo = {
+    return new Foo();
+  }
+}
+
 class Bar extends Foo {
-  def print(printee: Int): Bool = {
-    println(printee);
-    return false;
+  def make(): Bar = {
+    return new Bar();
   }
 }

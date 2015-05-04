@@ -1,0 +1,23 @@
+object Main {
+  def main(): Unit = {
+    if(new RealMain().realMain(new Bar())) {}
+  }
+}
+
+class RealMain {
+  def realMain(f: Foo): Bool = {
+    return f.equals(f);
+  }
+}
+
+class Foo {
+  def equals(printee: Foo): Bool = {
+    return true;
+  }
+}
+
+class Bar extends Foo {
+  def equals(printee: Bar): Bool = {
+    return false;
+  }
+}
