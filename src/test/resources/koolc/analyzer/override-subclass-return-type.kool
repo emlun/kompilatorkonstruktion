@@ -1,0 +1,25 @@
+object Main {
+  def main(): Unit = {
+    if(new RealMain().realMain(new Bar())) {}
+  }
+}
+
+class RealMain {
+  def realMain(f: Foo): Bool = {
+    var newF: Foo;
+    newF = f.make();
+    return true;
+  }
+}
+
+class Foo {
+  def make(): Foo = {
+    return new Foo();
+  }
+}
+
+class Bar extends Foo {
+  def make(): Bar = {
+    return new Bar();
+  }
+}

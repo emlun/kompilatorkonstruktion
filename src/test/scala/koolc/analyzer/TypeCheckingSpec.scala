@@ -85,6 +85,18 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileFails("equals-class-string.kool")
       }
 
+      it("methods are overridden with the wrong parameter types.") {
+        assertFileFails("override-invariant-parameter-type.kool");
+        assertFileFails("override-subclass-parameter-type.kool");
+        assertFileFails("override-superclass-parameter-type.kool");
+      }
+
+      it("methods are overridden with the wrong return types.") {
+        assertFileFails("override-invariant-return-type.kool");
+        assertFileFails("override-subclass-return-type.kool");
+        assertFileFails("override-superclass-return-type.kool");
+      }
+
       it("the LHS operand of a method call expression is not of a class type.") {
         assertFileFails("call-method-on-array.kool")
         assertFileFails("call-method-on-bool.kool")
@@ -241,6 +253,13 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
         assertFileSucceeds("return-int-from-int.kool")
         assertFileSucceeds("return-string-from-string.kool")
         assertFileSucceeds("return-subsubclass1-from-class1.kool")
+      }
+
+      it("overriding methods with the right parameter types.") {
+        assertFileSucceeds("override-same-parameter-type.kool");
+      }
+      it("overriding methods with the right return type.") {
+        assertFileSucceeds("override-same-return-type.kool");
       }
     }
     it("does not stop at the first type error.") {

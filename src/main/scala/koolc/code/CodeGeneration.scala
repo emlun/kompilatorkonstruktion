@@ -97,7 +97,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       (clazz.parent map { getField(_, name) }).get
     }
 
-  def run(ctx: Context)(prog: Option[Program]): Unit = {
+  def run(ctx: Context)(prog: Option[Program]): Unit = prog map { prog =>
     import ctx.reporter._
 
     /** Writes the proper .class file in a given directory. An empty string for dir is equivalent to "./". */
@@ -167,13 +167,13 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     val sourceName = ctx.file.get.getName
 
     // output code
-    prog.get.classes foreach {
+    prog.classes foreach {
       ct => generateClassFile(sourceName, ct, outDir)
     }
 
     // Now do the main method
     // ...
-    val main = prog.get.main
+    val main = prog.main
     val classFile = new ClassFile(main.id.value, None)
     classFile.setSourceFile(sourceName)
     classFile.addDefaultConstructor

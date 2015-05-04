@@ -40,7 +40,15 @@ object Trees {
       retExpr: ExprTree) extends SymbolicTree[MethodSymbol]
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
 
-  sealed trait TypeTree extends Tree with Typed
+  sealed trait TypeTree extends Tree with Typed {
+    def name: String = this match {
+      case IntArrayType()    => "Int[]"
+      case IntType()         => "Int"
+      case BooleanType()     => "Bool"
+      case StringType()      => "String"
+      case Identifier(value) => value
+    }
+  }
   case class IntArrayType() extends TypeTree
   case class IntType() extends TypeTree
   case class BooleanType() extends TypeTree
