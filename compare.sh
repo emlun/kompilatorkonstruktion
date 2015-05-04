@@ -9,7 +9,7 @@ THEIR_OUT_CLASSES="build/tmp/their/"
 THEIR_OUT_TXT="build/tmp/their.txt"
 
 classname() {
-  grep "object" "$1" | cut -d " " -f 2
+  grep "object" "$1" | head -n1 | cut -d " " -f 2
 }
 
 echo "Compiling koolc..."
