@@ -19,7 +19,7 @@ class Foo {
 }
 
 class Bar extends Foo {
-  def make(): RealMain = {
-    return new RealMain();
+  def make(): Int = {
+    return 5;
   }
 }

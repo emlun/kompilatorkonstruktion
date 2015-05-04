@@ -17,7 +17,7 @@ class Foo {
 }
 
 class Bar extends Foo {
-  def equals(printee: RealMain): Bool = {
+  def equals(printee: Int): Bool = {
     return false;
   }
 }
