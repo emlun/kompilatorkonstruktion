@@ -202,12 +202,6 @@ object NameResolver {
       //classDecl.vars foreach warnIfUnused(usedVars.toSet, clazz)
     }
 
-    def lookUpUsedVars(
-        lookupType: (Identifier => Option[ClassSymbol]),
-        mainSymbol: ClassSymbol,
-        classDecl: ClassDecl)
-        (clazz: ClassSymbol): Unit = {}
-
     val global = new GlobalScope(mainSymbol, classSymbols.map(clazz => (clazz.name, clazz)).toMap)
 
     program.main.stats foreach setSymbolReferences(lookupType(global, mainSymbol), mainSymbol, (_ => None))
