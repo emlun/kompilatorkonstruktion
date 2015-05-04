@@ -264,6 +264,15 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case Plus(lhs, rhs) => {
+        def flattenStringConcatenation(term: ExprTree): List[ExprTree] =
+          term.getType match {
+            case TInt => term :: Nil
+            case _    => term match {
+              case Plus(lhs, rhs) => flattenStringConcatenation(lhs) ++: flattenStringConcatenation(rhs)
+              case other          => other :: Nil
+            }
+          }
+
         (lhs.getType, rhs.getType) match {
           case (TInt, TInt) =>
             recurse(lhs) <<:
@@ -272,14 +281,13 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
             InstructionSequence.empty
           case (lhsType, rhsType) => {
               DefaultNew("java/lang/StringBuilder") <<:
-              recurse(lhs) <<:
-              InvokeVirtual(
-                "java/lang/StringBuilder", "append", "(" + typeToString(lhsType) + ")Ljava/lang/StringBuilder;"
-              ) <<:
-              recurse(rhs) <<:
-              InvokeVirtual(
-                "java/lang/StringBuilder", "append", "(" + typeToString(rhsType) + ")Ljava/lang/StringBuilder;"
-              ) <<:
+              ((flattenStringConcatenation(lhs) ++: flattenStringConcatenation(rhs)) map { operand =>
+                recurse(operand) <<:
+                InvokeVirtual(
+                  "java/lang/StringBuilder", "append", "(" + typeToString(operand.getType) + ")Ljava/lang/StringBuilder;"
+                ) <<:
+                InstructionSequence.empty
+              }) <<:
               InvokeVirtual(
                 "java/lang/StringBuilder", "toString", "()Ljava/lang/String;"
               ) <<:
