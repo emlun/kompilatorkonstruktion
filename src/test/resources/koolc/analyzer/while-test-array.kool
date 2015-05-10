@@ -1,5 +1,0 @@
-object Main {
-  def main(): Unit = {
-    while(new Int[1]) {}
-  }
-}

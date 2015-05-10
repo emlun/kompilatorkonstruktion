@@ -1,6 +1,0 @@
-object Main {
-  def main(): Unit = {
-    if(new Foo()) {}
-  }
-}
-class Foo {}

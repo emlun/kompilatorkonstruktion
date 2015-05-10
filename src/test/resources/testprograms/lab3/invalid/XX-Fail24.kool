@@ -1,8 +1,0 @@
-object Fail { def main() : Unit = { println("42"); } }
-
-class A {
-    def foo() : retType = {
-        a = this.field;
-        return 12;
-    }
-}

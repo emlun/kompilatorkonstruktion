@@ -1,7 +1,0 @@
-object Main {
-  def main(): Unit = {
-    println(new Foo());
-  }
-}
-
-class Foo {}

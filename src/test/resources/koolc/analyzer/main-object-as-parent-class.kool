@@ -1,2 +1,0 @@
-object Main { def main(): Unit = {} }
-class Foo extends Main {}

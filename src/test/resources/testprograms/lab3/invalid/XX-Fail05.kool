@@ -1,5 +1,0 @@
-object Fail {
-    def main(param: tpe) : Unit = {
-        println("a");
-    }
-}

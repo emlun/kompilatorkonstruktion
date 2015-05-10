@@ -1,8 +1,0 @@
-object Main {
-  def main(): Unit = {
-    if(new SubFoo() == new Foo()) {}
-  }
-}
-
-class Foo {}
-class SubFoo extends Foo {}

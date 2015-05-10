@@ -1,5 +1,0 @@
-object Main {
-  def main(): Unit = {
-    if(true == 1) {}
-  }
-}
