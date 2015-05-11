@@ -1,7 +1,29 @@
-Describe in a few words what you did in the first part of the compiler project
-(the non-optional labs), and briefly say what problem you want to solve with
-your extension.
+We want to implement templates in a similar way to C++, in the appendix you can
+see the changes we want to do to the language.
 
-This section should convince us that you have a clear picture of the general
-architecture of your compiler and that you understand how your extension fits
-in it.
+To implement this we will add a new phase between the name analysis and type
+checking to expand the templates into the correct types. If we for example
+call a method \textbf{max$\langle$T$\rangle$(a:T,b:T):T} for a pair of Ints and
+a pair of Strings we need to expand the code into one method for ints and one for
+strings, for example \textbf{max$\langle$Int$\rangle$(a:Int,b:Int):Int}.
+
+This in addition to adding a new Type/Symbol for templates is all the changes
+we think is necessary for implementing templates.
+
+In the name analysis phase we simply add a template symbol to all templates,
+and in the phase before type checking we create all symbols of that templet
+that is needed. The templet symbol contains a list of eighter methodSymbols or
+classSymbols for all the versions that has been created.
+
+\iffalse
+The first thing our compiled does is checking whether the code compiles to
+the BNF, this is done in two steps by first tokenizing the code into the
+tokens found in our language, and then in the parser check whether the order
+of the tokens are in complient with our language. We had to add some rules to
+the BNF to make room for templates, the addition can be found in the appendix.
+In the next part, name analysis we make sure that the code follows a set of rules
+and attatch symbols to all identifiers. After the name analysis we run type
+checking where we detect and make sure that all expressions produce the correct
+type. To make this part work with templates we have to expand all templates
+befor we run the type checking, and modify the symbols slighetly.
+\fi

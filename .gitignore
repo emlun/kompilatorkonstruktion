@@ -4,7 +4,12 @@ report.blg
 report.dvi
 report.log
 report.pdf
-
+proposal.aux
+proposal.bbl
+proposal.blg
+proposal.dvi
+proposal.log
+proposal.pdf
 
 # SBT
 
