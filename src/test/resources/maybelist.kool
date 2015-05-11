@@ -1,0 +1,117 @@
+object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
+
+class RealMain {
+  def realMain(): Bool = {
+    var list: LinkedList;
+    list = new LinkedList().init().prepend(2).prepend(1).append(3);
+    println("Size: " + list.size());
+    println(list.toString());
+    return false;
+  }
+}
+
+class MaybeInt {
+  var is: Bool; var value: Int;
+  def set(newValue: Int): MaybeInt = {
+    value = newValue;
+    is = true;
+    return this;
+  }
+  def unset(): MaybeInt = {
+    is = false;
+    return this;
+  }
+  def isDefined(): Bool = { return is; }
+  def get(): Int = { return value; }
+}
+
+class MaybeList {
+  var is: Bool; var value: LinkedList;
+  def set(newValue: LinkedList): MaybeList = {
+    value = newValue;
+    is = true;
+    return this;
+  }
+  def unset(): MaybeList = {
+    is = false;
+    return this;
+  }
+  def isDefined(): Bool = { return is; }
+  def get(): LinkedList = { return value; }
+}
+
+class MaybeUtil {
+  def yepInt(newValue: Int): MaybeInt = {
+    return new MaybeInt().set(newValue);
+  }
+  def nopeInt(): MaybeInt = {
+    return new MaybeInt().unset();
+  }
+  def yepList(newValue: LinkedList): MaybeList = {
+    return new MaybeList().set(newValue);
+  }
+  def nopeList(): MaybeList = {
+    return new MaybeList().unset();
+  }
+}
+
+class LinkedList {
+  var head: MaybeInt; var tail: MaybeList;
+  def init(): LinkedList = {
+    head = new MaybeUtil().nopeInt();
+    tail = new MaybeUtil().nopeList();
+    return this;
+  }
+  def setHead(newHead: Int): LinkedList = {
+    head = new MaybeUtil().yepInt(newHead);
+    return this;
+  }
+  def setTail(newTail: LinkedList): LinkedList = {
+    tail = new MaybeUtil().yepList(newTail);
+    return this;
+  }
+  def getHead(): MaybeInt = { return head; }
+  def getTail(): MaybeList = { return tail; }
+  def prepend(newHead: Int): LinkedList = {
+    return new LinkedList().init().setHead(newHead).setTail(this);
+  }
+  def append(item: Int): LinkedList = {
+    var currentTail: LinkedList;
+    var dummy: LinkedList;
+    currentTail = this;
+    while(currentTail.getTail().isDefined()) {
+      currentTail = currentTail.getTail().get();
+    }
+    dummy = currentTail.setTail(new LinkedList().init().setHead(item));
+    return this;
+  }
+  def size(): Int = {
+    var result: Int;
+    result = 0;
+    if(head.isDefined()) {
+      result = result + 1;
+    }
+    if(tail.isDefined()) {
+      result = result + tail.get().size();
+    }
+    return result;
+  }
+  def toString(): String = {
+    var result: String;
+    var currentTail: LinkedList;
+
+    result = "[";
+    if(head.isDefined()) {
+      result = result + head.get();
+    }
+
+    currentTail = this;
+    while(currentTail.getTail().isDefined()) {
+      currentTail = currentTail.getTail().get();
+      if(currentTail.getHead().isDefined()) {
+        result = result + ", " + currentTail.getHead().get();
+      }
+    }
+    return result + "]";
+  }
+}
