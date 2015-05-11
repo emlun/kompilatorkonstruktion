@@ -106,3 +106,44 @@ class LinkedList<T> {
 
 This section should convince us that you understand how your extension can be
 useful and that you thought about the corner cases.
+
+There are two main corner cases we need to consider. The first is the optional
+type parameter in calls to template methods. If the method doesn't reference the
+template type in any way in its argument list then we cannot expand the template,
+as illustrated by the following example.
+
+\begin{lstlisting}
+class True {
+  def get(): Bool = { return true; }
+}
+class False {
+  def get(): Bool = { return false; }
+}
+class X {
+  def make<T>(): T = { return new T(); }
+  def identity<T>(a: T): T = { return a; }
+}
+object Main {
+  def main(): Unit = {
+    if(new X().identity(new True()).get()) {
+      if(new X().make().get()) {
+        println("False");
+      } else {
+        println("True");
+      }
+      println("Impossible");
+    }
+  }
+}
+\end{lstlisting}
+
+Will the program above output ``True'' or ``False''? We can infer the type
+parameter to the \textbf{identity} call, but not to the \textbf{make} call.
+Therefore, type parameters in method calls are optional if they can be inferred
+from the arguments but mandatory if they cannot.
+
+The other main corner case is nested template references, such as
+\textbf{new
+Maybe$\langle$LinkedList$\langle$LinkedList$\langle$Int$\rangle\rangle\rangle$()}.
+We can either run the template expansion step multiple times, or make sure to
+always expand deeper levels of nested template references first.
