@@ -2,18 +2,19 @@ We want to implement templates in a similar way to C++, in the appendix you can
 see the changes we want to do to the language.
 
 To implement this we will add a new phase between the name analysis and type
-checking to expand the templates into the correct types. If we for example
-call a method \textbf{max$\langle$T$\rangle$(a:T,b:T):T} for a pair of Ints and
-a pair of Strings we need to expand the code into one method for ints and one for
-strings, for example \textbf{max$\langle$Int$\rangle$(a:Int,b:Int):Int}.
+checking to expand the templates with the needed types. If we for example define
+a method \textbf{max$\langle$T$\rangle$(a:T,b:T):T} and call it with a pair of
+Ints and a pair of Strings we need to expand the code into one method for ints
+and one for strings, for example \textbf{max\$Int(a:Int,b:Int):Int}.
 
-This in addition to adding a new Type/Symbol for templates is all the changes
-we think is necessary for implementing templates.
+This in addition to adding a new Type or Symbol for templates is all the changes
+we think are necessary for implementing templates. In particular, the type
+checking and code generation phases should not need to be~modified.
 
-In the name analysis phase we simply add a template symbol to all templates,
-and in the phase before type checking we create all symbols of that templet
-that is needed. The templet symbol contains a list of eighter methodSymbols or
-classSymbols for all the versions that has been created.
+In the name analysis phase we simply add a template symbol to all references to
+templates, and in the phase before type checking we expand the template by adding
+any needed classes and methods to the AST. The template symbol contains a list of
+either methodSymbols or classSymbols for all the versions that has been created.
 
 \iffalse
 The first thing our compiled does is checking whether the code compiles to
