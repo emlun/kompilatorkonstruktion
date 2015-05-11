@@ -12,7 +12,7 @@
     { ( VarDeclaration )* ( Statement )*
     \textbf{return} Expression ; }\\
     \hline
-    Expression & ::= & Expression . Identifier($\langle$ Identifier$\rangle$ )?( ( Expression ( , Expression )* )? \textbf{)} \\
+    Expression & ::= &  Expression . Identifier($\langle$ Type (,Type )*$\rangle$ )?( ( Expression ( , Expression )* )? \textbf{)} \\
     & ::= & \textbf{new} Identifier ($\langle$ Identifier$\rangle$)? \textbf{()} \\
     \hline
   \end{tabular}
