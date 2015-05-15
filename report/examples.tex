@@ -3,10 +3,11 @@ code. The following example illustrates how they can be leveraged for a generic
 list class and a sad imitation of Scala's \textbf{Option} monad.
 
 The usefulness of this example comes especially from the fact that the KOOL
-grammar doesn't provide a way to check for null values. For example, the Maybe
-template below saves us from having to add extra boolean flags all over the place
-just to keep track of whether other fields contain values or not --- now we can
-encapsulate that logic in a reusable component.
+grammar doesn't allow arrays of other types than \textbf{Int}, and doesn't
+provide a way to check for null values. For example, the Maybe template below
+saves us from having to add extra boolean flags all over the place just to keep
+track of whether other fields contain values or not --- now we can encapsulate
+that logic in a reusable component.
 
 \begin{lstlisting}
 // Template class
