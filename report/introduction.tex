@@ -7,9 +7,12 @@ a method \textbf{max$\langle$T$\rangle$(a:T,b:T):T} and call it with a pair of
 Ints and a pair of Strings we need to expand the code into one method for ints
 and one for strings, for example \textbf{max\$Int(a:Int,b:Int):Int}.
 
-This in addition to adding a new Type or Symbol for templates is all the changes
-we think are necessary for implementing templates. In particular, the type
-checking and code generation phases should not need to be~modified.
+This in addition to adding a new Type or Symbol for templates is all the
+changes we think are necessary for implementing templates. In particular, the
+type checking and code generation phases should not need to be modified since
+we will require explicit type arguments in references to template types and
+methods. Automatic inference of type parameters where possible is proposed as a
+further extension if we get the time.
 
 In the name analysis phase we simply add a template symbol to all references to
 templates, and in the phase before type checking we expand the template by adding

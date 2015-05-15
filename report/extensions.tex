@@ -1,2 +1,34 @@
 If implementing templates turns out to be too simple, we want to also implement
-First-class Functions.
+automatic inference of type parameters in method calls. This will not always be
+possible, as illustrated by the following example, in which case compilation
+will fail with an error message.
+
+\begin{lstlisting}
+class True {
+  def get(): Bool = { return true; }
+}
+class False {
+  def get(): Bool = { return false; }
+}
+class X {
+  def make<T>(): T = { return new T(); }
+  def identity<T>(a: T): T = { return a; }
+}
+object Main {
+  def main(): Unit = {
+    if(new X().identity(new True()).get()) {
+      if(new X().make().get()) {
+        println("False"); // Will this be printed?
+      } else {
+        println("True");  // Will this be printed?
+      }
+      println("Impossible");
+    }
+  }
+}
+\end{lstlisting}
+
+This extension will require changes to the type checking phase of the compiler.
+
+If we still have more time after this, we want to also implement First-class
+Functions.

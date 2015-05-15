@@ -54,18 +54,16 @@ class MaybeUtil {
 class LinkedList<T> {
   var head: Maybe<T>; var tail: Maybe<LinkedList<T>>;
   def init(): LinkedList<T> = {
-    // Explicit type parameter required
     head = new MaybeUtil().nope<Int>();
     tail = new MaybeUtil().nope<LinkedList<T>>();
     return this;
   }
   def setHead(newHead: T): LinkedList<T> = {
-    // Type parameter can be inferred from argument
-    head = new MaybeUtil().yep(newHead);
+    head = new MaybeUtil().yep<T>(newHead);
     return this;
   }
   def setTail(newTail: LinkedList<T>): LinkedList<T> = {
-    tail = new MaybeUtil().yep(newTail);
+    tail = new MaybeUtil().yep<T>(newTail);
     return this;
   }
   def getHead(): Maybe<T> = { return head; }
@@ -99,43 +97,7 @@ class LinkedList<T> {
 }
 \end{lstlisting}
 
-There are two main corner cases we need to consider. The first is the optional
-type parameter in calls to template methods. If the method doesn't reference the
-template type in any way in its argument list then we cannot expand the template,
-as illustrated by the following example.
-
-\begin{lstlisting}
-class True {
-  def get(): Bool = { return true; }
-}
-class False {
-  def get(): Bool = { return false; }
-}
-class X {
-  def make<T>(): T = { return new T(); }
-  def identity<T>(a: T): T = { return a; }
-}
-object Main {
-  def main(): Unit = {
-    if(new X().identity(new True()).get()) {
-      if(new X().make().get()) {
-        println("False");
-      } else {
-        println("True");
-      }
-      println("Impossible");
-    }
-  }
-}
-\end{lstlisting}
-
-Will the program above output ``True'' or ``False''? We can infer the type
-parameter to the \textbf{identity} call, but not to the \textbf{make} call.
-Therefore, type parameters in method calls are optional if they can be inferred
-from the arguments but mandatory if they cannot.
-
-The other main corner case is nested template references, such as
-\textbf{new
+The main corner case is nested template references, such as \textbf{new
 Maybe$\langle$LinkedList$\langle$LinkedList$\langle$Int$\rangle\rangle\rangle$()}.
 We can either run the template expansion step multiple times, or make sure to
 always expand deeper levels of nested template references first.
