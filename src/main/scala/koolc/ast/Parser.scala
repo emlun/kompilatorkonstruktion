@@ -457,9 +457,9 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         parseProduct() flatMap maybeParseRightTerm flatMap thenn
 
       def maybeParseRightComparee(lhs: ExprTree): Option[ExprTree] = currentToken.kind match {
-        case LESSTHAN => eat(LESSTHAN) { parseSum(rhs => maybeParseRightComparee(LessThan(lhs, rhs).setPos(lhs))) }
-        case EQUALS   => eat(EQUALS)   { parseSum(rhs => maybeParseRightComparee(Equals(lhs, rhs).setPos(lhs)))   }
-        case _        => Some(lhs)
+        case LANGEL => eat(LANGEL) { parseSum(rhs => maybeParseRightComparee(LessThan(lhs, rhs).setPos(lhs))) }
+        case EQUALS => eat(EQUALS) { parseSum(rhs => maybeParseRightComparee(Equals(lhs, rhs).setPos(lhs)))   }
+        case _      => Some(lhs)
       }
       def parseComparison(thenn: ExprTree => Option[ExprTree] = Some(_)): Option[ExprTree] =
         parseSum() flatMap maybeParseRightComparee flatMap thenn

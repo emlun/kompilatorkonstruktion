@@ -62,7 +62,6 @@ object Tokens {
   case object RBRACE extends TokenKind      // }
   case object AND extends TokenKind         // &&
   case object OR extends TokenKind          // ||
-  case object LESSTHAN extends TokenKind    // <
   case object PLUS extends TokenKind        // +
   case object MINUS extends TokenKind       // -
   case object TIMES extends TokenKind       // *
@@ -127,7 +126,6 @@ object Tokens {
       case RBRACE    => "}"       startsWith prefix
       case AND       => "&&"      startsWith prefix
       case OR        => "||"      startsWith prefix
-      case LESSTHAN  => "<"       startsWith prefix
       case PLUS      => "+"       startsWith prefix
       case MINUS     => "-"       startsWith prefix
       case TIMES     => "*"       startsWith prefix
@@ -185,7 +183,6 @@ object Tokens {
       case RBRACE    => "}"       equals word
       case AND       => "&&"      equals word
       case OR        => "||"      equals word
-      case LESSTHAN  => "<"       equals word
       case PLUS      => "+"       equals word
       case MINUS     => "-"       equals word
       case TIMES     => "*"       equals word
