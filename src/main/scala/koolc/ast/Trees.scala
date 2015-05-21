@@ -30,7 +30,7 @@ object Trees {
       parent: Option[Identifier],
       vars: List[VarDecl],
       methods: List[MethodDecl],
-      template: List[Identifier]) extends SymbolicTree[ClassSymbol]
+      template: List[Identifier] = Nil) extends SymbolicTree[ClassSymbol]
   case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
   case class MethodDecl(
       retType: TypeTree,
@@ -39,7 +39,7 @@ object Trees {
       vars: List[VarDecl],
       stats: List[StatTree],
       retExpr: ExprTree,
-      template: List[Identifier]) extends SymbolicTree[MethodSymbol]
+      template: List[Identifier] = Nil) extends SymbolicTree[MethodSymbol]
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
 
   sealed trait TypeTree extends Tree with Typed {
