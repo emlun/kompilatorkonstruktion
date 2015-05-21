@@ -43,6 +43,7 @@ class ParserSpec extends FunSpec with Matchers with ReporterMatchers {
     Nil
 
   val INVALID_TEST_FILES =
+    "/template-instance-no-leading-argument.kool" ::
     "/testprograms/lab2/invalid/002.kool" ::
     "/testprograms/lab2/invalid/005.kool" ::
     "/testprograms/lab2/invalid/007.kool" ::
