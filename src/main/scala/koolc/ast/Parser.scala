@@ -20,6 +20,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
   val BEGIN_STATEMENT = List(LBRACE, IF, WHILE, PRINTLN, IDKIND)
   val BEGIN_EXPRESSION = List(INTLITKIND, STRLITKIND, TRUE, FALSE, IDKIND, THIS, NEW, BANG, LPAREN)
+  val TYPE_KINDS = List(INT, STRING, BOOLEAN, IDKIND)
 
   def run(ctx: Context)(tokens: Iterator[Token]): Option[Program] = {
     /** Store the current token, as read from the lexer. */
@@ -193,16 +194,14 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def parseTemplateArg(): List[TypeTree] = {
-      def parseTemplateType(): Option[TypeTree] =
-        parseType(id =>{
-          if(currentToken is COMMA)
-            eat(COMMA)
-          Some(id.setPos(id))
-          }
-        )
       if(currentToken is LANGEL){
         eat(LANGEL)
-        val result = accumulate { parseTemplateType() } whilst { currentToken is IDKIND }
+        val result = parseType() map { firstTypeArg =>
+            firstTypeArg +: { accumulate { eat(COMMA) { parseType() } } whilst { currentToken is COMMA } }
+          } getOrElse {
+            expected(TYPE_KINDS:_*)
+            Nil
+          }
         eat(RANGEL)
         result
       }else Nil
@@ -210,16 +209,16 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def parseTemplateList(): List[Identifier] = {
-      def parseTemplateId(): Option[Identifier] =
-        readIdentifier(id =>{
-          if(currentToken is COMMA)
-            eat(COMMA)
-          Some(id.setPos(id))
-          }
-        )
       if(currentToken is LANGEL){
         eat(LANGEL)
-        val result = accumulate { parseTemplateId() } whilst { currentToken is IDKIND }
+        val result = readIdentifier(firstTemplateParam => Some(
+              firstTemplateParam +: {
+                accumulate { eat(COMMA) { readIdentifier(id => Some(id)) } } whilst { currentToken is COMMA }
+              }
+          )) getOrElse {
+            expected(TYPE_KINDS:_*)
+            Nil
+          }
         eat(RANGEL)
         result
       }else Nil
