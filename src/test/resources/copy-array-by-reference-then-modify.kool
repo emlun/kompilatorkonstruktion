@@ -1,0 +1,81 @@
+object HelloWorld {
+  def main(): Unit = {
+    if(new Greeter().test(0, true, "a", 3)) {
+    }
+  }
+}
+
+class Named {
+  var name: String;
+  def setName(newName: String): Bool = {
+    name = newName;
+    if(true) {
+      if(false) {} else {}
+    }
+    return true;
+  }
+}
+
+class Greeter extends Named {
+  def shadowName(name: String): Bool = {
+    return true;
+  }
+  def getMe(): Greeter = {
+    return this;
+  }
+  def getTrue(): Bool = {
+    return true;
+  }
+  def test(i0: Int, i1: Bool, i2: String, i3: Int): Bool = {
+    var a: String;
+    var ints: Int[];
+    var ints2: Int[];
+
+    a = "Hello, " +
+      i2
+      + " and welcome" +
+      " to somewhere!";
+    println(a);
+
+    ints = new Int[4];
+    ints[0] = 10;
+    ints[1] = 11;
+    ints[2] = 12;
+    ints[3] = 13;
+
+    println("ints:");
+    println(ints[0]);
+    println(ints[1]);
+    println(ints[2]);
+    println(ints[3]);
+
+    ints2 = ints;
+
+    println("ints:");
+    println(ints[0]);
+    println(ints[1]);
+    println(ints[2]);
+    println(ints[3]);
+    println("ints2:");
+    println(ints2[0]);
+    println(ints2[1]);
+    println(ints2[2]);
+    println(ints2[3]);
+
+    ints2[3] = 25;
+
+    println("ints:");
+    println(ints[0]);
+    println(ints[1]);
+    println(ints[2]);
+    println(ints[3]);
+    println("ints2:");
+    println(ints2[0]);
+    println(ints2[1]);
+    println(ints2[2]);
+    println(ints2[3]);
+
+    return true;
+  }
+
+}
