@@ -378,6 +378,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           read(NEW) { newToken =>
             if(currentToken is IDKIND) {
               readIdentifier(id =>
+                // TODO parse type arguments here
                 eat(LPAREN, RPAREN) { Some(New(id).setPos(newToken)) }
               )
             } else {
