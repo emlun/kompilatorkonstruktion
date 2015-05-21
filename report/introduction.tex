@@ -1,0 +1,33 @@
+We want to implement templates in a similar way to C++, in the appendix you can
+see the changes we want to do to the language.
+
+To implement this we will add a new phase between the name analysis and type
+checking to expand the templates with the needed types. If we for example define
+a method \textbf{max$\langle$T$\rangle$(a:T,b:T):T} and call it with a pair of
+Ints and a pair of Strings we need to expand the code into one method for ints
+and one for strings, for example \textbf{max\$Int(a:Int,b:Int):Int}.
+
+This in addition to adding a new Type or Symbol for templates is all the
+changes we think are necessary for implementing templates. In particular, the
+type checking and code generation phases should not need to be modified since
+we will require explicit type arguments in references to template types and
+methods. Automatic inference of type parameters where possible is proposed as a
+further extension if we get the time.
+
+In the name analysis phase we simply add a template symbol to all references to
+templates, and in the phase before type checking we expand the template by adding
+any needed classes and methods to the AST. The template symbol contains a list of
+either methodSymbols or classSymbols for all the versions that has been created.
+
+\iffalse
+The first thing our compiled does is checking whether the code compiles to
+the BNF, this is done in two steps by first tokenizing the code into the
+tokens found in our language, and then in the parser check whether the order
+of the tokens are in complient with our language. We had to add some rules to
+the BNF to make room for templates, the addition can be found in the appendix.
+In the next part, name analysis we make sure that the code follows a set of rules
+and attatch symbols to all identifiers. After the name analysis we run type
+checking where we detect and make sure that all expressions produce the correct
+type. To make this part work with templates we have to expand all templates
+befor we run the type checking, and modify the symbols slighetly.
+\fi
