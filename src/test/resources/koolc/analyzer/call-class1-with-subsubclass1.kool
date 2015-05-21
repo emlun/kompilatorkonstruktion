@@ -1,0 +1,13 @@
+object Main {
+  def main(): Unit = {
+    if(new Foo().bar(new SubSubFoo())) {}
+  }
+}
+
+class Foo {
+  def bar(a: Foo): Bool = {
+    return true;
+  }
+}
+class SubFoo extends Foo {}
+class SubSubFoo extends SubFoo {}

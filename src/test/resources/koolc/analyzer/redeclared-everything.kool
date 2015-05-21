@@ -1,0 +1,17 @@
+object Main { def main(): Unit = {} }
+
+class Main {}
+
+class Foo {
+  var bar: Bool;
+  var bar: Int;
+
+  def bar(bar: Bool, bar: Int): Bool = { return true; }
+  def bar(bar: Int, bar: Bool): Int = {
+    var bar: Int;
+    var bar: Bool;
+    return 1;
+  }
+}
+
+class Foo {}

@@ -1,0 +1,8 @@
+object Main {
+  def main(): Unit = {
+    if(new Foo() == new Bar()) {}
+  }
+}
+
+class Foo {}
+class Bar {}

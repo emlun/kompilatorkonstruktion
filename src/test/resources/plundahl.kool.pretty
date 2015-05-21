@@ -1,0 +1,62 @@
+object biggerTest {
+ def main() : Unit = {
+
+ }
+}
+
+class RealMain {
+ def realMain (  ) : Bool = {
+  var aaa : Int;
+  var bbb : Int;
+  var ccc : Int;
+  var ddd : Int[ ];
+  var eee : Int;
+  aaa = 1;
+  bbb = (1 + 1);
+  ccc = (aaa * bbb);
+  ddd = new Int [ 10 ];
+  eee = ddd.length;
+  if ( (aaa == bbb) )
+   while ( (aaa < ccc) )
+aaa = (aaa + 1);  
+else
+   {
+    aaa = (aaa + 2);
+    println( aaa );
+}
+  return false;
+ }
+}
+
+class firstClass {
+ var a1 : Int;
+ var a2 : Bool;
+ var a3 : Int;
+ def firstMethod ( input1 : Int[ ], input2 : Int ) : Int = {
+  var a4 : String;
+  var a5 : Bool;
+  println( input1 [ input2 ] );
+  return input1 [ input2 ];
+ }
+}
+
+class secondClass extends firstClass {
+ def secondMethod (  ) : Bool = {
+  var a : Int;
+  var b : Int;
+  var c : Int;
+  println( ((a + b) + c) );
+  a1 = ((((((((1 - 2) - 3) - 4) - 5) - 6) - 7) - 8) - 9);
+  {
+   a = 1;
+   {
+    b = 2;
+    {
+     c = 3;
+}
+}
+}
+  return false;
+ }
+}
+

@@ -1,0 +1,127 @@
+plugins {
+  id "com.github.maiflai.scalatest" version "0.6-5-g9065d91"
+}
+apply plugin: 'scala'
+apply plugin: 'eclipse'
+
+version = '0.6.3'
+ext.appendix = 'emlun_plundahl'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.3'
+}
+
+repositories {
+  mavenCentral()
+}
+
+configurations {
+  submission
+}
+
+dependencies {
+  compile(
+    'org.scala-lang:scala-library:2.+',
+    'org.scala-lang:scala-parser-combinators:2.+',
+    files('lib/cafebabe_2.11-1.2.jar'),
+  )
+  testCompile(
+    'org.scalatest:scalatest_2.11:2.+',
+    'org.scalamock:scalamock-core_2.11:3.+',
+    'org.scalamock:scalamock-scalatest-support_2.11:3.+',
+  )
+  testRuntime 'org.pegdown:pegdown:1.+'
+}
+
+tasks.withType(ScalaCompile) {
+  scalaCompileOptions.useAnt = false
+  scalaCompileOptions.additionalParameters = ['-feature']
+}
+
+jar {
+  manifest {
+    attributes([
+      'Main-Class': 'koolc.Main',
+      'Specification-Vendor': 'koolc',
+      'Specification-Title': 'koolc',
+      'Specification-Version': '1.2',
+      'Implementation-Title': "emlun & plundahl's KOOL compiler",
+      'Implementation-Vendor-Id': 'emlun & plundahl',
+      'Implementation-Vendor': 'Petter Lundahl and Emil Lundberg',
+      'Implementation-Version': project.version,
+    ])
+  }
+  appendix = project.appendix
+}
+
+task zip(type: Zip) {
+  into(project.name) {
+    from(sourceSets.main.allScala) { into 'src/main/scala' }
+    from('gradle') { into 'gradle' }
+    from 'build.gradle'
+    from 'gradlew'
+    from('project/plugins.sbt') { into 'project' }
+    from 'build.sbt'
+    from 'README.md'
+    appendix = project.appendix
+  }
+}
+
+artifacts {
+  submission zip
+}
+
+task makePrettyPrinterSnapshots(type: Copy) {
+  from("${buildDir}/tmp") {
+    include '**/*.kool.pretty'
+  }
+  into 'src/test/resources'
+}
+
+fileTree('src/test/resources/') {
+  include '**/*.kool'
+  exclude '**/invalid/**'
+  exclude '**/lab2/**'
+  exclude '**/bad.kool'
+}.visit { f ->
+  if(!f.isDirectory()) {
+    def t = task("makePrettyPrinterSnapshot${f.name.replace('.kool', '').capitalize()}", type: JavaExec) {
+      classpath sourceSets.main.runtimeClasspath
+      executable 'scala'
+      main 'koolc.Main'
+      args "src/test/resources/${f.relativePath}"
+
+      def outputFile = file("${buildDir}/tmp/${f.relativePath}.pretty")
+      outputFile.parentFile.mkdirs()
+      standardOutput = new FileOutputStream(outputFile)
+    }
+    makePrettyPrinterSnapshots.dependsOn t
+  }
+}
+
+task makeExpectedAstFiles(type: Copy) {
+  from("${buildDir}/tmp") {
+    include '**/*.kool.ast'
+  }
+  into 'src/test/resources'
+}
+
+fileTree('src/test/resources/') {
+  include '**/lab3/valid/**/*.kool'
+}.visit { f ->
+  if(!f.isDirectory()) {
+    def t = task("make${f.name.replace('.kool', '').capitalize()}ExpectedAst", type: JavaExec) {
+      classpath fileTree('lib')
+      executable 'scala'
+      main 'koolc.Main'
+      args "src/test/resources/${f.relativePath}"
+      args '--ast'
+      args '-d', "${buildDir}/tmp"
+
+      def outputFile = file("${buildDir}/tmp/${f.relativePath}.ast")
+      outputFile.parentFile.mkdirs()
+      standardOutput = new FileOutputStream(outputFile)
+    }
+    makeExpectedAstFiles.dependsOn t
+  }
+}

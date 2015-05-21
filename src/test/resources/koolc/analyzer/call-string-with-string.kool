@@ -1,0 +1,11 @@
+object Main {
+  def main(): Unit = {
+    if(new Foo().bar("a")) {}
+  }
+}
+
+class Foo {
+  def bar(a: String): Bool = {
+    return true;
+  }
+}
