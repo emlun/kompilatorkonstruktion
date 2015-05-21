@@ -38,3 +38,8 @@ class Maybe<T> {
   def isDefined(): Bool = { return is; }
   def get(): T = { return value; }
 }
+
+class Pair<A, B> {
+  var a: A;
+  var b: B;
+}
