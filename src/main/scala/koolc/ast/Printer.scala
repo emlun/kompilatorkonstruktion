@@ -29,7 +29,7 @@ object Printer extends (Boolean => (Tree => String)) {
         "object " + print(id,ident+1) + " {\n" + mainMethod + "\n}\n\n"
       }
 
-      case ClassDecl(id, parent,vars,methods) => {
+      case ClassDecl(id, parent,vars,methods,template) => {
         val extend = parent map (" extends " + print(_,ident)) getOrElse ""
         val vari = vars map { indent(ident+1) + print(_,ident+1) }
         val meti = methods map { indent(ident+1) + print(_,ident+1) }
@@ -42,7 +42,7 @@ object Printer extends (Boolean => (Tree => String)) {
         "var " + print(id,ident) + " : " + print(tpe,ident) + ";"
       }
 
-      case MethodDecl(retType, id, args, vars, stats, retExpr) => {
+      case MethodDecl(retType, id, args, vars, stats, retExpr, template) => {
         val arg = args map (print(_,ident)) mkString ", "
         val vari = vars map { indent(ident+1) + print(_,ident+1) }
         val stmt = stats map { indent(ident+1) + print(_,ident+1) }
@@ -105,7 +105,7 @@ object Printer extends (Boolean => (Tree => String)) {
       case Not(expr)         => "!" + print(expr,ident+1)
 
       case t: This              => "this" + (if(showSymbols) t.symbolComment else "")
-      case id@Identifier(value) => value + (if(showSymbols) id.symbolComment else "")
+      case id@Identifier(value,templateList) => value + (if(showSymbols) id.symbolComment else "")
     }
     print(_, 0)
   }

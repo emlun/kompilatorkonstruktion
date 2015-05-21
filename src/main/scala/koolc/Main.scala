@@ -72,7 +72,7 @@ object Main {
         println()
       }
     } else if(printAST) {
-      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
+      val pipeline = Lexer andThen Parser //andThen NameAnalysis andThen TypeChecking
 
       if(printSYMID){
         println(

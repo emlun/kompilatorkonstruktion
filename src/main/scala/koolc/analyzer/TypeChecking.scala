@@ -36,7 +36,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         case IntType() => TInt
         case BooleanType() => TBoolean
         case StringType() => TString
-        case id@Identifier(value) => {
+        case id@Identifier(value,templateList) => {
           id.symbol.tpe
         }
       }
@@ -124,7 +124,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
         case True() => TBoolean
         case False() => TBoolean
-        case id@Identifier(value) => {
+        case id@Identifier(value,templateList) => {
           id.symbol.tpe
         }
 

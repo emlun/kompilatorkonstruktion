@@ -364,7 +364,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case StringLit(value)  => Ldc(value)            <<: InstructionSequence.empty
       case True()            => ICONST_1              <<: InstructionSequence.empty
       case False()           => ICONST_0              <<: InstructionSequence.empty
-      case Identifier(value) => lookupVar(value).load <<: InstructionSequence.empty
+      case Identifier(value,templateList) => lookupVar(value).load <<: InstructionSequence.empty
       case This()            => ALoad(0)              <<: InstructionSequence.empty
 
       case NewIntArray(size) => recurse(size) <<: NewArray(10) <<: InstructionSequence.empty

@@ -121,42 +121,49 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
         def parseMethodDeclarations(): List[MethodDecl] = {
           def parseMethodDeclaration(): Option[MethodDecl] =
             read(DEF) { defToken =>
-              readIdentifier(id =>
-                eat(LPAREN) {
-                  val parameters: List[Formal] =
-                    if(currentToken is IDKIND) {
-                      readIdentifier(paramId =>
-                        parseType(tpe => Some(Formal(tpe, paramId).setPos(paramId)))
-                      ) map { firstParam =>
-                        firstParam +: {
-                          accumulate {
-                            eat(COMMA) {
-                              readIdentifier(paramId =>
-                                parseType(tpe => Some(Formal(tpe, paramId).setPos(paramId)))
-                              )
-                            }
-                          } whilst { currentToken is COMMA }
-                        }
-                      } getOrElse Nil
-                    } else Nil
+              readIdentifier(id => {
+                  val templateList = parseTemplateList()
+                  eat(LPAREN) {
+                    val parameters: List[Formal] =
+                      if(currentToken is IDKIND) {
+                        readIdentifier(paramId => {
+                          eat(COLON)
+                          parseType(tpe => Some(Formal(tpe, paramId).setPos(paramId)))
+                          }
+                        ) map { firstParam =>
+                          firstParam +: {
+                            accumulate {
+                              eat(COMMA) {
+                                readIdentifier(paramId =>{
+                                  eat(COLON)
+                                  parseType(tpe => Some(Formal(tpe, paramId).setPos(paramId)))
+                                  }
+                                )
+                              }
+                            } whilst { currentToken is COMMA }
+                          }
+                        } getOrElse Nil
+                      } else Nil
 
-                  eat(RPAREN) {
-                    parseType(returnType =>
-                      eat(EQSIGN, LBRACE) {
-                        val varDeclarations = parseVarDeclarations()
-                        val statements = parseStatements()
+                    eat(RPAREN) {
+                      eat(COLON)
+                      parseType(returnType =>
+                        eat(EQSIGN, LBRACE) {
+                          val varDeclarations = parseVarDeclarations()
+                          val statements = parseStatements()
 
-                        eat(RETURN) {
-                          parseExpression(returnExpression =>
-                            eat(SEMICOLON, RBRACE) {
-                              Some(MethodDecl(returnType, id,
-                                parameters, varDeclarations, statements, returnExpression).setPos(defToken)
-                              )
-                            }
-                          )
+                          eat(RETURN) {
+                            parseExpression(returnExpression =>
+                              eat(SEMICOLON, RBRACE) {
+                                Some(MethodDecl(returnType, id,
+                                  parameters, varDeclarations, statements, returnExpression, templateList).setPos(defToken)
+                                )
+                              }
+                            )
+                          }
                         }
-                      }
-                    )
+                      )
+                    }
                   }
                 }
               )
@@ -167,6 +174,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
 
         read(CLASS) { classToken =>
           readIdentifier(id => {
+            val templateList = parseTemplateList()
             val parentClass = if(currentToken is EXTENDS) {
               eat(EXTENDS) { readIdentifier() }
             } else None
@@ -174,7 +182,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
               val vars = parseVarDeclarations()
               val methods = parseMethodDeclarations()
               eat(RBRACE) {
-                Some(ClassDecl(id, parentClass, vars, methods).setPos(classToken))
+                Some(ClassDecl(id, parentClass, vars, methods, templateList).setPos(classToken))
               }
             }
           })
@@ -184,15 +192,50 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
       accumulate { parseClassDeclaration() } whilst { currentToken is CLASS }
     }
 
+    def parseTemplateArg(): List[TypeTree] = {
+      def parseTemplateType(): Option[TypeTree] =
+        parseType(id =>{
+          if(currentToken is COMMA)
+            eat(COMMA)
+          Some(id.setPos(id))
+          }
+        )
+      if(currentToken is LANGEL){
+        eat(LANGEL)
+        val result = accumulate { parseTemplateType() } whilst { currentToken is IDKIND }
+        eat(RANGEL)
+        result
+      }else Nil
+
+    }
+
+    def parseTemplateList(): List[Identifier] = {
+      def parseTemplateId(): Option[Identifier] =
+        readIdentifier(id =>{
+          if(currentToken is COMMA)
+            eat(COMMA)
+          Some(id.setPos(id))
+          }
+        )
+      if(currentToken is LANGEL){
+        eat(LANGEL)
+        val result = accumulate { parseTemplateId() } whilst { currentToken is IDKIND }
+        eat(RANGEL)
+        result
+      }else Nil
+    }
+
     def parseVarDeclarations(): List[VarDecl] = {
       def parseVarDeclaration(): Option[VarDecl] =
         read(VAR) { varToken =>
-          readIdentifier(id =>
-            parseType(tpe =>
-              eat(SEMICOLON) {
-                Some(VarDecl(tpe, id).setPos(varToken))
-              }
-            )
+          readIdentifier(id => {
+              eat(COLON)
+              parseType(tpe =>
+                eat(SEMICOLON) {
+                  Some(VarDecl(tpe, id).setPos(varToken))
+                }
+              )
+            }
           )
         }
 
@@ -200,11 +243,16 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def parseType[T](thenn: TypeTree => Option[T] = Some[TypeTree](_)): Option[T] =
-      eat(COLON) {
+      {
         currentToken.kind match {
           case BOOLEAN => read(BOOLEAN) { token => Some(BooleanType().setPos(token)) }
           case STRING  => read(STRING)  { token => Some(StringType().setPos(token))  }
-          case IDKIND  => readIdentifier()
+          case IDKIND  => {
+            readIdentifier() match {
+              case None => None;
+              case Some(id) => Some(Identifier(id.value,parseTemplateArg()));
+            }
+          }
           case INT     => read(INT) { intToken =>
               if(currentToken is LBRACKET) {
                 eat(LBRACKET, RBRACKET) { Some(IntArrayType().setPos(intToken)) }

@@ -81,5 +81,5 @@ object Types {
   }
 
   // special object to implement the fact that all objects are its subclasses
-  val anyObject = TObject(new ClassSymbol("Object", Map.empty, ClassDecl(Identifier("Object"), None, Nil, Nil)))
+  val anyObject = TObject(new ClassSymbol("Object", Map.empty, ClassDecl(Identifier("Object"), None, Nil, Nil,Nil)))
 }
