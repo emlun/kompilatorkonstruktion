@@ -194,7 +194,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     }
 
     def parseTemplateArg(): List[TypeTree] = {
-      if(currentToken is LANGEL){
+      if(currentToken is LANGEL) {
         eat(LANGEL)
         val result = parseType() map { firstTypeArg =>
             firstTypeArg +: { accumulate { eat(COMMA) { parseType() } } whilst { currentToken is COMMA } }
@@ -204,12 +204,11 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           }
         eat(RANGEL)
         result
-      }else Nil
-
+      } else Nil
     }
 
     def parseTemplateList(): List[Identifier] = {
-      if(currentToken is LANGEL){
+      if(currentToken is LANGEL) {
         eat(LANGEL)
         val result = readIdentifier(firstTemplateParam => Some(
               firstTemplateParam +: {
@@ -221,7 +220,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           }
         eat(RANGEL)
         result
-      }else Nil
+      } else Nil
     }
 
     def parseVarDeclarations(): List[VarDecl] = {
