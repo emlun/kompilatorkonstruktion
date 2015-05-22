@@ -3,14 +3,15 @@ object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
 class RealMain {
   def realMain(): Bool = {
     var mint: Maybe<Int>;
+    var result: Bool;
     mint = new Maybe<Int>();
-    printMint(mint);
-    mint.set(5);
-    printMint(mint);
-    mint.unset();
-    printMint(mint);
-    mint.set(7);
-    printMint(mint);
+    result = this.printMint(mint);
+    mint = mint.set(5);
+    result = this.printMint(mint);
+    mint = mint.unset();
+    result = this.printMint(mint);
+    mint = mint.set(7);
+    result = this.printMint(mint);
     return false;
   }
 
