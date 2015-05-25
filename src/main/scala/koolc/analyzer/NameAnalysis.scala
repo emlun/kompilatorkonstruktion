@@ -142,6 +142,6 @@ object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
       )
 
     if(ctx.reporter.hasErrors) None
-    else NameResolver.run(ctx)(program, mainSymbol, classSymbols)
+    else ClassTemplateExpander.run(ctx)(program, mainSymbol, classSymbols)
   }
 }
