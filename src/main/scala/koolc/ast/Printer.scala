@@ -30,12 +30,13 @@ object Printer extends (Boolean => (Tree => String)) {
       }
 
       case ClassDecl(id, parent,vars,methods,template) => {
+        val temp = template map (print(_,ident)) mkString ", "
         val extend = parent map (" extends " + print(_,ident)) getOrElse ""
         val vari = vars map { indent(ident+1) + print(_,ident+1) }
         val meti = methods map { indent(ident+1) + print(_,ident+1) }
 
         val body = vari ++: meti mkString "\n"
-        "class " + print(id,ident+1) + extend + " {\n" + body + "}\n\n"
+        "class " + print(id,ident+1) + (if(template != Nil) "<"+temp+">" else "") + extend + " {\n" + body + "}\n\n"
       }
 
       case VarDecl(tpe, id) => {
@@ -44,11 +45,12 @@ object Printer extends (Boolean => (Tree => String)) {
 
       case MethodDecl(retType, id, args, vars, stats, retExpr, template) => {
         val arg = args map (print(_,ident)) mkString ", "
+        val temp = template map (print(_,ident)) mkString ", "
         val vari = vars map { indent(ident+1) + print(_,ident+1) }
         val stmt = stats map { indent(ident+1) + print(_,ident+1) }
         val ret = indent(ident+1) + "return " + print(retExpr,ident+1) + ";"
         val body = (vari ++: stmt ++: List(ret)) mkString "\n"
-        "def " + print(id,ident) + " ( " + arg + " ) : " + print(retType,ident) + " = {\n" + body + "\n"+indent(ident)+"}\n"
+        "def " + print(id,ident) + (if(template != Nil) "<"+temp+">" else "") +" ( " + arg + " ) : " + print(retType,ident) + " = {\n" + body + "\n"+indent(ident)+"}\n"
       }
 
       case Formal(tpe, id) => print(id,ident) + " : " + print(tpe,ident)
@@ -105,7 +107,8 @@ object Printer extends (Boolean => (Tree => String)) {
       case Not(expr)         => "!" + print(expr,ident+1)
 
       case t: This              => "this" + (if(showSymbols) t.symbolComment else "")
-      case id@Identifier(value,templateList) => value + (if(showSymbols) id.symbolComment else "")
+      case id@Identifier(value,templateList) => value + (if(showSymbols) id.symbolComment else "") +
+      (if(templateList != Nil){val arg = templateList map (print(_,ident)) mkString ", "; "<" + arg + ">"} else "")
     }
     print(_, 0)
   }

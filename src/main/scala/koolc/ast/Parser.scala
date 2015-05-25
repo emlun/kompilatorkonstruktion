@@ -358,19 +358,22 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
     def parseExpression[T](thenn: ExprTree => Option[T] = Some[ExprTree](_)): Option[T] = {
 
       def parseMethodCall(obj: ExprTree): Option[ExprTree] =
-        readIdentifier(identifier =>
-          eat(LPAREN) {
-            val args: List[ExprTree] =
-              if(currentToken is (BEGIN_EXPRESSION:_*)) {
-                parseExpression() map { firstArgument =>
-                  firstArgument +: {
-                    accumulate { eat(COMMA) { parseExpression() } } whilst { currentToken is COMMA }
-                  }
-                } getOrElse Nil
-              } else Nil
+        readIdentifier(id =>
+          {
+            val identifier = Identifier(id.value, parseTemplateArg())
+            eat(LPAREN) {
+              val args: List[ExprTree] =
+                if(currentToken is (BEGIN_EXPRESSION:_*)) {
+                  parseExpression() map { firstArgument =>
+                    firstArgument +: {
+                      accumulate { eat(COMMA) { parseExpression() } } whilst { currentToken is COMMA }
+                    }
+                  } getOrElse Nil
+                } else Nil
 
-            eat(RPAREN) { Some(MethodCall(obj, identifier, args).setPos(obj)) }
+              eat(RPAREN) { Some(MethodCall(obj, identifier, args).setPos(obj)) }
           }
+        }
         )
 
       def parseNegation(thenn: ExprTree => Option[ExprTree] = Some(_)): Option[ExprTree] = {
@@ -378,8 +381,10 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           read(NEW) { newToken =>
             if(currentToken is IDKIND) {
               readIdentifier(id =>
-                // TODO parse type arguments here
-                eat(LPAREN, RPAREN) { Some(New(id).setPos(newToken)) }
+              {
+                val templateList = parseTemplateArg()
+                eat(LPAREN, RPAREN) { Some(New(Identifier(id.value,templateList)).setPos(newToken)) }
+              }
               )
             } else {
               eat(INT, LBRACKET) {
