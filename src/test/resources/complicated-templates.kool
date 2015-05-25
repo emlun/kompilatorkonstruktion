@@ -1,0 +1,49 @@
+object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
+
+class RealMain {
+  def realMain(): Bool = {
+    var mint: Maybe<Int>;
+    var result: Bool;
+    var f: Foo<Maybe<Pair<Int,Bool>>,Pair<String,Int>>;
+    mint = new Maybe<Int>();
+    result = this.printMint(mint);
+    mint = mint.set(5);
+    result = this.printMint(mint);
+    mint = mint.unset();
+    result = this.printMint(mint);
+    mint = mint.set(7);
+    result = this.printMint(mint);
+    return false;
+  }
+
+  def printMint(mint: Maybe<Int>): Bool = {
+    if(mint.isDefined()) {
+      println("Value: " + mint.get());
+    } else {
+      println("Undefined");
+    }
+    return true;
+  }
+}
+
+class Foo<T,S> {}
+
+class Maybe<T> {
+  var is: Bool; var value: T;
+  def set(newValue: T): Maybe<T> = {
+    value = newValue;
+    is = true;
+    return this;
+  }
+  def unset(): Maybe<T> = {
+    is = false;
+    return this;
+  }
+  def isDefined(): Bool = { return is; }
+  def get(): T = { return value; }
+}
+
+class Pair<A, B> {
+  var a: A;
+  var b: B;
+}
