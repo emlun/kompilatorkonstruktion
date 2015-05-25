@@ -18,8 +18,9 @@ object ClassTemplateExpander {
 
     def getClassTemplateReferences(program: Program): List[Identifier] = {
       def getInType(tpe: TypeTree): List[Identifier] = tpe match {
-          case Identifier(value, typeParams) => ???
-          case _ => Nil
+          case Identifier(value, Nil)         => Nil
+          case id@Identifier(value, template) => List(id)
+          case _                              => Nil
         }
 
       def getInExpression(expression: ExprTree): List[Identifier] = expression match {
@@ -50,14 +51,34 @@ object ClassTemplateExpander {
           case ArrayAssign(id, index, expr) => getInExpression(index) ++: getInExpression(expr)
         }
 
-      def getInClass(clazz: ClassDecl): List[Identifier] = clazz match {
-          case _ => ???
-        }
+      def getInMethod(method: MethodDecl): List[Identifier] = {
+        val retTypeTemplate: List[Identifier] = getInType(method.retType)
+        val argTemplates: List[Identifier] = method.args flatMap { arg => getInType(arg.tpe) }
+        val varTemplates: List[Identifier] = method.vars flatMap { varDecl => getInType(varDecl.tpe) }
+        val statementTemplates: List[Identifier] = method.stats flatMap getInStatement _
+        val retExprTemplates: List[Identifier] = getInExpression(method.retExpr)
 
-      (program.main.stats flatMap getInStatement _) ++: (program.classes flatMap getInClass _)
+        retTypeTemplate ++: argTemplates ++: varTemplates ++: statementTemplates ++: retExprTemplates
+      }
+
+      def getInClass(clazz: ClassDecl): List[Identifier] = {
+        val parentTemplate: Option[Identifier] = clazz.parent filter { ! _.template.isEmpty }
+        val variableTypeTemplates: List[Identifier] = clazz.vars map { _.tpe } flatMap {
+          case Identifier(value, Nil)         => None
+          case id@Identifier(value, template) => Some(id)
+          case _                              => None
+        }
+        val methodTypeTemplates: List[Identifier] = clazz.methods flatMap getInMethod _
+
+        parentTemplate ++: variableTypeTemplates ++: methodTypeTemplates
+      }
+
+      (program.main.stats flatMap getInStatement _) ++:
+        (program.classes filter { _.template.isEmpty } flatMap getInClass _)
     }
 
-    val classTemplateReferences = getClassTemplateReferences(program)
+    val classTemplateReferences = getClassTemplateReferences(program).toSet
+    println(classTemplateReferences)
 
     def expandClassTemplates(program: Program): Program = {
       program
