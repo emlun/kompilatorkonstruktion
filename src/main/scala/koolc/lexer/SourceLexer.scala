@@ -15,10 +15,11 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
 
   private val ALL_TOKEN_KINDS = Set(EOF,
     COLON, SEMICOLON, DOT, COMMA, EQSIGN, EQUALS, BANG, LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE,
-    AND, OR, LESSTHAN, PLUS, MINUS, TIMES, DIV,
+    AND, OR, LANGEL, PLUS, MINUS, TIMES, DIV,
     OBJECT, CLASS, DEF, VAR, UNIT, MAIN, STRING, EXTENDS, INT, BOOLEAN,
     WHILE, IF, ELSE, RETURN, LENGTH, TRUE, FALSE, THIS,
-    NEW, PRINTLN, LINECOMMENT, BLOCKCOMMENT, IDKIND, INTLITKIND, STRLITKIND)
+    NEW, PRINTLN, LINECOMMENT, BLOCKCOMMENT, IDKIND, INTLITKIND, STRLITKIND,
+    LANGEL, RANGEL)
 
   private def makeToken(current: String, candidates: Set[TokenKind], ctx: Context, currentPos: Int) = {
     val matchedCandidates = candidates filter (kind => Tokens.isToken(current, kind))
@@ -123,16 +124,10 @@ object SourceLexer extends Pipeline[Source, Iterator[Token]] {
     var (nextToken, current, currentPos) = readNext("", source.pos)
 
     new Iterator[Token] {
-      override def hasNext = nextToken match {
-        case Some(_) => true
-        case None    => false
-      }
+      override def hasNext = nextToken.isDefined
 
       override def next = {
-        val result = nextToken match {
-          case Some(t) => t
-          case None    => null
-        }
+        val result = nextToken.get
 
         val readResult = readNext(current, currentPos)
         current = readResult._2

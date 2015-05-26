@@ -75,6 +75,10 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case InstructionSequence(Some(prehead), None)          => prehead <<: this
       case InstructionSequence(None, None)                   => this
     }
+    def <<:(pre: List[InstructionSequence]): InstructionSequence = pre match {
+      case prehead :: pretail => prehead <<: (pretail <<: this)
+      case Nil                => this
+    }
     override def apply(ch: CodeHandler): CodeHandler = {
       head map { wrapper =>
         wrapper match {
@@ -260,6 +264,15 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
           InstructionSequence.empty
       }
       case Plus(lhs, rhs) => {
+        def flattenStringConcatenation(term: ExprTree): List[ExprTree] =
+          term.getType match {
+            case TInt => term :: Nil
+            case _    => term match {
+              case Plus(lhs, rhs) => flattenStringConcatenation(lhs) ++: flattenStringConcatenation(rhs)
+              case other          => other :: Nil
+            }
+          }
+
         (lhs.getType, rhs.getType) match {
           case (TInt, TInt) =>
             recurse(lhs) <<:
@@ -268,14 +281,13 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
             InstructionSequence.empty
           case (lhsType, rhsType) => {
               DefaultNew("java/lang/StringBuilder") <<:
-              recurse(lhs) <<:
-              InvokeVirtual(
-                "java/lang/StringBuilder", "append", "(" + typeToString(lhsType) + ")Ljava/lang/StringBuilder;"
-              ) <<:
-              recurse(rhs) <<:
-              InvokeVirtual(
-                "java/lang/StringBuilder", "append", "(" + typeToString(rhsType) + ")Ljava/lang/StringBuilder;"
-              ) <<:
+              ((flattenStringConcatenation(lhs) ++: flattenStringConcatenation(rhs)) map { operand =>
+                recurse(operand) <<:
+                InvokeVirtual(
+                  "java/lang/StringBuilder", "append", "(" + typeToString(operand.getType) + ")Ljava/lang/StringBuilder;"
+                ) <<:
+                InstructionSequence.empty
+              }) <<:
               InvokeVirtual(
                 "java/lang/StringBuilder", "toString", "()Ljava/lang/String;"
               ) <<:
@@ -352,7 +364,7 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
       case StringLit(value)  => Ldc(value)            <<: InstructionSequence.empty
       case True()            => ICONST_1              <<: InstructionSequence.empty
       case False()           => ICONST_0              <<: InstructionSequence.empty
-      case Identifier(value) => lookupVar(value).load <<: InstructionSequence.empty
+      case Identifier(value,templateList) => lookupVar(value).load <<: InstructionSequence.empty
       case This()            => ALoad(0)              <<: InstructionSequence.empty
 
       case NewIntArray(size) => recurse(size) <<: NewArray(10) <<: InstructionSequence.empty

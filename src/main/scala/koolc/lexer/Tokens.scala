@@ -62,7 +62,6 @@ object Tokens {
   case object RBRACE extends TokenKind      // }
   case object AND extends TokenKind         // &&
   case object OR extends TokenKind          // ||
-  case object LESSTHAN extends TokenKind    // <
   case object PLUS extends TokenKind        // +
   case object MINUS extends TokenKind       // -
   case object TIMES extends TokenKind       // *
@@ -90,6 +89,9 @@ object Tokens {
 
   case object LINECOMMENT extends TokenKind  // //
   case object BLOCKCOMMENT extends TokenKind // /* */
+
+  case object LANGEL extends TokenKind        // <
+  case object RANGEL extends TokenKind        // >
 
   // Identifiers
   case class ID(val value: String) extends Token(IDKIND) {
@@ -124,7 +126,6 @@ object Tokens {
       case RBRACE    => "}"       startsWith prefix
       case AND       => "&&"      startsWith prefix
       case OR        => "||"      startsWith prefix
-      case LESSTHAN  => "<"       startsWith prefix
       case PLUS      => "+"       startsWith prefix
       case MINUS     => "-"       startsWith prefix
       case TIMES     => "*"       startsWith prefix
@@ -153,6 +154,9 @@ object Tokens {
       case LINECOMMENT  => "//" startsWith prefix
       case BLOCKCOMMENT => "/*" startsWith prefix
 
+      case LANGEL     => "<" startsWith prefix
+      case RANGEL     => ">" startsWith prefix
+
       case IDKIND     => prefix matches "^([a-zA-Z][a-zA-Z0-9_]*)?$"
       case STRLITKIND => (prefix == "") || (prefix matches """^"[^"]*"?$""")
       case INTLITKIND => prefix matches "0|[1-9][0-9]*"
@@ -179,7 +183,6 @@ object Tokens {
       case RBRACE    => "}"       equals word
       case AND       => "&&"      equals word
       case OR        => "||"      equals word
-      case LESSTHAN  => "<"       equals word
       case PLUS      => "+"       equals word
       case MINUS     => "-"       equals word
       case TIMES     => "*"       equals word
@@ -207,6 +210,9 @@ object Tokens {
 
       case LINECOMMENT  => "//" equals word
       case BLOCKCOMMENT => "/*" equals word
+
+      case LANGEL     => "<" equals word
+      case RANGEL     => ">" equals word
 
       case IDKIND     => word matches "^[a-zA-Z][a-zA-Z0-9_]*$"
       case STRLITKIND => word matches """^"[^"]*"$"""

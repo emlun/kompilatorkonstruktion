@@ -29,7 +29,8 @@ object Trees {
       id: Identifier,
       parent: Option[Identifier],
       vars: List[VarDecl],
-      methods: List[MethodDecl]) extends SymbolicTree[ClassSymbol]
+      methods: List[MethodDecl],
+      template: List[Identifier] = Nil) extends SymbolicTree[ClassSymbol]
   case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
   case class MethodDecl(
       retType: TypeTree,
@@ -37,7 +38,8 @@ object Trees {
       args: List[Formal],
       vars: List[VarDecl],
       stats: List[StatTree],
-      retExpr: ExprTree) extends SymbolicTree[MethodSymbol]
+      retExpr: ExprTree,
+      template: List[Identifier] = Nil) extends SymbolicTree[MethodSymbol]
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
 
   sealed trait TypeTree extends Tree with Typed {
@@ -46,7 +48,7 @@ object Trees {
       case IntType()         => "Int"
       case BooleanType()     => "Bool"
       case StringType()      => "String"
-      case Identifier(value) => value
+      case Identifier(value,template) => value
     }
   }
   case class IntArrayType() extends TypeTree
@@ -79,7 +81,7 @@ object Trees {
 
   case class True() extends ExprTree
   case class False() extends ExprTree
-  case class Identifier(value: String) extends TypeTree with ExprTree with SymbolicTree[Symbol]
+  case class Identifier(value: String, template: List[TypeTree] = Nil) extends TypeTree with ExprTree with SymbolicTree[Symbol]
 
   case class This() extends ExprTree with SymbolicTree[ClassSymbol]
   case class NewIntArray(size: ExprTree) extends ExprTree

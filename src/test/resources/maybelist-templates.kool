@@ -1,0 +1,99 @@
+object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
+
+class RealMain {
+  def realMain(): Bool = {
+    var list: LinkedList<Int>;
+    list = new LinkedList<Int>().init().prepend(2).prepend(1).append(3);
+    println("Size: " + list.size());
+    println(list.toString());
+    return false;
+  }
+}
+
+// Template class
+class Maybe<T> {
+  var is: Bool; var value: T;
+  def set(newValue: T): Maybe<T> = {
+    value = newValue;
+    is = true;
+    return this;
+  }
+  def unset(): Maybe<T> = {
+    is = false;
+    return this;
+  }
+  def isDefined(): Bool = { return is; }
+  def get(): T = { return value; }
+}
+
+// Template methods
+class MaybeUtil {
+  def yep<T>(newValue: T): Maybe<T> = {
+    return new Maybe<T>().set(newValue);
+  }
+  def nope<T>(): Maybe<T> = {
+    return new Maybe<T>().unset();
+  }
+}
+
+// Recursive template class
+class LinkedList<T> {
+  var head: Maybe<T>; var tail: Maybe<LinkedList<T>>;
+  def init(): LinkedList<T> = {
+    head = new MaybeUtil().nope<Int>(); // Explicit type parameter required
+    tail = new MaybeUtil().nope<LinkedList<T>>();
+    return this;
+  }
+  def setHead(newHead: T): LinkedList<T> = {
+    head = new MaybeUtil().yep(newHead); // Type parameter can be inferred from argument
+    return this;
+  }
+  def setTail(newTail: LinkedList<T>): LinkedList<T> = {
+    tail = new MaybeUtil().yep(newTail);
+    return this;
+  }
+  def getHead(): Maybe<T> = { return head; }
+  def getTail(): Maybe<LinkedList<T>> = { return tail; }
+  def prepend(newHead: T): LinkedList<T> = {
+    return new LinkedList<T>().init().setHead(newHead).setTail(this);
+  }
+  def append(item: T): LinkedList<T> = {
+    var currentTail: LinkedList<T>;
+    var dummy: LinkedList<T>;
+    currentTail = this;
+    while(currentTail.getTail().isDefined()) {
+      currentTail = currentTail.getTail().get();
+    }
+    dummy = currentTail.setTail(new LinkedList<T>().init().setHead(item));
+    return this;
+  }
+  def size(): Int = {
+    var result: Int;
+    result = 0;
+    if(head.isDefined()) {
+      result = result + 1;
+    }
+    if(tail.isDefined()) {
+      result = result + tail.get().size();
+    }
+    return result;
+  }
+  def toString(): String = {
+    var result: String;
+    var currentTail: LinkedList<T>;
+
+    result = "[";
+    if(head.isDefined()) {
+      result = result + head.get();
+    }
+
+    currentTail = this;
+    while(currentTail.getTail().isDefined()) {
+      currentTail = currentTail.getTail().get();
+      if(currentTail.getHead().isDefined()) {
+        result = result + ", " + currentTail.getHead().get();
+      }
+    }
+    return result + "]";
+  }
+}
