@@ -188,6 +188,9 @@ object ClassTemplateExpander {
           }
         } map { clazz =>
           Program(program.main, clazz +: program.classes)
+        } orElse {
+          println(s"Class ${expandClassId(reference, reference.template)} already expanded")
+          None
         }
 
         val result = reference.template.foldLeft[Either[Program,Program]](Left(program)){ (prg, ref) => {
