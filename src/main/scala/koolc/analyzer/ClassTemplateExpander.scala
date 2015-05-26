@@ -89,10 +89,13 @@ object ClassTemplateExpander {
         def internal(program: Program, reference: Identifier): Option[Program] = {
           println("internal reference: " + reference)
           val types = reference.template
-          program.classes find { _.id.value == reference.value } flatMap { clazz =>
+          program.classes find { _.id.value == reference.value } orElse {
+            ctx.reporter.error(s"Template class ${reference.value} not found.", reference)
+            None
+          } flatMap { clazz =>
             if(clazz.template.size != types.size) {
               ctx.reporter.error(
-                s"Wrong number of type parameters for class ${clazz.id.value} (expected ${clazz.template.size}, got ${types.size}: ${types})")
+                s"Wrong number of type parameters for class ${clazz.id.value} (expected ${clazz.template.size}, got ${types.size}: ${types map { _.name } mkString ","})", reference)
               None
             } else {
               Some(clazz)
