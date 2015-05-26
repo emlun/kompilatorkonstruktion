@@ -72,11 +72,11 @@ object Main {
         println()
       }
     } else if(printAST) {
-      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
+      val pipeline = Lexer andThen Parser
 
       if(printSYMID){
         println(
-          pipeline.run(ctx)(ctx.file.get)
+          (pipeline andThen NameAnalysis).run(ctx)(ctx.file.get)
             map PrintSYMID getOrElse "Invalid input program."
         )
       } else {
@@ -86,10 +86,14 @@ object Main {
         )
       }
     } else if(printPretty) {
-      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking
+      val pipeline = Lexer andThen Parser
 
       print(
-        pipeline.run(ctx)(ctx.file.get)
+        (if(printSYMID) {
+          pipeline andThen NameAnalysis
+        } else {
+          pipeline
+        }).run(ctx)(ctx.file.get)
           map Printer(printSYMID) getOrElse "Compilation failed.\n"
       )
     } else {
