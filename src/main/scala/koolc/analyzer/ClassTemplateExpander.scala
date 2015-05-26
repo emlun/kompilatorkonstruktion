@@ -83,10 +83,6 @@ object ClassTemplateExpander {
         (program.classes filter { _.template.isEmpty } flatMap getInClass _)
     }
 
-    val classTemplateReferences = getClassTemplateReferences(program).toSet
-    println("Template class references:")
-    println(classTemplateReferences)
-
     def expandClassTemplate(program: Program)(reference: Identifier): Program = {
       def expandInProgram(program: Program, reference: Identifier): Option[Program] = {
         println("expandInProgram reference: " + reference)
@@ -301,7 +297,10 @@ object ClassTemplateExpander {
       result
     }
 
-    println("classTemplateReferences: " + classTemplateReferences)
+    val classTemplateReferences = getClassTemplateReferences(program).toSet
+    println("Template class references:")
+    println(classTemplateReferences)
+
     if(classTemplateReferences.isEmpty) {
       println("Done!")
 
