@@ -193,10 +193,79 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       }
     }
 
-    ////
+  ////
+  def findMethodInExpr(expr: ExprTree): List[MethodCall] = {
+    expr match {
+        case And(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
+        case Or(lhs,rhs) => findMethodInExpr(lhs) ++  findMethodInExpr(rhs)
+        case Plus(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
+        case Minus(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
+        case Times(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
+        case Div(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
+        case LessThan(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
+        case Equals(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
+        case ArrayRead(arr, index) => findMethodInExpr(arr) ++ findMethodInExpr(index)
+        case ArrayLength(arr) => findMethodInExpr(arr)
+        case NewIntArray(size) => findMethodInExpr(size)
+        case New(obj) => findMethodInExpr(obj)
+        case Not(expr) => findMethodInExpr(expr)
+
+        case call@MethodCall(obj, methId, args) => {
+          findMethodInExpr(obj) match {
+            case Nil => {
+              if(methId.template.isEmpty){
+                (args flatMap findMethodInExpr _ )
+              }else
+                List(call)
+              }
+              case whatever => whatever
+            }
+          }
+        case _ => Nil
+      }
+    }
+
+    def findMethodInStatment(stat: StatTree): List[MethodCall] = {
+      stat match {
+        case Block(stats) => {
+          stats flatMap {findMethodInStatment _ }
+        }
+        case If(expr, thn, els) => {
+          findMethodInExpr(expr) ++
+          findMethodInStatment(thn) ++
+          {els match {
+            case Some(statTree) => findMethodInStatment(statTree)
+            case None => Nil
+          }}
+        }
+        case While(expr, stat) => {
+          findMethodInExpr(expr) ++
+          findMethodInStatment(stat)
+        }
+        case Println(expr) => {
+          findMethodInExpr(expr)
+        }
+        case Assign(id, expr) => {
+          findMethodInExpr(expr)
+        }
+        case ArrayAssign(id, index, expr) => {
+          findMethodInExpr(id) ++
+          findMethodInExpr(index) ++
+          findMethodInExpr(expr)
+        }
+        case _ => {println("findMethodInStatment not implemented >>> " + stat); Nil}
+      }
+    }
 
     def findMethodTemplateReferences(program: Program): List[MethodCall] = {
-      ???
+      (program.main.stats flatMap { stats => findMethodInStatment(stats) }) ++
+      (program.classes flatMap { clazz =>
+        clazz.methods flatMap { method =>
+          {
+            findMethodInExpr(method.retExpr) ++ (method.stats flatMap findMethodInStatment _ )
+          }
+         }
+      })
     }
 
     def expandMethodTemplateReferences(program: Program, refs: List[MethodCall]): Program = {
