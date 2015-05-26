@@ -11,10 +11,10 @@ import utils._
 import ast.Trees._
 import Symbols._
 
-object ClassTemplateExpander {
+object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] {
 
-  def run(ctx: Context)
-         (program: Program, mainSymbol: ClassSymbol, classSymbols: List[ClassSymbol], recurse: Boolean = true): Option[Program] = {
+  override def run(ctx: Context)
+    (program: Option[Program]): Option[Program] = program flatMap { program =>
 
     def expandClassId(classId: Identifier, template: List[TypeTree]): Identifier =
       Identifier(classId.value + "$" + (template map { _.name } mkString ","), Nil).setPos(classId)
@@ -324,7 +324,7 @@ object ClassTemplateExpander {
       println()
 
       if(ctx.reporter.hasErrors) None
-      else NameResolver.run(ctx)(reducedProgram, mainSymbol, classSymbols)
+      else NameAnalysis.run(ctx)(Some(reducedProgram))
     } else {
       // Replace existing references
 
@@ -346,7 +346,7 @@ object ClassTemplateExpander {
       })
       println("Recurse!")
 
-      NameAnalysis.run(ctx)(Some(newProgram))
+      run(ctx)(Some(newProgram))
     }
   }
 

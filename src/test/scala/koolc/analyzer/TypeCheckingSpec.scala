@@ -20,7 +20,7 @@ import Types._
 
 class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with ReporterMatchers with MockFactory {
 
-  override def pipeline = Parser andThen NameAnalysis andThen TypeChecking
+  override def pipeline = Parser andThen ClassTemplateExpander andThen NameAnalysis andThen TypeChecking
 
   describe("The type checker") {
     describe("fails programs where") {

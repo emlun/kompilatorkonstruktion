@@ -76,7 +76,7 @@ object Main {
 
       if(printSYMID){
         println(
-          (pipeline andThen NameAnalysis).run(ctx)(ctx.file.get)
+          (pipeline andThen ClassTemplateExpander andThen NameAnalysis).run(ctx)(ctx.file.get)
             map PrintSYMID getOrElse "Invalid input program."
         )
       } else {
@@ -90,14 +90,14 @@ object Main {
 
       print(
         (if(printSYMID) {
-          pipeline andThen NameAnalysis
+          pipeline andThen ClassTemplateExpander andThen NameAnalysis
         } else {
           pipeline
         }).run(ctx)(ctx.file.get)
           map Printer(printSYMID) getOrElse "Compilation failed.\n"
       )
     } else {
-      val pipeline = Lexer andThen Parser andThen NameAnalysis andThen TypeChecking andThen CodeGeneration
+      val pipeline = Lexer andThen Parser andThen ClassTemplateExpander andThen NameAnalysis andThen TypeChecking andThen CodeGeneration
       pipeline.run(ctx)(ctx.file.get)
     }
 
