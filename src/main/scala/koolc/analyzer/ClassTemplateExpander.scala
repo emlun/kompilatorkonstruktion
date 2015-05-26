@@ -22,7 +22,10 @@ object ClassTemplateExpander {
     def getClassTemplateReferences(program: Program): List[Identifier] = {
       def getInType(tpe: TypeTree): List[Identifier] = tpe match {
           case Identifier(value, Nil)         => Nil
-          case id@Identifier(value, template) => List(id)
+          case id@Identifier(value, template) => (template flatMap getInType _) match {
+              case Nil      => List(id)
+              case nonempty => nonempty
+            }
           case _                              => Nil
         }
 
@@ -86,113 +89,131 @@ object ClassTemplateExpander {
 
     def expandClassTemplate(program: Program)(reference: Identifier): Program = {
       def expandInProgram(program: Program, reference: Identifier): Option[Program] = {
-        val types = reference.template
-        program.classes find { _.id.value == reference.value } flatMap { clazz =>
-          println("Type " + reference + " matched to " + clazz.id)
+        println("expandInProgram reference: " + reference)
+        def internal(program: Program, reference: Identifier): Option[Program] = {
+          println("internal reference: " + reference)
+          val types = reference.template
+          program.classes find { _.id.value == reference.value } flatMap { clazz =>
+            if(clazz.template.size != types.size) {
+              ctx.reporter.error(
+                s"Wrong number of type parameters for class ${clazz.id.value} (expected ${clazz.template.size}, got ${types.size}: ${types})")
+              None
+            } else {
+              val typeMap: Map[String, TypeTree] = (clazz.template map { _.value } zip types).toMap
 
-          if(clazz.template.size != types.size) {
-            ctx.reporter.error(
-              s"Wrong number of type parameters for class ${clazz.id.value} (expected ${clazz.template.size}, got ${types.size}: ${types})")
-            None
-          } else {
-            val typeMap: Map[String, TypeTree] = (clazz.template map { _.value } zip types).toMap
-
-            def expandTypeTree(tpe: TypeTree): TypeTree = {
-              println(s"expandTypeTree(${tpe})")
-              tpe match {
-                case id@Identifier(value, template) => typeMap.get(value) match {
-                  case Some(Identifier(templateValue, templateValueTemplate)) =>
-                    Identifier(templateValue, template map expandTypeTree _).setPos(id)
-                  case Some(templateValue) => templateValue
-                  case None                => Identifier(value, template map expandTypeTree _).setPos(id)
+              def expandTypeTree(tpe: TypeTree): TypeTree = {
+                println(s"expandTypeTree(${tpe})")
+                tpe match {
+                  case id@Identifier(value, template) => typeMap.get(value) match {
+                    case Some(Identifier(templateValue, templateValueTemplate)) =>
+                      Identifier(templateValue, template map expandTypeTree _).setPos(id)
+                    case Some(templateValue) => templateValue
+                    case None                => Identifier(value, template map expandTypeTree _).setPos(id)
+                  }
+                  case _                     => tpe
                 }
-                case _                     => tpe
-              }
-            }
-
-            def expandInExpr(expr: ExprTree): ExprTree = {
-              println(s"expandInExpr(${expr})")
-              expr match {
-                case And(lhs, rhs)               => And(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-                case Or(lhs, rhs)                => Or(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-                case Plus(lhs, rhs)              => Plus(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-                case Minus(lhs, rhs)             => Minus(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-                case Times(lhs, rhs)             => Times(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-                case Div(lhs, rhs)               => Div(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-                case LessThan(lhs, rhs)          => LessThan(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-                case Equals(lhs, rhs)            => Equals(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-                case ArrayRead(arr, index)       => ArrayRead(expandInExpr(arr), expandInExpr(index)).setPos(expr)
-                case ArrayLength(arr)            => ArrayLength(expandInExpr(arr)).setPos(expr)
-                case MethodCall(obj, meth, args) => MethodCall(expandInExpr(obj), meth, (args map expandInExpr _)).setPos(expr)
-                case NewIntArray(size)           => NewIntArray(expandInExpr(size)).setPos(expr)
-                case Not(expr)                   => Not(expandInExpr(expr)).setPos(expr)
-                case New(tpe)                    => New(expandTypeTree(tpe).asInstanceOf[Identifier]).setPos(expr)
-                case whatever                    => whatever
-              }
-            }
-
-            def expandTemplateReferencesInStatement(statement: StatTree): StatTree = statement match {
-                case Block(stats)                 => Block(stats map expandTemplateReferencesInStatement _).setPos(statement)
-                case If(expr, thn, els)           => If(
-                    expandInExpr(expr),
-                    expandTemplateReferencesInStatement(thn),
-                    els map expandTemplateReferencesInStatement _
-                  ).setPos(statement)
-                case While(expr, stat)            => While(
-                    expandInExpr(expr),
-                    expandTemplateReferencesInStatement(stat)
-                  ).setPos(statement)
-                case Println(expr)                => Println(expandInExpr(expr)).setPos(statement)
-                case Assign(id, expr)             => Assign(id, expandInExpr(expr)).setPos(statement)
-                case ArrayAssign(id, index, expr) => ArrayAssign(
-                    id,
-                    expandInExpr(index),
-                    expandInExpr(expr)
-                  ).setPos(statement)
               }
 
-            def expandTemplateReferencesInMethod(method: MethodDecl): MethodDecl = {
-              MethodDecl(
-                retType = expandTypeTree(method.retType),
-                id = method.id,
-                args = method.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id).setPos(arg) },
-                vars = method.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id).setPos(varDecl) },
-                stats = method.stats map expandTemplateReferencesInStatement _,
-                retExpr = expandInExpr(method.retExpr),
-                template = method.template).setPos(method)
+              def expandInExpr(expr: ExprTree): ExprTree = {
+                println(s"expandInExpr(${expr})")
+                expr match {
+                  case And(lhs, rhs)               => And(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+                  case Or(lhs, rhs)                => Or(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+                  case Plus(lhs, rhs)              => Plus(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+                  case Minus(lhs, rhs)             => Minus(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+                  case Times(lhs, rhs)             => Times(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+                  case Div(lhs, rhs)               => Div(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+                  case LessThan(lhs, rhs)          => LessThan(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+                  case Equals(lhs, rhs)            => Equals(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+                  case ArrayRead(arr, index)       => ArrayRead(expandInExpr(arr), expandInExpr(index)).setPos(expr)
+                  case ArrayLength(arr)            => ArrayLength(expandInExpr(arr)).setPos(expr)
+                  case MethodCall(obj, meth, args) => MethodCall(expandInExpr(obj), meth, (args map expandInExpr _)).setPos(expr)
+                  case NewIntArray(size)           => NewIntArray(expandInExpr(size)).setPos(expr)
+                  case Not(expr)                   => Not(expandInExpr(expr)).setPos(expr)
+                  case New(tpe)                    => New(expandTypeTree(tpe).asInstanceOf[Identifier]).setPos(expr)
+                  case whatever                    => whatever
+                }
+              }
+
+              def expandTemplateReferencesInStatement(statement: StatTree): StatTree = statement match {
+                  case Block(stats)                 => Block(stats map expandTemplateReferencesInStatement _).setPos(statement)
+                  case If(expr, thn, els)           => If(
+                      expandInExpr(expr),
+                      expandTemplateReferencesInStatement(thn),
+                      els map expandTemplateReferencesInStatement _
+                    ).setPos(statement)
+                  case While(expr, stat)            => While(
+                      expandInExpr(expr),
+                      expandTemplateReferencesInStatement(stat)
+                    ).setPos(statement)
+                  case Println(expr)                => Println(expandInExpr(expr)).setPos(statement)
+                  case Assign(id, expr)             => Assign(id, expandInExpr(expr)).setPos(statement)
+                  case ArrayAssign(id, index, expr) => ArrayAssign(
+                      id,
+                      expandInExpr(index),
+                      expandInExpr(expr)
+                    ).setPos(statement)
+                }
+
+              def expandTemplateReferencesInMethod(method: MethodDecl): MethodDecl = {
+                MethodDecl(
+                  retType = expandTypeTree(method.retType),
+                  id = method.id,
+                  args = method.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id).setPos(arg) },
+                  vars = method.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id).setPos(varDecl) },
+                  stats = method.stats map expandTemplateReferencesInStatement _,
+                  retExpr = expandInExpr(method.retExpr),
+                  template = method.template).setPos(method)
+              }
+
+              println("Type map: " + typeMap)
+              println("Expanded name: " + expandClassId(clazz.id, types).value)
+
+              val newClassId = expandClassId(clazz.id, types)
+              program.classes find { clazz => clazz.id.value == newClassId.value } match {
+                case Some(_) => None
+                case None => {
+                  val newDecl = ClassDecl(
+                    id = newClassId,
+                    parent = clazz.parent map { parent => expandTypeTree(parent).asInstanceOf[Identifier] },
+                    vars = clazz.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id).setPos(varDecl) },
+                    methods = clazz.methods map expandTemplateReferencesInMethod _,
+                    template = Nil).setPos(clazz)
+                  println("Created class " + newClassId.value)
+                  Some(newDecl)
+                }
+              }
             }
+          } map { clazz =>
+            Program(program.main, clazz +: program.classes)
+          }
+        }
 
-            println("Type map: " + typeMap)
-            println("Expanded name: " + expandClassId(clazz.id, types).value)
-
-            val newClassId = expandClassId(clazz.id, types)
-            program.classes find { clazz => clazz.id.value == newClassId.value } match {
-              case Some(_) => None
-              case None => {
-                println("Class is not already expanded")
-                val newDecl = ClassDecl(
-                  id = newClassId,
-                  parent = clazz.parent map { parent => expandTypeTree(parent).asInstanceOf[Identifier] },
-                  vars = clazz.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id).setPos(varDecl) },
-                  methods = clazz.methods map expandTemplateReferencesInMethod _,
-                  template = Nil).setPos(clazz)
-                Some(newDecl)
+        val result = reference.template.foldLeft[Either[Program,Program]](Left(program)){ (prg, ref) => {
+            val program = prg.fold((p => p), (p => p)) // Unpack the value from the Either
+            ref match {
+              case id@Identifier(_, head :: tail) => {
+                expandInProgram(program, id) orElse {
+                  internal(program, id) // Only expand this level if child levels had nothing to expand
+                } map {
+                  Right(_) // If either this or a child level expanded something, signal parents to not expand
+                } getOrElse prg
+              }
+              case _ => {
+                println("Nothing to expand in reference " + ref)
+                prg
               }
             }
           }
-        } map { clazz =>
-          Program(program.main, clazz +: program.classes)
+        }
+        println("Match statement returned Left: " + result.isLeft)
+        result match {
+          case Left(program)  => internal(program, reference) // No descendant had anything to expand
+          case Right(program) => Some(program)                // Some descendant had something to expand
         }
       }
 
-      val newProgram: Program = reference.template.foldLeft(program){ (program, ref) => ref match {
-          case Identifier(_, Nil)         => program
-          case id@Identifier(_, template) => expandClassTemplate(program)(id)
-          case _                          => program
-        }
-      }
-
-      expandInProgram(newProgram, reference) getOrElse newProgram
+      expandInProgram(program, reference) getOrElse program
     }
 
     def replaceTemplatesInProgram(program: Program, typeMap: Map[Identifier, Identifier]): Program = {
@@ -202,7 +223,11 @@ object ClassTemplateExpander {
       println(Printer.printTree(false)(program))
 
       def replaceType(tpe: TypeTree): TypeTree = tpe match {
-          case id: Identifier => (typeMap.get(id) getOrElse tpe).setPos(tpe)
+        case id: Identifier => (typeMap.get(id) map { newId =>
+              Identifier(newId.value, newId.template)
+            } orElse { Some(id) } map { id =>
+              Identifier(id.value, id.template map replaceType _)
+            } getOrElse tpe).setPos(tpe)
           case _              => tpe
         }
 
@@ -267,10 +292,13 @@ object ClassTemplateExpander {
           template = clazz.template).setPos(clazz)
       }
 
-      Program(
+      val result = Program(
         MainObject(program.main.id, program.main.stats map replaceTemplatesInStatement _),
         program.classes map replaceTemplatesInClass _
       )
+      println("Program after replacement:")
+      println(Printer.printTree(false)(result))
+      result
     }
 
     println("classTemplateReferences: " + classTemplateReferences)
@@ -283,14 +311,20 @@ object ClassTemplateExpander {
         program.classes filter { _.template.isEmpty }
       )
 
+      println()
+      println("Finished expanding program:")
+      println(koolc.ast.Printer.printTree(true)(reducedProgram))
+      println()
+
       if(ctx.reporter.hasErrors) None
       else NameResolver.run(ctx)(reducedProgram, mainSymbol, classSymbols)
     } else {
       // Replace existing references
 
       val typeMap: Map[Identifier, Identifier] = (classTemplateReferences flatMap { (ref: Identifier) =>
+        println(s"Reference: ${ref} ; expanded ID: ${expandClassId(ref, ref.template)}")
         program.classes.find { clazz =>
-          println(s"Class ID: ${clazz.id.value}, expanded id: ${expandClassId(ref, ref.template)}, equal: ${clazz.id.value == expandClassId(ref, ref.template).value}")
+          println(s"Class ID: ${clazz.id.value}, equal: ${clazz.id.value == expandClassId(ref, ref.template).value}")
           clazz.id.value == expandClassId(ref, ref.template).value
         } map { clazz =>
           ref -> clazz.id
