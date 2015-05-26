@@ -141,17 +141,21 @@ object NameResolver {
 
 
       def setOnMethod(method: MethodDecl): Set[VariableSymbol] = {
-        setOnType(method.retType)
-        method.args foreach { param   => setOnType(param.tpe)   }
-        method.vars foreach { varDecl => setOnType(varDecl.tpe) }
+        if(method.template.isEmpty) {
+          setOnType(method.retType)
+          method.args foreach { param   => setOnType(param.tpe)   }
+          method.vars foreach { varDecl => setOnType(varDecl.tpe) }
 
-        val usedVars = (method.stats flatMap setOnStatement _) ++:
-          setOnExpression(method.retExpr)
+          val usedVars = (method.stats flatMap setOnStatement _) ++:
+            setOnExpression(method.retExpr)
 
-        everyUsedVariable = everyUsedVariable ++ usedVars.toList
+          everyUsedVariable = everyUsedVariable ++ usedVars.toList
 
-        //method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(method.symbol))
-        usedVars
+          //method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(method.symbol))
+          usedVars
+        } else {
+          method.symbol.members.values.toSet
+        }
       }
 
 
