@@ -101,22 +101,26 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
           TInt
         }
         case call@MethodCall(obj, methId, args) => {
-          val objType = tcExpr(obj,anyObject)
-          resolveMethodCall(call) map { methodSymbol =>
+          if(methId.template.isEmpty) {
+            val objType = tcExpr(obj,anyObject)
+            resolveMethodCall(call) map { methodSymbol =>
 
-            if(args.size == methodSymbol.argList.size) {
-              args zip methodSymbol.argList foreach { case (arg, argDef) => tcExpr(arg, argDef.tpe) }
-            } else if(args.size < methodSymbol.argList.size) {
-              ctx.reporter.error(s"Too few parameters for method ${methId.value}", call)
-            } else if(args.size > methodSymbol.argList.size) {
-              ctx.reporter.error(s"Too many parameters for method ${methId.value}", call)
+              if(args.size == methodSymbol.argList.size) {
+                args zip methodSymbol.argList foreach { case (arg, argDef) => tcExpr(arg, argDef.tpe) }
+              } else if(args.size < methodSymbol.argList.size) {
+                ctx.reporter.error(s"Too few parameters for method ${methId.value}", call)
+              } else if(args.size > methodSymbol.argList.size) {
+                ctx.reporter.error(s"Too many parameters for method ${methId.value}", call)
+              }
+
+              tcExpr(methodSymbol.decl.retExpr)
+              tcTypeTree(methodSymbol.decl.retType)
+            } getOrElse {
+              ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")
+              TError
             }
-
-            tcExpr(methodSymbol.decl.retExpr)
-            tcTypeTree(methodSymbol.decl.retType)
-          } getOrElse {
-            ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")
-            TError
+          } else {
+            TUnresolved
           }
         }
         case IntLit(value)=> TInt
@@ -268,8 +272,128 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       })
     }
 
+    def expandMethodTemplateId(id: Identifier): Identifier =
+      Identifier(id.value + "$" + (id.template map { _.name } mkString ","), Nil).setPos(id)
+
     def expandMethodTemplateReferences(program: Program, refs: List[MethodCall]): Program = {
-      ???
+      refs.foldLeft(program) { (program: Program, ref: MethodCall) =>
+        //println("Expand method call " + ref)
+
+        resolveMethodCall(ref) map { sym =>
+          val methodClassSymbol = sym.classSymbol
+          val methodClass = sym.classSymbol.decl
+          val expandedId = expandMethodTemplateId(ref.meth)
+
+          val typeMap: Map[String, TypeTree] = (sym.decl.template map { _.value } zip ref.meth.template).toMap
+
+          def expandTypeTree(tpe: TypeTree): TypeTree = tpe match {
+              case id@Identifier(value, template) => typeMap.get(value) match {
+                case Some(Identifier(templateValue, templateValueTemplate)) =>
+                  Identifier(templateValue, template map expandTypeTree _).setPos(id)
+                case Some(templateValue) => templateValue
+                case None                => Identifier(value, template map expandTypeTree _).setPos(id)
+              }
+              case _                     => tpe
+            }
+
+          def expandInExpr(expr: ExprTree): ExprTree = expr match {
+              case And(lhs, rhs)               => And(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+              case Or(lhs, rhs)                => Or(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+              case Plus(lhs, rhs)              => Plus(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+              case Minus(lhs, rhs)             => Minus(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+              case Times(lhs, rhs)             => Times(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+              case Div(lhs, rhs)               => Div(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+              case LessThan(lhs, rhs)          => LessThan(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+              case Equals(lhs, rhs)            => Equals(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
+              case ArrayRead(arr, index)       => ArrayRead(expandInExpr(arr), expandInExpr(index)).setPos(expr)
+              case ArrayLength(arr)            => ArrayLength(expandInExpr(arr)).setPos(expr)
+              case MethodCall(obj, meth, args) => MethodCall(expandInExpr(obj), meth, (args map expandInExpr _)).setPos(expr)
+              case NewIntArray(size)           => NewIntArray(expandInExpr(size)).setPos(expr)
+              case Not(expr)                   => Not(expandInExpr(expr)).setPos(expr)
+              case New(tpe)                    => expandTypeTree(tpe) match {
+                case id: Identifier => New(id).setPos(expr)
+                case other => {
+                  ctx.reporter.error("Expected class type, found " + other, tpe)
+                  IntLit(0).setPos(tpe)
+                }
+              }
+              case This()                      => This()
+              case id: Identifier              => id.copy()
+              case whatever                    => whatever
+            }
+
+          def expandTemplateReferencesInStatement(statement: StatTree): StatTree = statement match {
+              case Block(stats)                 => Block(stats map expandTemplateReferencesInStatement _).setPos(statement)
+              case If(expr, thn, els)           => If(
+                  expandInExpr(expr),
+                  expandTemplateReferencesInStatement(thn),
+                  els map expandTemplateReferencesInStatement _
+                ).setPos(statement)
+              case While(expr, stat)            => While(
+                  expandInExpr(expr),
+                  expandTemplateReferencesInStatement(stat)
+                ).setPos(statement)
+              case Println(expr)                => Println(expandInExpr(expr)).setPos(statement)
+              case Assign(id, expr)             => Assign(id.copy(), expandInExpr(expr)).setPos(statement)
+              case ArrayAssign(id, index, expr) => ArrayAssign(
+                  id.copy(),
+                  expandInExpr(index),
+                  expandInExpr(expr)
+                ).setPos(statement)
+            }
+
+          val expandedProgram = methodClassSymbol.lookupMethod(expandedId.value) map { sym =>
+            program
+          } getOrElse {
+            val newMethodDecl = MethodDecl(
+              retType = expandTypeTree(sym.decl.retType),
+              id = expandedId,
+              args = sym.decl.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy()).setPos(arg) },
+              vars = sym.decl.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy()).setPos(varDecl) },
+              stats = sym.decl.stats map expandTemplateReferencesInStatement _,
+              retExpr = expandInExpr(sym.decl.retExpr),
+              template = Nil
+            )
+
+            val expandedProgram: Program = Program(
+              program.main,
+              program.classes map { clazz =>
+                if(clazz.id.value == methodClass.id.value) {
+                  clazz.copy(methods = newMethodDecl +: clazz.methods)
+                } else {
+                  clazz
+                }
+              }
+            )
+
+            println("Expanded program:")
+            println(koolc.ast.Printer.printTree(true)(expandedProgram))
+
+            expandedProgram
+          }
+
+          val newCall = ref.copy(meth = expandedId.copy())
+          //val replacedProgram = Program(
+            //MainObject(program.main.id, program.main.stats map replaceCall(newCall),
+            //)
+          val replacedProgram: Program = Program(
+            program.main.copy(stats = program.main.stats map replaceTemplateReferencesInStatement _),
+            program.classes map { clazz =>
+              clazz.copy(methods = clazz.methods map { method =>
+                method.copy(
+                  stats = method.stats map replaceTemplateReferencesInMethod _
+                  retExpr = replaceInExpr(method.retExpr)
+                )
+              })
+            }
+          )
+
+          replacedProgram
+        } getOrElse {
+          ctx.reporter.error(s"Template method not found: ${ref.meth.value}", ref)
+          program
+        }
+      }
     }
 
     val methodTemplateRefs = findMethodTemplateReferences(program)
@@ -308,7 +432,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       } else Some(program)
     } else {
       val newProgram = expandMethodTemplateReferences(program, methodTemplateRefs)
-      run(ctx)(Some(newProgram))
+      NameAnalysis.run(ctx)(Some(newProgram))
     }
   }
 
