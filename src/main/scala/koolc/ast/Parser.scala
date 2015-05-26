@@ -177,7 +177,7 @@ object Parser extends Pipeline[Iterator[Token], Option[Program]] with ParserDsl 
           readIdentifier(id => {
             val templateList = parseTemplateList()
             val parentClass = if(currentToken is EXTENDS) {
-              eat(EXTENDS) { readIdentifier() }
+              eat(EXTENDS) { readIdentifier() map { id => id.copy(template = parseTemplateArg()).setPos(id) } }
             } else None
             eat(LBRACE) {
               val vars = parseVarDeclarations()
