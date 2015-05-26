@@ -17,7 +17,7 @@ object ClassTemplateExpander {
          (program: Program, mainSymbol: ClassSymbol, classSymbols: List[ClassSymbol], recurse: Boolean = true): Option[Program] = {
 
     def expandClassId(classId: Identifier, template: List[TypeTree]): Identifier =
-      Identifier(classId.value + "$" + (template map { _.name } mkString ","), Nil)
+      Identifier(classId.value + "$" + (template map { _.name } mkString ","), Nil).setPos(classId)
 
     def getClassTemplateReferences(program: Program): List[Identifier] = {
       def getInType(tpe: TypeTree): List[Identifier] = tpe match {
@@ -219,10 +219,10 @@ object ClassTemplateExpander {
       println(Printer.printTree(false)(program))
 
       def replaceType(tpe: TypeTree): TypeTree = tpe match {
-        case id: Identifier => (typeMap.get(id) map { newId =>
-              Identifier(newId.value, newId.template)
+          case id: Identifier => (typeMap.get(id) map { newId =>
+              Identifier(newId.value, newId.template).setPos(id)
             } orElse { Some(id) } map { id =>
-              Identifier(id.value, id.template map replaceType _)
+              Identifier(id.value, id.template map replaceType _).setPos(id)
             } getOrElse tpe).setPos(tpe)
           case _              => tpe
         }
