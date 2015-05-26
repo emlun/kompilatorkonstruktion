@@ -224,11 +224,11 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
     describe("attaches symbols to all declarations") {
       VALID_TEST_FILES foreach { path =>
         it(s"in ${path}") {
-          checkResultForFile(path, (ctx, program) => {
+          checkResultForFile(path) { (ctx, program) =>
             ctx.reporter shouldBe errorless
             program should not be None
             program foreach checkDeclarationSymbols _
-          })
+          }
         }
       }
     }
@@ -236,11 +236,11 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
     describe("attaches types to all symbols") {
       VALID_TEST_FILES foreach { path =>
         it(s"in ${path}") {
-          checkResultForFile(path, (ctx, program) => {
+          checkResultForFile(path) { (ctx, program) =>
             ctx.reporter shouldBe errorless
             program should not be None
             program foreach checkTypes _
-          })
+          }
         }
       }
     }
@@ -281,7 +281,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
               }
             }
           """
-          checkResultForString(source, (ctx, program) => {
+          checkResultForString(source) { (ctx, program) =>
             ctx.reporter shouldBe errorless
             program should not be (None)
 
@@ -296,7 +296,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
               }
               case _ => fail("Expected first statement to be assignment, was: " + barMethod.stats.head)
             }
-          })
+          }
         }
 
         it("A method parameter can shadow a class member.") {
@@ -310,7 +310,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
               }
             }
           """
-          checkResultForString(source, (ctx, program) => {
+          checkResultForString(source) { (ctx, program) =>
             ctx.reporter shouldBe errorless
             program should not be (None)
 
@@ -325,7 +325,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
               }
               case _ => fail("Expected first statement to be assignment, was: " + barMethod.stats.head)
             }
-          })
+          }
         }
 
         it("No other type of shadowing is allowed in KOOL.") {
@@ -410,7 +410,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
               }
             }
           """
-          checkResultForString(source, (ctx, program) => {
+          checkResultForString(source) { (ctx, program) =>
             ctx.reporter shouldBe errorless
             program should not be None
             val fooClass = program.get.classes.head
@@ -420,7 +420,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
                 barMethod.symbol.overridden should be (Some(fooMethod.symbol))
               }
             }
-          })
+          }
         }
         it("Fields cannot be overridden.") {
           val source = """
@@ -432,10 +432,10 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
               var a: Bool;
             }
           """
-          checkResultForString(source, (ctx, program) => {
+          checkResultForString(source) { (ctx, program) =>
             ctx.reporter should not be errorless
             program should be (None)
-          })
+          }
         }
       }
     }
@@ -454,7 +454,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
           }
         }
       """
-      checkResultForString(source, (ctx, program) => {
+      checkResultForString(source) { (ctx, program) =>
         ctx.reporter shouldBe errorless
         program should not be None
         val fooMethod = program.get.classes.head.methods.head
@@ -462,7 +462,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
 
         barMethod.symbol.overridden should be (Some(fooMethod.symbol))
         barMethod should not (haveSameSymbolAs(fooMethod))
-      })
+      }
     }
 
     it("does not resolve method name symbols in method calls.") {
@@ -477,7 +477,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
           }
         }
       """
-      checkResultForString(source, (ctx, program) => {
+      checkResultForString(source) { (ctx, program) =>
         ctx.reporter shouldBe errorless
         program should not be None
         val retExpr: ExprTree = program.get.classes.head.methods.head.retExpr
@@ -489,7 +489,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
           }
           case _ => fail("Expected baz return expression to be method call, was: " + retExpr)
         }
-      })
+      }
     }
 
     it("emits a warning to the user when a declared variable is never accessed (read or written).") {
@@ -529,7 +529,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
           }
         }
       """
-      checkResultForString(source, (ctx, program) => {
+      checkResultForString(source) { (ctx, program) =>
         ctx.reporter shouldBe errorless
         program should not be None
         val retExpr: ExprTree = program.get.classes.head.methods.head.retExpr
@@ -537,7 +537,7 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
           case t: This => t should haveSameSymbolAs(program.get.classes.head)
           case _ => fail("Expected baz return expression to be 'this' keyword, was: " + retExpr)
         }
-      })
+      }
     }
 
     it("allows assignment to method parameters.") {
@@ -547,11 +547,11 @@ class NameAnalysisSpec extends FunSpec with TestUtils with Matchers with Reporte
     describe("attaches symbol references to all identifiers") {
       VALID_TEST_FILES foreach { path =>
         it(s"in ${path}") {
-          checkResultForFile(path, (ctx, program) => {
+          checkResultForFile(path) { (ctx, program) =>
             ctx.reporter shouldBe errorless
             program should not be None
             program foreach checkRefs _
-          })
+          }
         }
       }
     }
