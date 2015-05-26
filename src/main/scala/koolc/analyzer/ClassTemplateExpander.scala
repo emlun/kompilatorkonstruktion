@@ -347,7 +347,8 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
       })
       println("Recurse!")
 
-      run(ctx)(Some(newProgram))
+      if(ctx.reporter.hasErrors) None
+      else run(ctx)(Some(newProgram))
     }
   }
 
