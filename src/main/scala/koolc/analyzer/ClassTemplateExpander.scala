@@ -127,7 +127,13 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
                 case MethodCall(obj, meth, args) => MethodCall(expandInExpr(obj), meth, (args map expandInExpr _)).setPos(expr)
                 case NewIntArray(size)           => NewIntArray(expandInExpr(size)).setPos(expr)
                 case Not(expr)                   => Not(expandInExpr(expr)).setPos(expr)
-                case New(tpe)                    => New(expandTypeTree(tpe).asInstanceOf[Identifier]).setPos(expr)
+                case New(tpe)                    => expandTypeTree(tpe) match {
+                  case id: Identifier => New(id).setPos(expr)
+                  case other => {
+                    ctx.reporter.error("Expected class type, found " + other, tpe)
+                    IntLit(0).setPos(tpe)
+                  }
+                }
                 case This()                      => This()
                 case id: Identifier              => id.copy()
                 case whatever                    => whatever
