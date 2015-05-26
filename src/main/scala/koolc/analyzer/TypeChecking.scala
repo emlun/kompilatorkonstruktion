@@ -269,7 +269,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
     }
 
     def expandMethodTemplateId(id: Identifier): Identifier =
-      Identifier(id.value + "$" + (id.template map { _.name } mkString ","), Nil).setPos(id)
+      Identifier(id.value + "$" + (id.template map { _.name2 } mkString ","), Nil).setPos(id)
 
     def expandMethodTemplateReferences(program: Program, refs: List[MethodCall]): Program = {
       refs.foldLeft(program) { (program: Program, ref: MethodCall) =>
@@ -284,8 +284,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
           def expandTypeTree(tpe: TypeTree): TypeTree = tpe match {
               case id@Identifier(value, template) => typeMap.get(value) match {
-                case Some(Identifier(templateValue, templateValueTemplate)) =>
-                  Identifier(templateValue, template map expandTypeTree _).setPos(id)
+                case Some(replacement@Identifier(templateValue, templateValueTemplate)) =>
+                  Identifier(templateValue, templateValueTemplate map expandTypeTree _).setPos(id)
                 case Some(templateValue) => templateValue
                 case None                => Identifier(value, template map expandTypeTree _).setPos(id)
               }
@@ -350,12 +350,22 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               retExpr = expandInExpr(sym.decl.retExpr),
               template = Nil
             )
+            val newMethodSymbol = new MethodSymbol(
+              name = expandedId.value,
+              classSymbol = sym.classSymbol,
+              members = sym.members,
+              argList = sym.argList,
+              decl = newMethodDecl
+            )
+            newMethodDecl.setSymbol(newMethodSymbol)
 
             val expandedProgram: Program = Program(
               program.main,
               program.classes map { clazz =>
                 if(clazz.id.value == methodClass.id.value) {
-                  clazz.copy(methods = newMethodDecl +: clazz.methods)
+                  val newClass = clazz.copy(methods = newMethodDecl +: clazz.methods).setSymbol(sym.classSymbol)
+                  newClass.symbol.methods = newClass.symbol.methods + (expandedId.value -> newMethodDecl.symbol)
+                  newClass
                 } else {
                   clazz
                 }
@@ -369,15 +379,65 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
           }
 
           val newCall = ref.copy(meth = expandedId.copy())
-          //val replacedProgram = Program(
-            //MainObject(program.main.id, program.main.stats map replaceCall(newCall),
-            //)
+
+          def replaceInExpr(expr: ExprTree): ExprTree = {
+            expr match {
+              case And(lhs, rhs)               => And(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
+              case Or(lhs, rhs)                => Or(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
+              case Plus(lhs, rhs)              => Plus(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
+              case Minus(lhs, rhs)             => Minus(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
+              case Times(lhs, rhs)             => Times(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
+              case Div(lhs, rhs)               => Div(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
+              case LessThan(lhs, rhs)          => LessThan(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
+              case Equals(lhs, rhs)            => Equals(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
+              case ArrayRead(arr, index)       => ArrayRead(replaceInExpr(arr), replaceInExpr(index)).setPos(expr)
+              case ArrayLength(arr)            => ArrayLength(replaceInExpr(arr)).setPos(expr)
+              case call@MethodCall(obj, meth, args) => {
+                println("Check identifier " + meth + " against reference " + ref)
+                if(meth == ref.meth) {
+                    println("Replacing reference " + call)
+                    MethodCall(
+                    replaceInExpr(obj),
+                    expandedId.copy().setPos(meth),
+                    (args map replaceInExpr _)
+                  ).setPos(expr)
+                } else {
+                  call.copy(obj = replaceInExpr(obj), args = args map replaceInExpr _).setPos(call)
+                }
+              }
+              case NewIntArray(size)           => NewIntArray(replaceInExpr(size)).setPos(expr)
+              case Not(expr)                   => Not(replaceInExpr(expr)).setPos(expr)
+              case whatever                    => whatever
+            }
+          }
+
+          def replaceTemplatesInStatement(statement: StatTree): StatTree = statement match {
+              case Block(stats)                 => Block(stats map replaceTemplatesInStatement _).setPos(statement)
+              case If(expr, thn, els)           => If(
+                  replaceInExpr(expr),
+                  replaceTemplatesInStatement(thn),
+                  els map replaceTemplatesInStatement _
+                ).setPos(statement)
+              case While(expr, stat)            => While(
+                  replaceInExpr(expr),
+                  replaceTemplatesInStatement(stat)
+                ).setPos(statement)
+              case Println(expr)                => Println(replaceInExpr(expr)).setPos(statement)
+              case Assign(id, expr)             => Assign(id, replaceInExpr(expr)).setPos(statement)
+              case ArrayAssign(id, index, expr) => ArrayAssign(
+                  id,
+                  replaceInExpr(index),
+                  replaceInExpr(expr)
+                ).setPos(statement)
+            }
+
+
           val replacedProgram: Program = Program(
-            program.main.copy(stats = program.main.stats map replaceTemplateReferencesInStatement _),
-            program.classes map { clazz =>
+            expandedProgram.main.copy(stats = expandedProgram.main.stats map replaceTemplatesInStatement _),
+            expandedProgram.classes map { clazz =>
               clazz.copy(methods = clazz.methods map { method =>
                 method.copy(
-                  stats = method.stats map replaceTemplateReferencesInMethod _
+                  stats = method.stats map replaceTemplatesInStatement _,
                   retExpr = replaceInExpr(method.retExpr)
                 )
               })
@@ -432,10 +492,10 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
       if(ctx.reporter.hasErrors) {
         None
-      } else Some(program)
+      } else Some(reducedProgram)
     } else {
       val newProgram = expandMethodTemplateReferences(program, methodTemplateRefs)
-      NameAnalysis.run(ctx)(Some(newProgram))
+      run(ctx)(ClassTemplateExpander.run(ctx)(Some(newProgram)))
     }
   }
 
