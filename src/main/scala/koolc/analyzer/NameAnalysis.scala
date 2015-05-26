@@ -14,6 +14,7 @@ import Symbols._
 object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
+    println("NameAnalysis.run")
 
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
       val symbol = new VariableSymbol(varDecl.id.value, varDecl.tpe).setPos(varDecl.id)
