@@ -6,6 +6,15 @@ class RealMain {
     var result: Bool;
     var f: Foo<Maybe<Pair<Int,Bool>>,Pair<String,Int>>;
     var g: Pair<Pair<Pair<Int, Bool>, String>, Pair<Int[], Int[]>>;
+    var h: BetterPair<BetterPair<BetterPair<Int, Bool>, String>, BetterPair<Int[], Int[]>>;
+    var i: IntPair;
+    var dummy: BetterPair<Int, Int>;
+
+    i = new IntPair();
+    dummy = i.setLeft(3).setRight(5);
+    println(i.left());
+    println(i.right());
+
     mint = new Maybe<Int>();
     result = this.printMint(mint);
     mint = mint.set(5);
@@ -15,8 +24,10 @@ class RealMain {
     mint = mint.set(7);
     result = this.printMint(mint);
     g = new Pair<Pair<Pair<Int, Bool>, String>, Pair<Int[], Int[]>>();
+    g = new BetterPair<Pair<Pair<Int, Bool>, String>, Pair<Int[], Int[]>>();
+    h = new BetterPair<BetterPair<BetterPair<Int, Bool>, String>, BetterPair<Int[], Int[]>>();
 
-    println(g.setLeft(new Pair<Pair<Int, Bool>, String>()).left().setLeft(new Pair<Int, Bool>()).left().setLeft(3).left());
+    println(h.setLeft(new BetterPair<BetterPair<Int, Bool>, String>()).left().setLeft(new BetterPair<Int, Bool>()).left().setLeft(3).left());
     return false;
   }
 
@@ -50,14 +61,19 @@ class Maybe<T> {
 class Pair<A, B> {
   var a: A;
   var b: B;
-  def setLeft(newA: A): Pair<A, B> = {
+}
+
+class BetterPair<A, B> extends Pair<A, B> {
+  def setLeft(newA: A): BetterPair<A, B> = {
     a = newA;
     return this;
   }
-  def setRight(newB: B): Pair<A, B> = {
+  def setRight(newB: B): BetterPair<A, B> = {
     b = newB;
     return this;
   }
   def left(): A = { return a; }
   def right(): B = { return b; }
 }
+
+class IntPair extends BetterPair<Int, Int> {}
