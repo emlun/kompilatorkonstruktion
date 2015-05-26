@@ -193,37 +193,54 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       }
     }
 
-    program.main.stats foreach { stat => tcStat(stat)}
-    program.classes foreach {
-      clazz => clazz.methods foreach {
-        method => {
-          method.symbol.overridden map { overridden =>
-            method.args zip overridden.decl.args foreach { case(overridingArg, overriddenArg) =>
-              if(tcTypeTree(overridingArg.tpe) != tcTypeTree(overriddenArg.tpe)) {
+    ////
+
+    def findMethodTemplateReferences(program: Program): List[MethodCall] = {
+      ???
+    }
+
+    def expandMethodTemplateReferences(program: Program, refs: List[MethodCall]): Program = {
+      ???
+    }
+
+    val methodTemplateRefs = findMethodTemplateReferences(program)
+
+    if(methodTemplateRefs.isEmpty) {
+      program.main.stats foreach { stat => tcStat(stat)}
+      program.classes foreach {
+        clazz => clazz.methods foreach {
+          method => {
+            method.symbol.overridden map { overridden =>
+              method.args zip overridden.decl.args foreach { case(overridingArg, overriddenArg) =>
+                if(tcTypeTree(overridingArg.tpe) != tcTypeTree(overriddenArg.tpe)) {
+                  ctx.reporter.error(
+                    s"Formal type in overriding method ${method.id.value} does not match type in overridden method.",
+                    overridingArg
+                  )
+                }
+              }
+              if(tcTypeTree(method.retType) != tcTypeTree(overridden.decl.retType)) {
                 ctx.reporter.error(
-                  s"Formal type in overriding method ${method.id.value} does not match type in overridden method.",
-                  overridingArg
+                  s"Method ${method.id.value} overrides parent method with a dirrerent return type (${method.retType.name} and ${overridden.decl.retType.name})",
+                  method.retType
                 )
               }
             }
-            if(tcTypeTree(method.retType) != tcTypeTree(overridden.decl.retType)) {
-              ctx.reporter.error(
-                s"Method ${method.id.value} overrides parent method with a dirrerent return type (${method.retType.name} and ${overridden.decl.retType.name})",
-                method.retType
-              )
+            method.stats foreach {
+              tcStat(_)
             }
+            tcExpr(method.retExpr, tcTypeTree(method.retType))
           }
-          method.stats foreach {
-            tcStat(_)
-          }
-          tcExpr(method.retExpr, tcTypeTree(method.retType))
         }
       }
-    }
 
-    if(ctx.reporter.hasErrors) {
-      None
-    } else Some(program)
+      if(ctx.reporter.hasErrors) {
+        None
+      } else Some(program)
+    } else {
+      val newProgram = expandMethodTemplateReferences(program, methodTemplateRefs)
+      run(ctx)(Some(newProgram))
+    }
   }
 
 }
