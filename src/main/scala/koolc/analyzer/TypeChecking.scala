@@ -101,26 +101,22 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
           TInt
         }
         case call@MethodCall(obj, methId, args) => {
-          if(methId.template.isEmpty) {
-            val objType = tcExpr(obj,anyObject)
-            resolveMethodCall(call) map { methodSymbol =>
+          val objType = tcExpr(obj,anyObject)
+          resolveMethodCall(call) map { methodSymbol =>
 
-              if(args.size == methodSymbol.argList.size) {
-                args zip methodSymbol.argList foreach { case (arg, argDef) => tcExpr(arg, argDef.tpe) }
-              } else if(args.size < methodSymbol.argList.size) {
-                ctx.reporter.error(s"Too few parameters for method ${methId.value}", call)
-              } else if(args.size > methodSymbol.argList.size) {
-                ctx.reporter.error(s"Too many parameters for method ${methId.value}", call)
-              }
-
-              tcExpr(methodSymbol.decl.retExpr)
-              tcTypeTree(methodSymbol.decl.retType)
-            } getOrElse {
-              ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")
-              TError
+            if(args.size == methodSymbol.argList.size) {
+              args zip methodSymbol.argList foreach { case (arg, argDef) => tcExpr(arg, argDef.tpe) }
+            } else if(args.size < methodSymbol.argList.size) {
+              ctx.reporter.error(s"Too few parameters for method ${methId.value}", call)
+            } else if(args.size > methodSymbol.argList.size) {
+              ctx.reporter.error(s"Too many parameters for method ${methId.value}", call)
             }
-          } else {
-            TUnresolved
+
+            tcExpr(methodSymbol.decl.retExpr)
+            tcTypeTree(methodSymbol.decl.retType)
+          } getOrElse {
+            ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")
+            TError
           }
         }
         case IntLit(value)=> TInt
@@ -399,9 +395,16 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
     val methodTemplateRefs = findMethodTemplateReferences(program)
 
     if(methodTemplateRefs.isEmpty) {
-      program.main.stats foreach { stat => tcStat(stat)}
-      program.classes foreach {
-        clazz => clazz.methods foreach {
+      // Remove template classes and methods
+      val reducedProgram = Program(program.main,
+        program.classes filter { _.template.isEmpty } map { clazz =>
+          clazz.copy(methods = clazz.methods filter { _.template.isEmpty }).setPos(clazz).setSymbol(clazz.symbol)
+        }
+      )
+
+      reducedProgram.main.stats foreach { stat => tcStat(stat)}
+      reducedProgram.classes foreach {
+        clazz => clazz.methods filter { _.template.isEmpty } foreach {
           method => {
             method.symbol.overridden map { overridden =>
               method.args zip overridden.decl.args foreach { case(overridingArg, overriddenArg) =>

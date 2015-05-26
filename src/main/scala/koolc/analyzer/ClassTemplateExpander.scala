@@ -295,14 +295,8 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
     val classTemplateReferences = getClassTemplateReferences(program).toSet
 
     if(classTemplateReferences.isEmpty) {
-      // Remove template classes
-      val reducedProgram = Program(
-        program.main,
-        program.classes filter { _.template.isEmpty }
-      )
-
       if(ctx.reporter.hasErrors) None
-      else NameAnalysis.run(ctx)(Some(reducedProgram))
+      else NameAnalysis.run(ctx)(Some(program))
     } else {
       // Replace existing references
 

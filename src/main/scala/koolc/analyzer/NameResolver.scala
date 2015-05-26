@@ -210,7 +210,7 @@ object NameResolver {
 
     program.main.stats foreach setSymbolReferences(lookupType(global, mainSymbol), mainSymbol, (_ => None))
 
-    program.classes foreach { clazz =>
+    program.classes filter { _.template.isEmpty } foreach { clazz =>
       setSymbolReferencesOnClass(lookupType(global, mainSymbol), mainSymbol, clazz)(clazz.symbol)
     }
 
@@ -272,7 +272,7 @@ object NameResolver {
         case _ => {}
       }
 
-    program.classes foreach { clazz =>
+    program.classes filter { _.template.isEmpty } foreach { clazz =>
       clazz.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
       clazz.methods foreach { method =>
         method.args foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
@@ -280,7 +280,7 @@ object NameResolver {
       }
     }
 
-    program.classes foreach { clazz =>
+    program.classes filter { _.template.isEmpty } foreach { clazz =>
       clazz.vars foreach warnIfUnused(everyUsedVariable.toSet, clazz.symbol)
       clazz.methods foreach { method =>
         /*We are not suposed to check if method arguments are used (they aren't atleast)*/
