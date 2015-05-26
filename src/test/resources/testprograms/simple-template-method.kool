@@ -2,8 +2,8 @@ object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
 
 class RealMain {
   def realMain(): Bool = {
-    println(returnMe<Int>(10));
-    println(returnMe<String>("hej"));
+    println(this.returnMe<Int>(10));
+    println(this.returnMe<String>("hej"));
     return false;
   }
 
