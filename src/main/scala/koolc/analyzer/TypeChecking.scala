@@ -11,7 +11,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
   /** Typechecking does not produce a value, but has the side effect of
    * attaching types to trees and potentially outputting error messages. */
-  def run(ctx: Context)(prog: Option[Program]): Option[Program] = {
+  def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
     import ctx.reporter._
 
     def resolveMethodCall(call: MethodCall): Option[MethodSymbol] = {
@@ -193,39 +193,37 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       }
     }
 
-    prog map { p =>
-      p.main.stats foreach { stat => tcStat(stat)}
-      p.classes foreach {
-        clazz => clazz.methods foreach {
-          method => {
-            method.symbol.overridden map { overridden =>
-              method.args zip overridden.decl.args foreach { case(overridingArg, overriddenArg) =>
-                if(tcTypeTree(overridingArg.tpe) != tcTypeTree(overriddenArg.tpe)) {
-                  ctx.reporter.error(
-                    s"Formal type in overriding method ${method.id.value} does not match type in overridden method.",
-                    overridingArg
-                  )
-                }
-              }
-              if(tcTypeTree(method.retType) != tcTypeTree(overridden.decl.retType)) {
+    program.main.stats foreach { stat => tcStat(stat)}
+    program.classes foreach {
+      clazz => clazz.methods foreach {
+        method => {
+          method.symbol.overridden map { overridden =>
+            method.args zip overridden.decl.args foreach { case(overridingArg, overriddenArg) =>
+              if(tcTypeTree(overridingArg.tpe) != tcTypeTree(overriddenArg.tpe)) {
                 ctx.reporter.error(
-                  s"Method ${method.id.value} overrides parent method with a dirrerent return type (${method.retType.name} and ${overridden.decl.retType.name})",
-                  method.retType
+                  s"Formal type in overriding method ${method.id.value} does not match type in overridden method.",
+                  overridingArg
                 )
               }
             }
-            method.stats foreach {
-              tcStat(_)
+            if(tcTypeTree(method.retType) != tcTypeTree(overridden.decl.retType)) {
+              ctx.reporter.error(
+                s"Method ${method.id.value} overrides parent method with a dirrerent return type (${method.retType.name} and ${overridden.decl.retType.name})",
+                method.retType
+              )
             }
-            tcExpr(method.retExpr, tcTypeTree(method.retType))
           }
+          method.stats foreach {
+            tcStat(_)
+          }
+          tcExpr(method.retExpr, tcTypeTree(method.retType))
         }
       }
     }
 
     if(ctx.reporter.hasErrors) {
       None
-    } else prog
+    } else Some(program)
   }
 
 }
