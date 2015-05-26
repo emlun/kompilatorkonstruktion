@@ -9,7 +9,6 @@ package analyzer
 
 import utils._
 import ast.Trees._
-import Symbols._
 
 object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] {
 
