@@ -84,9 +84,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
 
     def expandClassTemplate(program: Program)(reference: Identifier): Program = {
       def expandInProgram(program: Program, reference: Identifier): Option[Program] = {
-        println("expandInProgram reference: " + reference)
         def internal(program: Program, reference: Identifier): Option[Program] = {
-          println("internal reference: " + reference)
           val types = reference.template
           program.classes find { _.id.value == reference.value } orElse {
             ctx.reporter.error(s"Template class ${reference.value} not found.", reference)
@@ -103,7 +101,6 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
             val typeMap: Map[String, TypeTree] = (clazz.template map { _.value } zip types).toMap
 
             def expandTypeTree(tpe: TypeTree): TypeTree = {
-              println(s"expandTypeTree(${tpe})")
               tpe match {
                 case id@Identifier(value, template) => typeMap.get(value) match {
                   case Some(Identifier(templateValue, templateValueTemplate)) =>
@@ -116,7 +113,6 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
             }
 
             def expandInExpr(expr: ExprTree): ExprTree = {
-              println(s"expandInExpr(${expr})")
               expr match {
                 case And(lhs, rhs)               => And(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
                 case Or(lhs, rhs)                => Or(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
@@ -169,9 +165,6 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
                 template = method.template).setPos(method)
             }
 
-            println("Type map: " + typeMap)
-            println("Expanded name: " + expandClassId(clazz.id, types).value)
-
             val newClassId = expandClassId(clazz.id, types)
             program.classes find { clazz => clazz.id.value == newClassId.value } match {
               case Some(_) => None
@@ -182,7 +175,6 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
                   vars = clazz.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy()).setPos(varDecl) },
                   methods = clazz.methods map expandTemplateReferencesInMethod _,
                   template = Nil).setPos(clazz)
-                println("Created class " + newClassId.value)
                 Some(newDecl)
               }
             }
@@ -190,7 +182,6 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
         } map { clazz =>
           Program(program.main, clazz +: program.classes)
         } orElse {
-          println(s"Class ${expandClassId(reference, reference.template)} already expanded")
           None
         }
 
@@ -205,13 +196,11 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
                 } getOrElse prg
               }
               case _ => {
-                println("Nothing to expand in reference " + ref)
                 prg
               }
             }
           }
         }
-        println("Match statement returned Left: " + result.isLeft)
         result match {
           case Left(program)  => internal(program, reference) // No descendant had anything to expand
           case Right(program) => Some(program)                // Some descendant had something to expand
@@ -222,11 +211,6 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
     }
 
     def replaceTemplatesInProgram(program: Program, typeMap: Map[Identifier, Identifier]): Program = {
-      println("replaceTemplatesInProgram, typeMap: " + typeMap)
-      println("Current program:")
-      import koolc.ast.Printer
-      println(Printer.printTree(false)(program))
-
       def replaceType(tpe: TypeTree): TypeTree = tpe match {
           case id: Identifier => (typeMap.get(id) map { newId =>
               Identifier(newId.value, newId.template).setPos(id)
@@ -237,7 +221,6 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
         }
 
       def replaceInExpr(expr: ExprTree): ExprTree = {
-        //println(s"replaceInExpr(${expr})")
         expr match {
           case And(lhs, rhs)               => And(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
           case Or(lhs, rhs)                => Or(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
@@ -297,32 +280,20 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
           template = clazz.template).setPos(clazz)
       }
 
-      val result = Program(
+      Program(
         MainObject(program.main.id, program.main.stats map replaceTemplatesInStatement _),
         program.classes map replaceTemplatesInClass _
       )
-      println("Program after replacement:")
-      println(Printer.printTree(false)(result))
-      result
     }
 
     val classTemplateReferences = getClassTemplateReferences(program).toSet
-    println("Template class references:")
-    println(classTemplateReferences)
 
     if(classTemplateReferences.isEmpty) {
-      println("Done!")
-
       // Remove template classes
       val reducedProgram = Program(
         program.main,
         program.classes filter { _.template.isEmpty }
       )
-
-      println()
-      println("Finished expanding program:")
-      println(koolc.ast.Printer.printTree(true)(reducedProgram))
-      println()
 
       if(ctx.reporter.hasErrors) None
       else NameAnalysis.run(ctx)(Some(reducedProgram))
@@ -330,22 +301,18 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
       // Replace existing references
 
       val typeMap: Map[Identifier, Identifier] = (classTemplateReferences flatMap { (ref: Identifier) =>
-        println(s"Reference: ${ref} ; expanded ID: ${expandClassId(ref, ref.template)}")
         program.classes.find { clazz =>
-          println(s"Class ID: ${clazz.id.value}, equal: ${clazz.id.value == expandClassId(ref, ref.template).value}")
           clazz.id.value == expandClassId(ref, ref.template).value
         } map { clazz =>
           ref -> clazz.id
         }
       }).toMap
-      println("typeMap: " + typeMap)
       val replacedProgram = replaceTemplatesInProgram(program, typeMap)
 
       // Expand nonexisting classes
       val newProgram = classTemplateReferences.foldLeft(replacedProgram)({ (program, ref) =>
         expandClassTemplate(program)(ref)
       })
-      println("Recurse!")
 
       if(ctx.reporter.hasErrors) None
       else run(ctx)(Some(newProgram))
