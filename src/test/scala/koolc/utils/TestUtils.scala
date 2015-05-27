@@ -40,4 +40,17 @@ trait TestUtils extends Matchers with ReporterMatchers {
       }
     }
 
+  def assertStringSucceeds(source: String) = checkResultForString(source) { (ctx, program) =>
+      withClue(s"The following program should pass:\n$source") {
+        ctx.reporter shouldBe errorless
+        program should not be (None)
+      }
+    }
+
+  def assertStringFails(source: String) = checkResultForString(source) { (ctx, program) =>
+      withClue(s"The following program should fail:\n$source") {
+        ctx.reporter should not be errorless
+        program should be (None)
+      }
+    }
 }
