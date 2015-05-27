@@ -62,5 +62,38 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
         }
       }
     }
+
+    it("expands methods in the class where they're defined.") {
+      val source = """
+        object Main { def main(): Unit = {
+          if(new Bar().bar<Bar>() == new Bar().bar<Foo>()) {}
+        } }
+
+        class Foo {
+          def bar<T>(): T = {
+            return new T();
+          }
+        }
+        class Bar extends Foo {}
+      """
+
+      checkResultForString(source) { (ctx, program) =>
+        ctx.reporter shouldBe errorless
+        program should not be None
+
+        inside(program.get.classes) { case List(fooClass, barClass) =>
+          inside(fooClass.methods) { case List(methBarFoo, methBarBar) =>
+            (methBarFoo, "bar$Foo", "Foo") ::
+            (methBarBar, "bar$Bar", "Bar") ::
+            Nil foreach { case (meth, expectedName, expectedType) =>
+              meth.id.name should be (expectedName)
+              meth.retType should be (Identifier(expectedType, Nil))
+              meth.retExpr should be (New(Identifier(expectedType, Nil)))
+            }
+          }
+          barClass.methods should be (Nil)
+        }
+      }
+    }
   }
 }
