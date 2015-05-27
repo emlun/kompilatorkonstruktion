@@ -95,5 +95,33 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
         }
       }
     }
+
+    it("detects name collisions between class template parameters.") {
+      val source = """
+        object Main { def main(): Unit = {} }
+        class Foo<T, T> {}
+      """
+      assertStringFails(source)
+    }
+
+    it("detects name collisions between method template parameters.") {
+      val source = """
+        object Main { def main(): Unit = {} }
+        class Foo {
+          def bar<T, T>(): Int = { return 0; }
+        }
+      """
+      assertStringFails(source)
+    }
+
+    it("detects name collisions between class and method template parameters.") {
+      val source = """
+        object Main { def main(): Unit = {} }
+        class Foo<T> {
+          def bar<T>(): Int = { return 0; }
+        }
+      """
+      assertStringFails(source)
+    }
   }
 }
