@@ -55,7 +55,7 @@ object Trees {
       case IntType()         => "Int"
       case BooleanType()     => "Bool"
       case StringType()      => "String"
-      case Identifier(value,template) => value + "$" + (template map { _.name } mkString ",")
+      case Identifier(value,template) => value + (if(!template.isEmpty) "$" + (template map { _.name2 } mkString ",") else "")
     }
   }
   case class IntArrayType() extends TypeTree

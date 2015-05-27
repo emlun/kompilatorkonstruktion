@@ -268,8 +268,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       })
     }
 
-    def expandMethodTemplateId(id: Identifier): Identifier =
-      Identifier(id.value + "$" + (id.template map { _.name2 } mkString ","), Nil).setPos(id)
+    def expandMethodTemplateId(id: Identifier): Identifier = Identifier(id.name2, Nil).setPos(id)
 
     def expandMethodTemplateReferences(program: Program, refs: List[MethodCall]): Program = {
       refs.foldLeft(program) { (program: Program, ref: MethodCall) =>
