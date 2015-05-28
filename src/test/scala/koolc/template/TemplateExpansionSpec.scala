@@ -17,7 +17,8 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
   override def pipeline = Parser andThen ClassTemplateExpander andThen NameAnalysis andThen TypeChecking
 
   describe("The template expanders") {
-    it("expand method templates.") {
+
+    they("expand method templates.") {
       val source = """
         object Main { def main(): Unit = { } }
 
@@ -63,7 +64,7 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       }
     }
 
-    it("expand methods in the class where they're defined.") {
+    they("expand methods in the class where they're defined.") {
       val source = """
         object Main { def main(): Unit = {
           if(new Bar().bar<Bar>() == new Bar().bar<Foo>()) {}
@@ -96,7 +97,7 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       }
     }
 
-    it("detect name collisions between class template parameters.") {
+    they("detect name collisions between class template parameters.") {
       val source = """
         object Main { def main(): Unit = {} }
         class Foo<T, T> {}
@@ -104,7 +105,7 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       assertStringFails(source)
     }
 
-    it("detect name collisions between method template parameters.") {
+    they("detect name collisions between method template parameters.") {
       val source = """
         object Main { def main(): Unit = {} }
         class Foo {
@@ -114,7 +115,7 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       assertStringFails(source)
     }
 
-    it("detect name collisions between class and method template parameters.") {
+    they("detect name collisions between class and method template parameters.") {
       val source = """
         object Main { def main(): Unit = {} }
         class Foo<T> {
