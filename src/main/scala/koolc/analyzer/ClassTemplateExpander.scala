@@ -292,6 +292,22 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
       )
     }
 
+    program.classes filter { ! _.template.isEmpty } foreach { clazz =>
+      clazz.template.foldLeft[Set[Identifier]](Set.empty) { (allIds, paramId) =>
+        allIds find { _ == paramId } map { existingId =>
+          ctx.reporter.error(s"Duplicate class template parameter '${paramId.value}'", paramId)
+          ctx.reporter.info(s"Template parameter '${paramId.value}' first defined here:", existingId)
+          allIds
+        } getOrElse {
+          allIds + paramId
+        }
+      }
+    }
+
+    if(ctx.reporter.hasErrors) {
+      return None
+    }
+
     val classTemplateReferences = getClassTemplateReferences(program).toSet
 
     if(classTemplateReferences.isEmpty) {
