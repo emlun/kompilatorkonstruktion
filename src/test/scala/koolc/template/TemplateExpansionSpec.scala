@@ -101,6 +101,24 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       }
     }
 
+    they("expand class template references in template classes.") {
+      val source = """
+      object Main { def main(): Unit = {
+        if(new Foo<Bar<Bool>>() == new Foo<Bool>()) {}
+      } }
+      class Foo<T> {
+        var a: Bar<T>;
+      }
+      class Bar<T> {}
+      """
+      checkResultForString(source) { (ctx, program) =>
+        ctx.reporter shouldBe errorless
+        program should not be None
+        program.get.classes.find(_.id.value == "Foo$Bar$Bool") should not be None
+        program.get.classes.find(_.id.value == "Bar$Bool") should not be None
+      }
+    }
+
     they("expand method templates.") {
       val source = """
         object Main { def main(): Unit = { } }
