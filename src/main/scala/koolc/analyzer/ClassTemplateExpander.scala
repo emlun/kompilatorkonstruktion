@@ -293,10 +293,12 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
     }
 
     program.classes filter { ! _.template.isEmpty } foreach { clazz =>
-      clazz.template.foldLeft[Set[Identifier]](Set.empty) { (allIds, paramId) =>
+      clazz.template.foldLeft[Set[Identifier]](
+        program.classes.map(clazz => Identifier(clazz.id.value, Nil).setPos(clazz.id)).toSet
+      ) { (allIds, paramId) =>
         allIds find { _ == paramId } map { existingId =>
-          ctx.reporter.error(s"Duplicate class template parameter '${paramId.value}'", paramId)
-          ctx.reporter.info(s"Template parameter '${paramId.value}' first defined here:", existingId)
+          ctx.reporter.error(s"Template parameter name collision: '${paramId.value}'", paramId)
+          ctx.reporter.info(s"Name '${paramId.value}' first defined here:", existingId)
           allIds
         } getOrElse {
           allIds + paramId
