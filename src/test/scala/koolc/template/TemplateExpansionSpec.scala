@@ -18,6 +18,24 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
 
   describe("The template expanders") {
 
+    they("don't expand unreferenced templates.") {
+      val source = """
+      object Main { def main(): Unit = {} }
+      class Foo<T> {}
+      class Bar {
+        def bar<T>(): Int = { return 0; }
+      }
+      """
+      checkResultForString(source) { (ctx, program) =>
+        ctx.reporter shouldBe errorless
+        program should not be None
+        program.get.classes.size should be (1)
+        inside(program.get.classes.head) { case clazz: ClassDecl =>
+          clazz.methods should be (Nil)
+        }
+      }
+    }
+
     they("expand class templates.") {
       checkResultForFile("class-templates-basic.kpp") { (ctx, program) =>
         ctx.reporter shouldBe errorless
