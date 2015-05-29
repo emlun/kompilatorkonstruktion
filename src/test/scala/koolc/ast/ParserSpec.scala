@@ -21,6 +21,7 @@ class ParserSpec extends FunSpec with Matchers with ReporterMatchers {
     "/noop.kool" ::
     "/plundahl.kool" ::
     "/koolc/template/simple-templates.kpp" ::
+    "/koolc/template/complicated-templates.kpp" ::
     "/testprograms/lab3/valid/99bottles.kool" ::
     "/testprograms/lab3/valid/BinarySearch.kool" ::
     "/testprograms/lab3/valid/Calendar.kool" ::
