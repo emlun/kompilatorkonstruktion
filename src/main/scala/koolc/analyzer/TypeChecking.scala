@@ -461,10 +461,13 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
     program.classes foreach { clazz =>
       clazz.methods filter { ! _.template.isEmpty } foreach { method =>
-        method.template.foldLeft[Set[Identifier]](clazz.template.toSet) { (allIds, paramId) =>
+        method.template.foldLeft[Set[Identifier]](
+          clazz.template.toSet ++ program.classes.map(clazz => Identifier(clazz.id.value, Nil).setPos(clazz.id)).toSet
+        ) { (allIds, paramId) =>
+          println("paramId: " + paramId)
           allIds find { _ == paramId } map { existingId =>
-            ctx.reporter.error(s"Duplicate template parameter '${paramId.value}'", paramId)
-            ctx.reporter.info(s"Template parameter '${paramId.value}' first defined here:", existingId)
+            ctx.reporter.error(s"Template parameter name collision: '${paramId.value}'", paramId)
+            ctx.reporter.info(s"Name '${paramId.value}' first defined here:", existingId)
             allIds
           } getOrElse {
             allIds + paramId
