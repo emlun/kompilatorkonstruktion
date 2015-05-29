@@ -1,0 +1,17 @@
+object Main { def main(): Unit = {
+  if(new Foo<Foo<Bar>>().bar(new Foo<Bar>()) == new Foo<Foo<Bar>>().bar(new Foo<Bar>())) {}
+} }
+
+class Bar {}
+class Boo<T> {}
+class Foo<T> extends Boo<T> {
+  var a: T;
+  def bar(a: T): T = {
+    var b: T;
+    b = a;
+    if(0 + 1 + 2 < 0 && new T() == b) {
+      b = this.bar(new T());
+    }
+    return new T();
+  }
+}

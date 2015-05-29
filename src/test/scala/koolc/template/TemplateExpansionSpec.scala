@@ -18,6 +18,55 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
 
   describe("The template expanders") {
 
+    they("expand class templates.") {
+      checkResultForFile("class-templates-basic.kpp") { (ctx, program) =>
+        ctx.reporter shouldBe errorless
+        program should not be None
+
+        inside(program.get.main.stats) { case List(If(expr, _, _)) =>
+          expr should be (Equals(
+            MethodCall(New(Identifier("Foo$Foo$Bar")), Identifier("bar"), List(New(Identifier("Foo$Bar")))),
+            MethodCall(New(Identifier("Foo$Foo$Bar")), Identifier("bar"), List(New(Identifier("Foo$Bar"))))
+          ))
+        }
+        inside(program.get.classes.find(_.id.value == "Foo$Foo$Bar").get) {
+            case ClassDecl(id, parent, vars, methods, template) =>
+          val idFB = Identifier("Foo$Bar")
+
+          id should be (Identifier("Foo$Foo$Bar"))
+          parent should be (Some(Identifier("Boo$Foo$Bar")))
+          vars should be (List(VarDecl(idFB, Identifier("a"))))
+          methods.size should be (1)
+
+          inside(methods.head) { case MethodDecl(retType, id, args, vars, stats, retExpr, template) =>
+            retType should be (idFB)
+            id should be (Identifier("bar"))
+            args should be (List(Formal(idFB, Identifier("a"))))
+            vars should be (List(VarDecl(idFB, Identifier("b"))))
+
+            inside(stats) { case List(assignStat: Assign, ifStat: If) =>
+              assignStat.id should be (Identifier("b"))
+              assignStat.expr should be (Identifier("a"))
+
+              inside(ifStat) { case If(expr, Block(List(thn)), els) =>
+                expr should be (And(
+                  LessThan(Plus(Plus(IntLit(0), IntLit(1)), IntLit(2)), IntLit(0)),
+                  Equals(New(idFB), Identifier("b"))
+                ))
+                thn should be (Assign(
+                  Identifier("b"),
+                  MethodCall(This(), Identifier("bar"), List(New(idFB)))
+                ))
+                els should be (None)
+              }
+            }
+            retExpr should be (New(idFB))
+            template should be (Nil)
+          }
+        }
+      }
+    }
+
     they("expand method templates.") {
       val source = """
         object Main { def main(): Unit = { } }
