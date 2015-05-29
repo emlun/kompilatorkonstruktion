@@ -54,10 +54,10 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
             (methBarBarBarFoo, "bar$Bar$Bar$Foo", "Bar$Bar$Foo") ::
             Nil foreach { case (meth, expectedName, expectedType) =>
               meth.id.name should be (expectedName)
-              meth.retType should be (Identifier(expectedType, Nil))
-              meth.retExpr should be (New(Identifier(expectedType, Nil)))
-              meth.args.head should be (Formal(Identifier(expectedType, Nil), Identifier("a", Nil)))
-              meth.vars.head should be (VarDecl(Identifier(expectedType, Nil), Identifier("b", Nil)))
+              meth.retType should be (Identifier(expectedType))
+              meth.retExpr should be (New(Identifier(expectedType)))
+              meth.args.head should be (Formal(Identifier(expectedType), Identifier("a")))
+              meth.vars.head should be (VarDecl(Identifier(expectedType), Identifier("b")))
             }
           }
         }
@@ -88,8 +88,8 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
             (methBarBar, "bar$Bar", "Bar") ::
             Nil foreach { case (meth, expectedName, expectedType) =>
               meth.id.name should be (expectedName)
-              meth.retType should be (Identifier(expectedType, Nil))
-              meth.retExpr should be (New(Identifier(expectedType, Nil)))
+              meth.retType should be (Identifier(expectedType))
+              meth.retExpr should be (New(Identifier(expectedType)))
             }
           }
           barClass.methods should be (Nil)
