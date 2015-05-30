@@ -260,7 +260,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
     def findMethodTemplateReferences(program: Program): List[MethodCall] = {
       (program.main.stats flatMap { stats => findMethodInStatment(stats) }) ++
       (program.classes flatMap { clazz =>
-        clazz.methods flatMap { method =>
+        clazz.methods filter { _.template.isEmpty } flatMap { method =>
           {
             findMethodInExpr(method.retExpr) ++ (method.stats flatMap findMethodInStatment _ )
           }
