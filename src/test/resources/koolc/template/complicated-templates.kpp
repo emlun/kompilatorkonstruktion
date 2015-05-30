@@ -9,13 +9,15 @@ class RealMain {
     var h: BetterPair<BetterPair<BetterPair<Int, Bool>, String>, BetterPair<Int[], Int[]>>;
     var i: IntPair;
     var dummy: BetterPair<Int, Int>;
+    var mbu: MaybeUtil;
+    mbu = new MaybeUtil();
 
     i = new IntPair();
-    dummy = i.setLeft(3).setRight(5);
+    dummy = i.set(3, 5);
     println(i.left());
     println(i.right());
 
-    mint = new Maybe<Int>();
+    mint = mbu.nope<Int>();
     result = this.printMint(mint);
     mint = mint.set(5);
     result = this.printMint(mint);
@@ -58,12 +60,20 @@ class Maybe<T> {
   def get(): T = { return value; }
 }
 
+class MaybeUtil {
+  def yep<T>(value: T): Maybe<T> = { return new Maybe<T>().set(value); }
+  def nope<T>(): Maybe<T> = { return new Maybe<T>(); }
+}
+
 class Pair<A, B> {
   var a: A;
   var b: B;
 }
 
 class BetterPair<A, B> extends Pair<A, B> {
+  def set(newA: A, newB: B): BetterPair<A, B> = {
+    return this.setLeft(newA).setRight(newB);
+  }
   def setLeft(newA: A): BetterPair<A, B> = {
     a = newA;
     return this;
