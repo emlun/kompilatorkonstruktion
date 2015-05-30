@@ -506,7 +506,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
       reducedProgram.main.stats foreach { stat => tcStat(stat)}
       reducedProgram.classes foreach {
-        clazz => clazz.methods filter { _.template.isEmpty } foreach {
+        clazz => clazz.methods foreach {
           method => {
             method.symbol.overridden map { overridden =>
               method.args zip overridden.decl.args foreach { case(overridingArg, overriddenArg) =>
