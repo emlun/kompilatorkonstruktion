@@ -277,8 +277,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
     def expandMethodTemplateReferences(program: Program, refs: List[MethodCall]): Program = {
       refs.foldLeft(program) { (program: Program, ref: MethodCall) =>
-        //println("Expand method call " + ref)
-
         resolveMethodCall(ref) map { sym =>
           val methodClassSymbol = sym.classSymbol
           val methodClass = sym.classSymbol.decl
@@ -402,11 +400,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               case ArrayRead(arr, index)       => ArrayRead(replaceInExpr(arr), replaceInExpr(index)).setPos(expr)
               case ArrayLength(arr)            => ArrayLength(replaceInExpr(arr)).setPos(expr)
               case call@MethodCall(obj, meth, args) => {
-                println("Check identifier " + meth + " against reference " + ref)
-
                 Try(resolveMethodCall(call)) getOrElse None flatMap { callSym: MethodSymbol =>
                   if(meth == ref.meth && sym == callSym) {
-                    println("Replacing reference " + call)
                     Some(MethodCall(
                       replaceInExpr(obj),
                       expandedId.copy().setPos(meth),
