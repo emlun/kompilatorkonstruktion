@@ -51,11 +51,8 @@ object Trees {
       case Identifier(value,template) => value
     }
     def name2: String = this match {
-      case IntArrayType()    => "Int[]"
-      case IntType()         => "Int"
-      case BooleanType()     => "Bool"
-      case StringType()      => "String"
       case Identifier(value,template) => value + (if(!template.isEmpty) "$" + (template map { _.name2 } mkString ",") else "")
+      case _ => name
     }
   }
   case class IntArrayType() extends TypeTree
