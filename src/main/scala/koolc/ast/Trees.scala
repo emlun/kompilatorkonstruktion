@@ -23,14 +23,18 @@ object Trees {
     def symbolComment: String = "#" + (Try(symbol.id) getOrElse "??")
   }
 
-  case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree
+  case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
+    def pureClasses: List[ClassDecl] = classes filter { _.template.isEmpty }
+  }
   case class MainObject(id: Identifier, stats: List[StatTree]) extends SymbolicTree[ClassSymbol]
   case class ClassDecl(
       id: Identifier,
       parent: Option[Identifier],
       vars: List[VarDecl],
       methods: List[MethodDecl],
-      template: List[Identifier] = Nil) extends SymbolicTree[ClassSymbol]
+      template: List[Identifier] = Nil) extends SymbolicTree[ClassSymbol] {
+    def pureMethods: List[MethodDecl] = methods filter { _.template.isEmpty }
+  }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
   case class MethodDecl(
       retType: TypeTree,

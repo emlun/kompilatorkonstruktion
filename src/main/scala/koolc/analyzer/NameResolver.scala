@@ -198,7 +198,7 @@ object NameResolver {
 
       classDecl.vars foreach setSymbolReferences(lookupType, clazz, clazz.lookupVar _)
 
-      val usedVars = classDecl.methods flatMap { method =>
+      val usedVars = classDecl.pureMethods flatMap { method =>
         setSymbolReferences(lookupType, clazz, method.symbol.lookupVar _)(method)
       }
 
@@ -219,7 +219,7 @@ object NameResolver {
     {
       clazz.parent match {
         case Some(parent) => {
-          clazz.methods.foreach{
+          clazz.pureMethods.foreach{
             method =>
             parent.lookupMethod(method._1) match {
               case Some(pMethod) => method._2.overridden = Some(pMethod)
@@ -234,7 +234,7 @@ object NameResolver {
 
     def checkMethods(clazz: ClassSymbol):Unit =
     {
-      clazz.methods.foreach{
+      clazz.pureMethods.foreach{
         method => method._2.overridden match{
           case Some(pMethod) => {
             if(method._2.params.size != pMethod.params.size)
@@ -275,7 +275,7 @@ object NameResolver {
 
     program.classes filter { _.template.isEmpty } foreach { clazz =>
       clazz.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
-      clazz.methods foreach { method =>
+      clazz.pureMethods foreach { method =>
         method.args foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
         method.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
       }
@@ -283,7 +283,7 @@ object NameResolver {
 
     program.classes filter { _.template.isEmpty } foreach { clazz =>
       clazz.vars foreach warnIfUnused(everyUsedVariable.toSet, clazz.symbol)
-      clazz.methods foreach { method =>
+      clazz.pureMethods foreach { method =>
         /*We are not suposed to check if method arguments are used (they aren't atleast)*/
         /*method.args ++ */method.vars foreach warnIfUnused(everyUsedVariable.toSet, clazz.symbol, Some(method.symbol))
       }
