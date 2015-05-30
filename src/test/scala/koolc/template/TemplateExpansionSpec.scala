@@ -101,6 +101,18 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       }
     }
 
+    they("allow template classes to reference themselves.") {
+      val source = """
+      object Main { def main(): Unit = {
+        if(new Foo<Int>() == new Foo<Int>()) {}
+      }}
+      class Foo<T> {
+        var a: Foo<T>;
+      }
+      """
+      assertStringSucceeds(source)
+    }
+
     they("expand class template references in template classes.") {
       val source = """
       object Main { def main(): Unit = {
