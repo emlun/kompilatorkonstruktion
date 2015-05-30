@@ -152,9 +152,9 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
                     expandTemplateReferencesInStatement(stat)
                   ).setPos(statement)
                 case Println(expr)                => Println(expandInExpr(expr)).setPos(statement)
-                case Assign(id, expr)             => Assign(id.copy(), expandInExpr(expr)).setPos(statement)
+                case Assign(id, expr)             => Assign(id.copy().setPos(id), expandInExpr(expr)).setPos(statement)
                 case ArrayAssign(id, index, expr) => ArrayAssign(
-                    id.copy(),
+                    id.copy().setPos(id),
                     expandInExpr(index),
                     expandInExpr(expr)
                   ).setPos(statement)
@@ -163,9 +163,9 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
             def expandTemplateReferencesInMethod(method: MethodDecl): MethodDecl = {
               MethodDecl(
                 retType = expandTypeTree(method.retType),
-                id = method.id.copy(),
-                args = method.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy()).setPos(arg) },
-                vars = method.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy()).setPos(varDecl) },
+                id = method.id.copy().setPos(method.id),
+                args = method.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy().setPos(arg.id)).setPos(arg) },
+                vars = method.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
                 stats = method.stats map expandTemplateReferencesInStatement _,
                 retExpr = expandInExpr(method.retExpr),
                 template = method.template).setPos(method)
@@ -176,9 +176,9 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
               case Some(_) => None
               case None => {
                 val newDecl = ClassDecl(
-                  id = newClassId.copy(),
+                  id = newClassId.copy().setPos(newClassId),
                   parent = clazz.parent map { parent => expandTypeTree(parent).asInstanceOf[Identifier] },
-                  vars = clazz.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy()).setPos(varDecl) },
+                  vars = clazz.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
                   methods = clazz.methods map expandTemplateReferencesInMethod _,
                   template = Nil).setPos(clazz)
                 Some(newDecl)
@@ -269,9 +269,9 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
       def replaceTemplatesInMethod(method: MethodDecl): MethodDecl = {
         MethodDecl(
           retType = replaceType(method.retType),
-          id = method.id.copy(),
-          args = method.args map { arg => Formal(replaceType(arg.tpe), arg.id.copy()).setPos(arg) },
-          vars = method.vars map { varDecl => VarDecl(replaceType(varDecl.tpe), varDecl.id.copy()).setPos(varDecl) },
+          id = method.id.copy().setPos(method.id),
+          args = method.args map { arg => Formal(replaceType(arg.tpe), arg.id.copy().setPos(arg.id)).setPos(arg) },
+          vars = method.vars map { varDecl => VarDecl(replaceType(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
           stats = method.stats map replaceTemplatesInStatement _,
           retExpr = replaceInExpr(method.retExpr),
           template = method.template).setPos(method)
@@ -281,13 +281,13 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
         ClassDecl(
           id = clazz.id,
           parent = clazz.parent flatMap { parent => typeMap.get(parent) orElse clazz.parent },
-          vars = clazz.vars map { varDecl => VarDecl(replaceType(varDecl.tpe), varDecl.id) },
+          vars = clazz.vars map { varDecl => VarDecl(replaceType(varDecl.tpe), varDecl.id).setPos(varDecl) },
           methods = clazz.methods map replaceTemplatesInMethod _,
           template = clazz.template).setPos(clazz)
       }
 
       Program(
-        MainObject(program.main.id, program.main.stats map replaceTemplatesInStatement _),
+        MainObject(program.main.id, program.main.stats map replaceTemplatesInStatement _).setPos(program.main),
         program.classes map replaceTemplatesInClass _
       )
     }

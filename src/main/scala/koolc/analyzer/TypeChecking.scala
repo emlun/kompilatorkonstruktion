@@ -315,8 +315,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
                   IntLit(0).setPos(tpe)
                 }
               }
-              case This()                      => This()
-              case id: Identifier              => id.copy()
+              case ths: This                   => This().setPos(ths)
+              case id: Identifier              => id.copy().setPos(id)
               case whatever                    => whatever
             }
 
@@ -332,9 +332,9 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
                   expandTemplateReferencesInStatement(stat)
                 ).setPos(statement)
               case Println(expr)                => Println(expandInExpr(expr)).setPos(statement)
-              case Assign(id, expr)             => Assign(id.copy(), expandInExpr(expr)).setPos(statement)
+              case Assign(id, expr)             => Assign(id.copy().setPos(id), expandInExpr(expr)).setPos(statement)
               case ArrayAssign(id, index, expr) => ArrayAssign(
-                  id.copy(),
+                  id.copy().setPos(id),
                   expandInExpr(index),
                   expandInExpr(expr)
                 ).setPos(statement)
@@ -349,12 +349,12 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
             val newMethodDecl = MethodDecl(
               retType = expandTypeTree(sym.decl.retType),
               id = expandedId,
-              args = sym.decl.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy()).setPos(arg) },
-              vars = sym.decl.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy()).setPos(varDecl) },
+              args = sym.decl.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy().setPos(arg.id)).setPos(arg) },
+              vars = sym.decl.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
               stats = sym.decl.stats map expandTemplateReferencesInStatement _,
               retExpr = expandInExpr(sym.decl.retExpr),
               template = Nil
-            )
+            ).setPos(sym.decl)
             val newMethodSymbol = new MethodSymbol(
               name = expandedId.value,
               classSymbol = sym.classSymbol,
@@ -368,7 +368,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               program.main,
               program.classes map { clazz =>
                 if(clazz.id.value == methodClass.id.value) {
-                  val newClass = clazz.copy(methods = newMethodDecl +: clazz.methods).setSymbol(sym.classSymbol)
+                  val newClass = clazz.copy(methods = newMethodDecl +: clazz.methods).setPos(clazz).setSymbol(sym.classSymbol)
                   newClass.symbol.methods = newClass.symbol.methods + (expandedId.value -> newMethodDecl.symbol)
                   newClass
                 } else {
@@ -383,7 +383,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
             expandedProgram
           }
 
-          val newCall = ref.copy(meth = expandedId.copy())
+          val newCall = ref.copy(meth = expandedId.copy().setPos(ref.meth)).setPos(ref)
 
           def replaceInExpr(expr: ExprTree): ExprTree = {
             expr match {
@@ -438,7 +438,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
 
           val replacedProgram: Program = Program(
-            expandedProgram.main.copy(stats = expandedProgram.main.stats map replaceTemplatesInStatement _),
+            expandedProgram.main.copy(stats = expandedProgram.main.stats map replaceTemplatesInStatement _).setPos(expandedProgram.main),
             expandedProgram.classes map { clazz =>
               println("Replace in class " + clazz.id.value)
               clazz.copy(methods = clazz.methods map { method =>
@@ -446,8 +446,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
                 method.copy(
                   stats = method.stats map replaceTemplatesInStatement _,
                   retExpr = replaceInExpr(method.retExpr)
-                )
-              })
+                ).setPos(method)
+              }).setPos(clazz)
             }
           )
 
