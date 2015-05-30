@@ -281,5 +281,20 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       """
       assertStringFails(source)
     }
+
+    describe("successfully expand") {
+      "class-and-method-templates.kpp" ::
+      "class-templates-basic.kpp" ::
+      "complicated-templates.kpp" ::
+      "method-templates-basic.kpp" ::
+      "simple-template-method.kpp" ::
+      "simple-templates.kpp" ::
+      "template-method-recursion.kpp" ::
+      Nil foreach { name =>
+        it(name) {
+          assertFileSucceeds(name)
+        }
+      }
+    }
   }
 }
