@@ -91,10 +91,10 @@ object Main {
     } else {
       val pipeline = Lexer andThen Parser andThen ClassTemplateExpander andThen NameAnalysis andThen TypeChecking andThen CodeGeneration
       pipeline.run(ctx)(ctx.file.get)
-      if(ctx.reporter.hasErrors) {
-        System.exit(1)
-      }
     }
 
+    if(ctx.reporter.hasErrors) {
+      System.exit(1)
+    }
   }
 }
