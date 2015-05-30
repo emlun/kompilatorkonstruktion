@@ -7,6 +7,8 @@ import Symbols._
 import Types._
 import utils._
 
+import scala.util.Try
+
 object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
   /** Typechecking does not produce a value, but has the side effect of
@@ -399,15 +401,24 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               case ArrayLength(arr)            => ArrayLength(replaceInExpr(arr)).setPos(expr)
               case call@MethodCall(obj, meth, args) => {
                 println("Check identifier " + meth + " against reference " + ref)
-                if(meth == ref.meth) {
+
+                Try(resolveMethodCall(call)) getOrElse None flatMap { callSym: MethodSymbol =>
+                  if(meth == ref.meth && sym == callSym) {
                     println("Replacing reference " + call)
-                    MethodCall(
-                    replaceInExpr(obj),
-                    expandedId.copy().setPos(meth),
-                    (args map replaceInExpr _)
-                  ).setPos(expr)
-                } else {
-                  call.copy(obj = replaceInExpr(obj), args = args map replaceInExpr _).setPos(call)
+                    Some(MethodCall(
+                      replaceInExpr(obj),
+                      expandedId.copy().setPos(meth),
+                      (args map replaceInExpr _)
+                    ).setPos(expr))
+                  } else {
+                    None
+                  }
+                } getOrElse {
+                  MethodCall(
+                    obj = replaceInExpr(obj),
+                    meth = meth.copy().setPos(meth),
+                    args = args map replaceInExpr _
+                  ).setPos(call)
                 }
               }
               case NewIntArray(size)           => NewIntArray(replaceInExpr(size)).setPos(expr)
