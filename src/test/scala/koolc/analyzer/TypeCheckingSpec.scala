@@ -281,5 +281,8 @@ class TypeCheckingSpec extends FunSpec with TestUtils with Matchers with Reporte
       })
       pipeline.run(Context(reporter, None, Some(input)))(input)
     }
+    it("does not crash when type checking recursive methods.") {
+      assertFileSucceeds("method-recursion.kool")
+    }
   }
 }
