@@ -16,7 +16,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
     (program: Option[Program]): Option[Program] = program flatMap { program =>
 
     def expandClassId(classId: Identifier, template: List[TypeTree]): Identifier =
-      Identifier(classId.value + "$" + (template map { _.name } mkString ","), Nil).setPos(classId)
+      Identifier(classId.value + "$" + (template map { _.name2 } mkString ","), Nil).setPos(classId)
 
     def getClassTemplateReferences(program: Program): List[Identifier] = {
       def getInType(tpe: TypeTree): List[Identifier] = tpe match {
@@ -104,7 +104,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
               tpe match {
                 case id@Identifier(value, template) => typeMap.get(value) match {
                   case Some(Identifier(templateValue, templateValueTemplate)) =>
-                    Identifier(templateValue, template map expandTypeTree _).setPos(id)
+                    Identifier(templateValue, templateValueTemplate map expandTypeTree _).setPos(id)
                   case Some(templateValue) => templateValue
                   case None                => Identifier(value, template map expandTypeTree _).setPos(id)
                 }
@@ -135,7 +135,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
                   }
                 }
                 case This()                      => This()
-                case id: Identifier              => id.copy()
+                case id: Identifier              => id.copy().setPos(id)
                 case whatever                    => whatever
               }
             }
@@ -332,7 +332,12 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
         expandClassTemplate(program)(ref)
       })
 
-      if(ctx.reporter.hasErrors) None
+      ctx.recursionCount += 1
+      if(ctx.recursionCount > 100){
+        ctx.reporter.error("Infinite template recursion detected at depth 100.",classTemplateReferences.head)
+        None
+      }
+      else if(ctx.reporter.hasErrors) None
       else run(ctx)(Some(newProgram))
     }
   }
