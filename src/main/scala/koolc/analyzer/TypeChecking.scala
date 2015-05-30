@@ -301,7 +301,11 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               case Equals(lhs, rhs)            => Equals(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
               case ArrayRead(arr, index)       => ArrayRead(expandInExpr(arr), expandInExpr(index)).setPos(expr)
               case ArrayLength(arr)            => ArrayLength(expandInExpr(arr)).setPos(expr)
-              case MethodCall(obj, meth, args) => MethodCall(expandInExpr(obj), meth, (args map expandInExpr _)).setPos(expr)
+              case MethodCall(obj, meth, args) => MethodCall(
+                  expandInExpr(obj),
+                  Identifier(meth.value, meth.template map expandTypeTree),
+                  (args map expandInExpr _)
+                ).setPos(expr)
               case NewIntArray(size)           => NewIntArray(expandInExpr(size)).setPos(expr)
               case Not(expr)                   => Not(expandInExpr(expr)).setPos(expr)
               case New(tpe)                    => expandTypeTree(tpe) match {
