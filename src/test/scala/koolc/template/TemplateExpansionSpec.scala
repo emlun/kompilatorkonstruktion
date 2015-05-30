@@ -113,6 +113,18 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       assertStringSucceeds(source)
     }
 
+    they("fail if template expansion causes infinite recursion.") {
+      val source = """
+      object Main { def main(): Unit = {
+        if(new Foo<Int>() == new Foo<Int>()) {}
+      }}
+      class Foo<T> {
+        var a: Foo<Foo<T>>;
+      }
+      """
+      assertStringFails(source)
+    }
+
     they("expand class template references in template classes.") {
       val source = """
       object Main { def main(): Unit = {
