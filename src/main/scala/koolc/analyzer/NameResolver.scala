@@ -17,6 +17,8 @@ object NameResolver {
   def run(ctx: Context)
          (program: Program, mainSymbol: ClassSymbol, classSymbols: List[ClassSymbol]): Option[Program] = {
     println("NameResolver.run")
+    println("Program:")
+    println(koolc.ast.Printer.printTree(true)(program))
 
     var everyUsedVariable: List[VariableSymbol] = List.empty;
 

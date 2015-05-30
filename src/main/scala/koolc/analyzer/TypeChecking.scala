@@ -14,6 +14,10 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
   /** Typechecking does not produce a value, but has the side effect of
    * attaching types to trees and potentially outputting error messages. */
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
+    println("TypeChecking.run")
+    println("Program:")
+    println(koolc.ast.Printer.printTree(true)(program))
+
     import ctx.reporter._
 
     def resolveMethodCall(call: MethodCall): Option[MethodSymbol] = {
@@ -541,6 +545,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         }
       }
 
+      println("Finished program:")
+      println(koolc.ast.Printer.printTree(true)(reducedProgram))
       if(ctx.reporter.hasErrors) {
         None
       } else Some(reducedProgram)
