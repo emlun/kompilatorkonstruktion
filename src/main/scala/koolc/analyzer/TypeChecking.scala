@@ -112,7 +112,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               ctx.reporter.error(s"Too many parameters for method ${methId.value}", call)
             }
 
-            tcExpr(methodSymbol.decl.retExpr)
             tcTypeTree(methodSymbol.decl.retType)
           } getOrElse {
             ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")
