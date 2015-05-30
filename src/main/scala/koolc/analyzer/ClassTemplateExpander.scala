@@ -296,6 +296,12 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
       )
     }
 
+    ctx.recursionCount += 1
+    if(ctx.recursionCount > 100){
+      ctx.reporter.error("Infinite template recursion detected at depth 100.")
+      return None
+    }
+
     program.classes filter { ! _.template.isEmpty } foreach { clazz =>
       clazz.template.foldLeft[Set[Identifier]](
         program.classes.map(clazz => Identifier(clazz.id.value, Nil).setPos(clazz.id)).toSet
@@ -336,12 +342,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
         expandClassTemplate(program)(ref)
       })
 
-      ctx.recursionCount += 1
-      if(ctx.recursionCount > 100){
-        ctx.reporter.error("Infinite template recursion detected at depth 100.",classTemplateReferences.head)
-        None
-      }
-      else if(ctx.reporter.hasErrors) None
+      if(ctx.reporter.hasErrors) None
       else run(ctx)(Some(newProgram))
     }
   }
