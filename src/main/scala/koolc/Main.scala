@@ -86,16 +86,8 @@ object Main {
         )
       }
     } else if(printPretty) {
-      val pipeline = Lexer andThen Parser
-
-      print(
-        (if(printSYMID) {
-          pipeline andThen ClassTemplateExpander andThen NameAnalysis
-        } else {
-          pipeline
-        }).run(ctx)(ctx.file.get)
-          map Printer(printSYMID) getOrElse "Compilation failed.\n"
-      )
+      val pipeline = Lexer andThen Parser andThen ClassTemplateExpander andThen NameAnalysis andThen TypeChecking
+      print(pipeline.run(ctx)(ctx.file.get) map Printer(printSYMID) getOrElse "Compilation failed.\n")
     } else {
       val pipeline = Lexer andThen Parser andThen ClassTemplateExpander andThen NameAnalysis andThen TypeChecking andThen CodeGeneration
       pipeline.run(ctx)(ctx.file.get)
