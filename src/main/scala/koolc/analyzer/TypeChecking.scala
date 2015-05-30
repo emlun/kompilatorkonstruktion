@@ -385,8 +385,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
             expandedProgram
           }
 
-          val newCall = ref.copy(meth = expandedId.copy().setPos(ref.meth)).setPos(ref)
-
           def replaceInExpr(expr: ExprTree): ExprTree = {
             expr match {
               case And(lhs, rhs)               => And(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
