@@ -229,23 +229,13 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
           case _              => tpe
         }
 
-      def transformType(tree: Tree): Tree = tree match {
-          case tpe: TypeTree => replaceType(tpe)
-          case whatever      => whatever
-        }
-
-      def replaceTemplatesInStatement(statement: StatTree): StatTree = ProgramTransformer(statement)(transformType)
-
-      def replaceTemplatesInClass(clazz: ClassDecl): ClassDecl =
-        ProgramTransformer(clazz, {
-          case m: MethodDecl => m.template.isEmpty
-          case _             => true
-        })(transformType)
-
-      Program(
-        MainObject(program.main.id, program.main.stats map replaceTemplatesInStatement _).setPos(program.main),
-        program.classes map replaceTemplatesInClass _
-      )
+      ProgramTransformer(program, {
+        case m: MethodDecl => m.template.isEmpty
+        case _             => true
+      }) {
+        case tpe: TypeTree => replaceType(tpe)
+        case whatever      => whatever
+      }
     }
 
     ctx.recursionCount += 1
