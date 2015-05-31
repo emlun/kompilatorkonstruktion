@@ -229,17 +229,13 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
           case _              => tpe
         }
 
-      def replaceInExpr(expr: ExprTree): ExprTree =
-        ProgramTransformer(expr) {
+      def transformType(tree: Tree): Tree = tree match {
           case tpe: TypeTree => replaceType(tpe)
           case whatever      => whatever
         }
 
-      def replaceTemplatesInStatement(statement: StatTree): StatTree =
-        ProgramTransformer(statement) {
-          case expr: ExprTree => replaceInExpr(expr)
-          case whatever       => whatever
-        }
+      def replaceInExpr(expr: ExprTree): ExprTree = ProgramTransformer(expr)(transformType)
+      def replaceTemplatesInStatement(statement: StatTree): StatTree = ProgramTransformer(statement)(transformType)
 
       def replaceTemplatesInMethod(method: MethodDecl): MethodDecl = {
         if(method.template.isEmpty) {
