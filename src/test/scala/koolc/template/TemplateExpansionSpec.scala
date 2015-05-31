@@ -16,6 +16,16 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
 
   override def pipeline = Parser andThen ClassTemplateExpander andThen NameAnalysis andThen TypeChecking
 
+  val VALID_FILES =
+    "class-and-method-templates.kpp" ::
+    "class-templates-basic.kpp" ::
+    "complicated-templates.kpp" ::
+    "method-templates-basic.kpp" ::
+    "simple-template-method.kpp" ::
+    "simple-templates.kpp" ::
+    "template-method-recursion.kpp" ::
+    Nil
+
   describe("The template expanders") {
 
     they("don't expand unreferenced templates.") {
@@ -283,14 +293,7 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
     }
 
     describe("successfully expand") {
-      "class-and-method-templates.kpp" ::
-      "class-templates-basic.kpp" ::
-      "complicated-templates.kpp" ::
-      "method-templates-basic.kpp" ::
-      "simple-template-method.kpp" ::
-      "simple-templates.kpp" ::
-      "template-method-recursion.kpp" ::
-      Nil foreach { name =>
+      VALID_FILES foreach { name =>
         it(name) {
           assertFileSucceeds(name)
         }
