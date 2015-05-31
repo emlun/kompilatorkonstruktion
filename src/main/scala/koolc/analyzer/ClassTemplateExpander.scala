@@ -250,10 +250,10 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
       }
 
       def replaceTemplatesInStatement(statement: StatTree): StatTree =
-        ProgramTransformer[StatTree]({
+        ProgramTransformer(statement) {
           case expr: ExprTree => replaceInExpr(expr)
           case whatever       => whatever
-        })(statement)
+        }
 
       def replaceTemplatesInMethod(method: MethodDecl): MethodDecl = {
         if(method.template.isEmpty) {

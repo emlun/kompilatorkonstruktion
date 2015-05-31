@@ -10,7 +10,7 @@ package utils
 import ast.Trees._
 
 object ProgramTransformer {
-  def apply[S <: Tree](transform: Tree => Tree, branchFilter: Tree => Boolean = (_ => true))(t: S): S = {
+  def apply[S <: Tree](t: S, branchFilter: Tree => Boolean = (_ => true))(transform: Tree => Tree): S = {
 
     def transformTree[T <: Tree](tree: T): T =
       if(branchFilter(tree)) {
