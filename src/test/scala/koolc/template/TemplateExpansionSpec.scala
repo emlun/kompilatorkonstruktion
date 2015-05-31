@@ -26,6 +26,12 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
     "template-method-recursion.kpp" ::
     Nil
 
+  val INVALID_FILES =
+    "class-template-infinite-recursion.kpp" ::
+    "name-collision-class-decl.kpp" ::
+    "name-collision-method-decl.kpp" ::
+    Nil
+
   describe("The template expanders") {
 
     they("don't expand unreferenced templates.") {
@@ -296,6 +302,14 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
       VALID_FILES foreach { name =>
         it(name) {
           assertFileSucceeds(name)
+        }
+      }
+    }
+
+    describe("fail the file") {
+      INVALID_FILES foreach { name =>
+        it(name) {
+          assertFileFails(name)
         }
       }
     }
