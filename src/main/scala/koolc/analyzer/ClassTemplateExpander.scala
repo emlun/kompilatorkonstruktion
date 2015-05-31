@@ -249,25 +249,11 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
         }
       }
 
-      def replaceTemplatesInStatement(statement: StatTree): StatTree = statement match {
-          case Block(stats)                 => Block(stats map replaceTemplatesInStatement _).setPos(statement)
-          case If(expr, thn, els)           => If(
-              replaceInExpr(expr),
-              replaceTemplatesInStatement(thn),
-              els map replaceTemplatesInStatement _
-            ).setPos(statement)
-          case While(expr, stat)            => While(
-              replaceInExpr(expr),
-              replaceTemplatesInStatement(stat)
-            ).setPos(statement)
-          case Println(expr)                => Println(replaceInExpr(expr)).setPos(statement)
-          case Assign(id, expr)             => Assign(id, replaceInExpr(expr)).setPos(statement)
-          case ArrayAssign(id, index, expr) => ArrayAssign(
-              id,
-              replaceInExpr(index),
-              replaceInExpr(expr)
-            ).setPos(statement)
-        }
+      def replaceTemplatesInStatement(statement: StatTree): StatTree =
+        ProgramTransformer[StatTree]({
+          case expr: ExprTree => replaceInExpr(expr)
+          case whatever       => whatever
+        })(statement)
 
       def replaceTemplatesInMethod(method: MethodDecl): MethodDecl = {
         if(method.template.isEmpty) {
