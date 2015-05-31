@@ -1,0 +1,6 @@
+object Main { def main(): Unit = {
+  if(new Foo().bar() == 0) {}
+}}
+class Foo {
+  def bar(): Int = { return this.bar(); }
+}
