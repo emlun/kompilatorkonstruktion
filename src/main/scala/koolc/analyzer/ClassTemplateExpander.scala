@@ -236,20 +236,11 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
 
       def replaceTemplatesInStatement(statement: StatTree): StatTree = ProgramTransformer(statement)(transformType)
 
-      def replaceTemplatesInMethod(method: MethodDecl): MethodDecl =
-        ProgramTransformer(method, {
+      def replaceTemplatesInClass(clazz: ClassDecl): ClassDecl =
+        ProgramTransformer(clazz, {
           case m: MethodDecl => m.template.isEmpty
           case _             => true
         })(transformType)
-
-      def replaceTemplatesInClass(clazz: ClassDecl): ClassDecl = {
-        ClassDecl(
-          id = clazz.id,
-          parent = clazz.parent flatMap { parent => typeMap.get(parent) orElse clazz.parent },
-          vars = clazz.vars map { varDecl => VarDecl(replaceType(varDecl.tpe), varDecl.id).setPos(varDecl) },
-          methods = clazz.methods map replaceTemplatesInMethod _,
-          template = clazz.template).setPos(clazz)
-      }
 
       Program(
         MainObject(program.main.id, program.main.stats map replaceTemplatesInStatement _).setPos(program.main),
