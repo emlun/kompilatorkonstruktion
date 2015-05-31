@@ -1,0 +1,61 @@
+object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
+
+class RealMain {
+  def realMain(): Bool = {
+    var p: Pair<Foo, Bar<Boo>>;
+    p = new Pair<Foo, Bar<Boo>>().set(
+      new Foo(),
+      new Bar<Foo>().set(new Foo()).as<Boo>()
+    );
+    println(p.getA().name()); // Should print "Foo"
+    println(p.getB().name()); // Should print "Bar<Boo>"
+    return false;
+  }
+}
+
+class Foo {
+  def as<T>(): T = {
+    return new T();
+  }
+  def name(): String = { return "Foo"; }
+}
+class Boo {
+  def name(): String = { return "Boo"; }
+}
+class Bar<T> {
+  var value: T;
+  def set(newValue: T): Bar<T> = {
+    value = newValue;
+    return this;
+  }
+  def get(): T = { return value; }
+  def as<S>(): Bar<S> = { return new Bar<S>().set(value.as<S>()); }
+  def name(): String = { return "Bar<" + value.name() + ">"; }
+}
+
+class Pair<A, B> {
+  var a: A;
+  var b: B;
+
+  def setA(newA: A): Pair<A, B> = {
+    a = newA;
+    return this;
+  }
+
+  def setB(newB: B): Pair<A, B> = {
+    b = newB;
+    return this;
+  }
+
+  def set(newA: A, newB: B): Pair<A, B> = {
+    return this.setA(newA).setB(newB);
+  }
+
+  def getA(): A = { return a; }
+  def getB(): B = { return b; }
+
+  def as<C, D>(): Pair<C, D> = {
+    return new Pair<C, D>().setA(a.as<C>()).setB(b.as<D>());
+  }
+
+}
