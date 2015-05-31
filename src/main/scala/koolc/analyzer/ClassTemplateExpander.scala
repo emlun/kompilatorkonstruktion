@@ -229,25 +229,11 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
           case _              => tpe
         }
 
-      def replaceInExpr(expr: ExprTree): ExprTree = {
-        expr match {
-          case And(lhs, rhs)               => And(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-          case Or(lhs, rhs)                => Or(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-          case Plus(lhs, rhs)              => Plus(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-          case Minus(lhs, rhs)             => Minus(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-          case Times(lhs, rhs)             => Times(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-          case Div(lhs, rhs)               => Div(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-          case LessThan(lhs, rhs)          => LessThan(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-          case Equals(lhs, rhs)            => Equals(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-          case ArrayRead(arr, index)       => ArrayRead(replaceInExpr(arr), replaceInExpr(index)).setPos(expr)
-          case ArrayLength(arr)            => ArrayLength(replaceInExpr(arr)).setPos(expr)
-          case MethodCall(obj, meth, args) => MethodCall(replaceInExpr(obj), meth, (args map replaceInExpr _)).setPos(expr)
-          case NewIntArray(size)           => NewIntArray(replaceInExpr(size)).setPos(expr)
-          case Not(expr)                   => Not(replaceInExpr(expr)).setPos(expr)
-          case New(tpe)                    => New(replaceType(tpe).asInstanceOf[Identifier]).setPos(expr)
-          case whatever                    => whatever
+      def replaceInExpr(expr: ExprTree): ExprTree =
+        ProgramTransformer(expr) {
+          case tpe: TypeTree => replaceType(tpe)
+          case whatever      => whatever
         }
-      }
 
       def replaceTemplatesInStatement(statement: StatTree): StatTree =
         ProgramTransformer(statement) {
