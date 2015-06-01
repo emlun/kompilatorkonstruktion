@@ -3,12 +3,23 @@ object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
 class RealMain {
   def realMain(): Bool = {
     var p: Pair<Foo, Bar<Boo>>;
+    var p2: Pair<Bar<Foo>, Boo>;
+    var dummy: Bar<Foo>;
+
     p = new Pair<Foo, Bar<Boo>>().set(
       new Foo(),
       new Bar<Foo>().set(new Foo()).as<Boo>()
     );
+    p2 = new Pair<Foo, Foo>().set(
+      new Foo(),
+      new Foo()
+    ).as<Bar<Foo>, Boo>();
+    dummy = p2.getA().set(new Foo());
+
     println(p.getA().name()); // Should print "Foo"
     println(p.getB().name()); // Should print "Bar<Boo>"
+    println(p2.getA().name()); // Should print "Bar<Foo>"
+    println(p2.getB().name()); // Should print "Boo"
     return false;
   }
 }
