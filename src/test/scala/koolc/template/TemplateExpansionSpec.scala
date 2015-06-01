@@ -21,6 +21,7 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
     "class-metatemplate.kpp" ::
     "class-templates-basic.kpp" ::
     "complicated-templates.kpp" ::
+    "maybelist-templates.kpp" ::
     "method-templates-basic.kpp" ::
     "simple-template-method.kpp" ::
     "simple-templates.kpp" ::
