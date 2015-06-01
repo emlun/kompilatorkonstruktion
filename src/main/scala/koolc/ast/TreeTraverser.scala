@@ -19,6 +19,7 @@ object TreeTraverser {
         t: Tree,
         branchFilter: PartialFunction[Tree, Boolean] = any2true,
         descendIntoDeclarationIds: Boolean = true,
+        descendIntoTemplates: Boolean = true,
         methodCallIdsMatch: Boolean = true
       )(
         collector: PartialFunction[Tree, List[T]]
@@ -28,25 +29,33 @@ object TreeTraverser {
     def collectMethodCallId(id: Identifier): List[T] =
       if(methodCallIdsMatch) clct(id) else id.template flatMap clct
 
+    def collectTemplateTree(tree: TemplateTree, value: => List[T]): List[T] =
+      if(tree.template.isEmpty || descendIntoTemplates) value
+      else Nil
+
     def clct(tree: Tree): List[T] = {
       val lst: List[T] = if((branchFilter orElse any2true)(tree)) tree match {
           case Program(main, classes) => clct(main) ++: (classes flatMap clct)
           case MainObject(id, stats)  => collectDeclarationId(id) ++: (stats flatMap clct)
-          case ClassDecl(id, parent, vars, methods, template) =>
-            collectDeclarationId(id) ++:
-            (parent map clct getOrElse Nil) ++:
-            (vars flatMap clct) ++:
-            (methods flatMap clct) ++:
-            (template flatMap clct)
+          case clazz@ClassDecl(id, parent, vars, methods, template) =>
+            collectTemplateTree(clazz,
+              collectDeclarationId(id) ++:
+              (parent map clct getOrElse Nil) ++:
+              (vars flatMap clct) ++:
+              (methods flatMap clct) ++:
+              (template flatMap clct)
+            )
           case VarDecl(tpe, id)       => clct(tpe) ++: collectDeclarationId(id)
-          case MethodDecl(retType, id, args, vars, stats, retExpr, template) =>
-            clct(retType) ++:
-            collectDeclarationId(id) ++:
-            (args flatMap clct) ++:
-            (vars flatMap clct) ++:
-            (stats flatMap clct) ++:
-            clct(retExpr) ++:
-            (template flatMap clct)
+          case method@MethodDecl(retType, id, args, vars, stats, retExpr, template) =>
+            collectTemplateTree(method,
+              clct(retType) ++:
+              collectDeclarationId(method.id) ++:
+              (args flatMap clct) ++:
+              (vars flatMap clct) ++:
+              (stats flatMap clct) ++:
+              clct(retExpr) ++:
+              (template flatMap clct)
+            )
           case Formal(tpe, id)        => clct(tpe) ++: clct(id)
 
           case Block(stats)                 => stats flatMap clct
