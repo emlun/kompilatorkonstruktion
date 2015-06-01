@@ -214,48 +214,12 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         }
       }
 
-    def findMethodInStatment(stat: StatTree): List[MethodCall] = {
-      stat match {
-        case Block(stats) => {
-          stats flatMap {findMethodInStatment _ }
-        }
-        case If(expr, thn, els) => {
-          findMethodInExpr(expr) ++
-          findMethodInStatment(thn) ++
-          {els match {
-            case Some(statTree) => findMethodInStatment(statTree)
-            case None => Nil
-          }}
-        }
-        case While(expr, stat) => {
-          findMethodInExpr(expr) ++
-          findMethodInStatment(stat)
-        }
-        case Println(expr) => {
-          findMethodInExpr(expr)
-        }
-        case Assign(id, expr) => {
-          findMethodInExpr(expr)
-        }
-        case ArrayAssign(id, index, expr) => {
-          findMethodInExpr(id) ++
-          findMethodInExpr(index) ++
-          findMethodInExpr(expr)
-        }
-        case _ => {println("findMethodInStatment not implemented >>> " + stat); Nil}
+    def findMethodTemplateReferences(program: Program): List[MethodCall] =
+      TreeTraverser.collect(program, {
+        case method: MethodDecl => method.template.isEmpty
+      }) {
+        case expr: ExprTree => findMethodInExpr(expr)
       }
-    }
-
-    def findMethodTemplateReferences(program: Program): List[MethodCall] = {
-      (program.main.stats flatMap { stats => findMethodInStatment(stats) }) ++
-      (program.classes flatMap { clazz =>
-        clazz.pureMethods flatMap { method =>
-          {
-            findMethodInExpr(method.retExpr) ++ (method.stats flatMap findMethodInStatment _ )
-          }
-         }
-      })
-    }
 
     def expandMethodTemplateId(id: Identifier): Identifier = Identifier(id.name2, Nil).setPos(id)
 
