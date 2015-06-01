@@ -156,9 +156,11 @@ object TreeTraverser {
             case MethodCall(obj, meth, args) => MethodCall(transformTree(obj), transformTree(meth), args map transformTree)
             case New(tpe)                    => New(transformTree(tpe))
 
-            case True()         | False()      | This()           |
-                 IntArrayType() | IntType()    | BooleanType()    | StringType()   |
-                 IntLit(_)      | StringLit(_) | Identifier(_, _) | NewIntArray(_) => tree
+            case Identifier(value, template) => Identifier(value, template map transformTree)
+
+            case True()         | False()      | This()         |
+                 IntArrayType() | IntType()    | BooleanType()  |  StringType() |
+                 IntLit(_)      | StringLit(_) | NewIntArray(_) => tree
           }).setPos(tree)
         } else tree
       ).asInstanceOf[T]

@@ -60,7 +60,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
               tpe match {
                 case id@Identifier(value, template) => typeMap.get(value) match {
                   case Some(Identifier(templateValue, _)) =>
-                    Identifier(templateValue, template map expandTypeTree _).setPos(id)
+                    Identifier(templateValue, template map expandTypeTree).setPos(id)
                   case Some(templateValue) => templateValue
                   case None                => Identifier(value, template map expandTypeTree _).setPos(id)
                 }
