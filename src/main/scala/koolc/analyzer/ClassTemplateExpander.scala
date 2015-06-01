@@ -103,16 +103,14 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
               }
 
             def expandTemplateReferencesInMethod(method: MethodDecl): MethodDecl = {
-              if(method.template.isEmpty) {
-                MethodDecl(
-                  retType = expandTypeTree(method.retType),
-                  id = method.id.copy().setPos(method.id),
-                  args = method.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy().setPos(arg.id)).setPos(arg) },
-                  vars = method.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
-                  stats = method.stats map expandTemplateReferencesInStatement _,
-                  retExpr = expandInExpr(method.retExpr),
-                  template = method.template).setPos(method)
-              } else method
+              MethodDecl(
+                retType = expandTypeTree(method.retType),
+                id = method.id.copy().setPos(method.id),
+                args = method.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy().setPos(arg.id)).setPos(arg) },
+                vars = method.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
+                stats = method.stats map expandTemplateReferencesInStatement _,
+                retExpr = expandInExpr(method.retExpr),
+                template = method.template).setPos(method)
             }
 
             val newClassId = expandClassId(clazz.id, types)
