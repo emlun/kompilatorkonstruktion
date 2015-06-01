@@ -10,15 +10,16 @@ package analyzer
 import utils._
 import ast.Trees._
 import Symbols._
+import Debug.debug
 
 
 object NameResolver {
 
   def run(ctx: Context)
          (program: Program, mainSymbol: ClassSymbol, classSymbols: List[ClassSymbol]): Option[Program] = {
-    //println("NameResolver.run")
-    //println("Program:")
-    //println(koolc.ast.Printer.printTree(true)(program))
+    debug("NameResolver.run")
+    debug("Program:")
+    debug(koolc.ast.Printer.printTree(true)(program))
 
     var everyUsedVariable: List[VariableSymbol] = List.empty;
 
@@ -252,13 +253,13 @@ object NameResolver {
       clazz.parent match {
         case Some(parent) =>{
           clazz.members.foreach{
-            member => //println(method._1)
-            parent.lookupVar(member._1) match {
-              case Some(pMember) => {
-                  ctx.reporter.error(s"${member._1}  test member declaration overrides previous declaration at ${pMember.position}.", member._2)
+            member =>
+              parent.lookupVar(member._1) match {
+                case Some(pMember) => {
+                    ctx.reporter.error(s"${member._1}  test member declaration overrides previous declaration at ${pMember.position}.", member._2)
+                }
+                case None =>
               }
-              case None =>
-            }
           }
         }
         case None =>

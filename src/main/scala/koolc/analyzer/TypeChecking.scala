@@ -7,6 +7,7 @@ import ast.TreeTraverser
 import Symbols._
 import Types._
 import utils._
+import Debug.debug
 
 import scala.util.Try
 
@@ -15,9 +16,9 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
   /** Typechecking does not produce a value, but has the side effect of
    * attaching types to trees and potentially outputting error messages. */
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
-    //println("TypeChecking.run")
-    //println("Program:")
-    //println(koolc.ast.Printer.printTree(true)(program))
+    debug("TypeChecking.run")
+    debug("Program:")
+    debug(koolc.ast.Printer.printTree(true)(program))
 
     import ctx.reporter._
 
@@ -293,8 +294,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
           val expandedProgram = methodClassSymbol.lookupMethod(expandedId.value) map { sym =>
             program
           } getOrElse {
-            //println("Expanding method " + ref.meth.value + " with typeMap:")
-            //println(typeMap)
+            debug("Expanding method " + ref.meth.value + " with typeMap:")
+            debug(typeMap)
 
             val newMethodDecl = MethodDecl(
               retType = expandTypeTree(sym.decl.retType),
@@ -327,8 +328,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               }
             )
 
-            //println("Expanded program:")
-            //println(koolc.ast.Printer.printTree(true)(expandedProgram))
+            debug("Expanded program:")
+            debug(koolc.ast.Printer.printTree(true)(expandedProgram))
 
             expandedProgram
           }
@@ -394,9 +395,9 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
           val replacedProgram: Program = Program(
             expandedProgram.main.copy(stats = expandedProgram.main.stats map replaceTemplatesInStatement _).setPos(expandedProgram.main),
             expandedProgram.classes map { clazz =>
-              //println("Replace in class " + clazz.id.value)
+              debug("Replace in class " + clazz.id.value)
               clazz.copy(methods = clazz.methods map { method =>
-                //println("Replace in method " + method.id.value)
+                debug("Replace in method " + method.id.value)
                 method.copy(
                   stats = method.stats map replaceTemplatesInStatement _,
                   retExpr = replaceInExpr(method.retExpr)
@@ -405,8 +406,8 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
             }
           )
 
-          //println("Replaced program:")
-          //println(koolc.ast.Printer.printTree(true)(replacedProgram))
+          debug("Replaced program:")
+          debug(koolc.ast.Printer.printTree(true)(replacedProgram))
 
           replacedProgram
         } getOrElse {
@@ -421,7 +422,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         method.template.foldLeft[Set[Identifier]](
           clazz.template.toSet ++ program.classes.map(clazz => Identifier(clazz.id.value, Nil).setPos(clazz.id)).toSet
         ) { (allIds, paramId) =>
-          //println("paramId: " + paramId)
+          debug("paramId: " + paramId)
           allIds find { _ == paramId } map { existingId =>
             ctx.reporter.error(s"Template parameter name collision: '${paramId.value}'", paramId)
             ctx.reporter.info(s"Name '${paramId.value}' first defined here:", existingId)
@@ -440,9 +441,9 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
     val methodTemplateRefs = findMethodTemplateReferences(program)
 
     if(methodTemplateRefs.isEmpty) {
-      //println()
-      //println("Nothing to expand - removing template methods!")
-      //println()
+      debug()
+      debug("Nothing to expand - removing template methods!")
+      debug()
 
       // Remove template classes and methods
       val reducedProgram = Program(program.main,
@@ -451,12 +452,12 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         }
       )
 
-      //println()
-      //println("Commencing type checks!")
-      //println()
-      //println("Program:")
-      //println()
-      //println(koolc.ast.Printer.printTree(true)(reducedProgram))
+      debug()
+      debug("Commencing type checks!")
+      debug()
+      debug("Program:")
+      debug()
+      debug(koolc.ast.Printer.printTree(true)(reducedProgram))
 
       reducedProgram.main.stats foreach { stat => tcStat(stat)}
       reducedProgram.classes foreach {
@@ -486,16 +487,16 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         }
       }
 
-      //println("Finished program:")
-      //println(koolc.ast.Printer.printTree(true)(reducedProgram))
+      debug("Finished program:")
+      debug(koolc.ast.Printer.printTree(true)(reducedProgram))
       if(ctx.reporter.hasErrors) {
         None
       } else Some(reducedProgram)
     } else {
       val newProgram = expandMethodTemplateReferences(program, methodTemplateRefs)
-      //println()
-      //println("Things were expanded - returning to class template expander!")
-      //println()
+      debug()
+      debug("Things were expanded - returning to class template expander!")
+      debug()
       run(ctx)(ClassTemplateExpander.run(ctx)(Some(newProgram)))
     }
   }

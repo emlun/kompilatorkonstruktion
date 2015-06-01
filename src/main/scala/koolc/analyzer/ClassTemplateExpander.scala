@@ -10,12 +10,13 @@ package analyzer
 import utils._
 import ast.Trees._
 import ast.TreeTraverser
+import Debug.debug
 
 object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] {
 
   override def run(ctx: Context)
     (program: Option[Program]): Option[Program] = program flatMap { program =>
-    //println("ClassTemplateExpander.run")
+    debug("ClassTemplateExpander.run")
 
     def expandClassId(classId: Identifier, template: List[TypeTree]): Identifier =
       Identifier(classId.value + "$" + (template map { _.name2 } mkString ","), Nil).setPos(classId)

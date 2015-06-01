@@ -10,11 +10,12 @@ package analyzer
 import utils._
 import ast.Trees._
 import Symbols._
+import Debug.debug
 
 object NameAnalysis extends Pipeline[Option[Program], Option[Program]] {
 
   def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
-    //println("NameAnalysis.run")
+    debug("NameAnalysis.run")
 
     def createVariableSymbol(varDecl: VarDecl): VariableSymbol = {
       val symbol = new VariableSymbol(varDecl.id.value, varDecl.tpe).setPos(varDecl.id)
