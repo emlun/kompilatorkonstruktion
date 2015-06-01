@@ -115,20 +115,13 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
       expandInProgram(program, reference) getOrElse program
     }
 
-    def replaceTemplatesInProgram(program: Program, typeMap: Map[Identifier, Identifier]): Program = {
-      def replaceType(tpe: TypeTree): TypeTree = tpe match {
-          case id: Identifier => (typeMap.get(id) map { newId =>
-              Identifier(newId.value, newId.template).setPos(id)
-            } orElse { Some(id) } map { id =>
-              Identifier(id.value, id.template map replaceType _).setPos(id)
-            } getOrElse tpe).setPos(tpe)
-          case _              => tpe
-        }
-
+    def replaceTemplatesInProgram(program: Program, typeMap: Map[Identifier, Identifier]): Program =
       TreeTraverser.transform(program, descendIntoTemplates = false) {
-        case tpe: TypeTree => replaceType(tpe)
+        case id: Identifier => (typeMap.get(id) map { newId =>
+            newId.copy().setPos(id)
+          } orElse { Some(id) } map { id => id.copy().setPos(id)
+          } getOrElse id).setPos(id)
       }
-    }
 
     ctx.recursionCount += 1
     if(ctx.recursionCount > 100){
