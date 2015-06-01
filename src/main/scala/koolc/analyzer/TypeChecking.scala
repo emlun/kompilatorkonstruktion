@@ -280,18 +280,10 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
             expandedProgram
           }
 
-          def replaceInExpr(expr: ExprTree): ExprTree = {
-            expr match {
-              case And(lhs, rhs)               => And(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-              case Or(lhs, rhs)                => Or(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-              case Plus(lhs, rhs)              => Plus(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-              case Minus(lhs, rhs)             => Minus(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-              case Times(lhs, rhs)             => Times(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-              case Div(lhs, rhs)               => Div(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-              case LessThan(lhs, rhs)          => LessThan(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-              case Equals(lhs, rhs)            => Equals(replaceInExpr(lhs), replaceInExpr(rhs)).setPos(expr)
-              case ArrayRead(arr, index)       => ArrayRead(replaceInExpr(arr), replaceInExpr(index)).setPos(expr)
-              case ArrayLength(arr)            => ArrayLength(replaceInExpr(arr)).setPos(expr)
+          def replaceInExpr(expr: ExprTree): ExprTree =
+            TreeTraverser.transform(expr, {
+              case call: MethodCall => false
+            }) {
               case call@MethodCall(obj, meth, args) => {
                 Try(resolveMethodCall(call)) getOrElse None flatMap { callSym: MethodSymbol =>
                   if(meth == ref.meth && sym == callSym) {
@@ -311,11 +303,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
                   ).setPos(call)
                 }
               }
-              case NewIntArray(size)           => NewIntArray(replaceInExpr(size)).setPos(expr)
-              case Not(expr)                   => Not(replaceInExpr(expr)).setPos(expr)
-              case whatever                    => whatever
             }
-          }
 
           def replaceTemplatesInStatement(statement: StatTree): StatTree = statement match {
               case Block(stats)                 => Block(stats map replaceTemplatesInStatement _).setPos(statement)
