@@ -82,24 +82,9 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
               }
             }
 
-            def expandTemplateReferencesInStatement(statement: StatTree): StatTree = statement match {
-                case Block(stats)                 => Block(stats map expandTemplateReferencesInStatement _).setPos(statement)
-                case If(expr, thn, els)           => If(
-                    expandInExpr(expr),
-                    expandTemplateReferencesInStatement(thn),
-                    els map expandTemplateReferencesInStatement _
-                  ).setPos(statement)
-                case While(expr, stat)            => While(
-                    expandInExpr(expr),
-                    expandTemplateReferencesInStatement(stat)
-                  ).setPos(statement)
-                case Println(expr)                => Println(expandInExpr(expr)).setPos(statement)
-                case Assign(id, expr)             => Assign(id.copy().setPos(id), expandInExpr(expr)).setPos(statement)
-                case ArrayAssign(id, index, expr) => ArrayAssign(
-                    id.copy().setPos(id),
-                    expandInExpr(index),
-                    expandInExpr(expr)
-                  ).setPos(statement)
+            def expandTemplateReferencesInStatement(statement: StatTree): StatTree =
+              TreeTraverser.transform(statement) {
+                case expr: ExprTree => expandInExpr(expr)
               }
 
             def expandTemplateReferencesInMethod(method: MethodDecl): MethodDecl = {
