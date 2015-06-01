@@ -58,10 +58,7 @@ object Trees {
       case StringType()      => "String"
       case Identifier(value,template) => value
     }
-    def name2: String = this match {
-      case Identifier(value,template) => value + (if(!template.isEmpty) "$" + (template map { _.name2 } mkString ",") else "")
-      case _ => name
-    }
+    def expandTemplateName: TypeTree = this
   }
   case class IntArrayType() extends TypeTree
   case class IntType() extends TypeTree
@@ -93,7 +90,13 @@ object Trees {
 
   case class True() extends ExprTree
   case class False() extends ExprTree
-  case class Identifier(value: String, template: List[TypeTree] = Nil) extends TypeTree with ExprTree with SymbolicTree[Symbol]
+  case class Identifier(value: String, template: List[TypeTree] = Nil) extends TypeTree with ExprTree with SymbolicTree[Symbol] {
+    override def expandTemplateName: Identifier =
+      Identifier(
+        value + (if(!template.isEmpty) "$" + (template map { _.expandTemplateName.name } mkString ",") else ""),
+        Nil
+      ).setPos(this)
+  }
 
   case class This() extends ExprTree with SymbolicTree[ClassSymbol]
   case class NewIntArray(size: ExprTree) extends ExprTree

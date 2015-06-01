@@ -220,15 +220,13 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         case expr: ExprTree => findMethodInExpr(expr)
       }
 
-    def expandMethodTemplateId(id: Identifier): Identifier = Identifier(id.name2, Nil).setPos(id)
-
     def expandMethodTemplateReferences(program: Program, refs: List[MethodCall]): Program = {
       refs.foldLeft(program) { (program: Program, ref: MethodCall) =>
         resolveMethodCall(ref) map { sym =>
           val methodClassSymbol = sym.classSymbol
           val methodClass = sym.classSymbol.decl
           val methodClassName = methodClass.id.value
-          val expandedId = expandMethodTemplateId(ref.meth)
+          val expandedId = ref.meth.expandTemplateName
 
           val typeMap: Map[String, TypeTree] = (sym.decl.template map { _.value } zip ref.meth.template).toMap
 

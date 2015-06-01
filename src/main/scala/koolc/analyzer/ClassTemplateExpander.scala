@@ -18,9 +18,6 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
     (program: Option[Program]): Option[Program] = program flatMap { program =>
     debug("ClassTemplateExpander.run")
 
-    def expandClassId(classId: Identifier, template: List[TypeTree]): Identifier =
-      Identifier(classId.value + "$" + (template map { _.name2 } mkString ","), Nil).setPos(classId)
-
     def getClassTemplateReferences(program: Program): List[Identifier] = {
       def getInType(tpe: TypeTree): List[Identifier] = tpe match {
           case Identifier(value, Nil)         => Nil
@@ -56,7 +53,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
             }
           } flatMap { clazz =>
             val typeMap: Map[String, TypeTree] = (clazz.template map { _.value } zip types).toMap
-            val newClassId = expandClassId(clazz.id, types)
+            val newClassId = reference.expandTemplateName
 
             if(program.classes exists { clazz => clazz.id.value == newClassId.value }) {
               None
@@ -157,7 +154,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
 
       val typeMap: Map[Identifier, Identifier] = (classTemplateReferences flatMap { (ref: Identifier) =>
         program.classes.find { clazz =>
-          clazz.id.value == expandClassId(ref, ref.template).value
+          clazz.id.value == ref.expandTemplateName.value
         } map { clazz =>
           ref -> clazz.id
         }
