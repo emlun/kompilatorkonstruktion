@@ -70,7 +70,8 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
 
             def expandInExpr(expr: ExprTree): ExprTree = {
               TreeTraverser.transform(expr) {
-                case New(tpe) => expandTypeTree(tpe) match {
+                case tpe: TypeTree => expandTypeTree(tpe)
+                case New(tpe) => tpe match {
                     case id: Identifier => New(id).setPos(expr)
                     case other => {
                       ctx.reporter.error("Expected class type, found " + other, tpe)
