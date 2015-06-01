@@ -55,12 +55,13 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
             }
           } flatMap { clazz =>
             val typeMap: Map[String, TypeTree] = (clazz.template map { _.value } zip types).toMap
-
             val newClassId = expandClassId(clazz.id, types)
-            program.classes find { clazz => clazz.id.value == newClassId.value } match {
-              case Some(_) => None
-              case None => {
-                val newDecl = TreeTraverser.transform(clazz) {
+
+            if(program.classes exists { clazz => clazz.id.value == newClassId.value }) {
+              None
+            } else {
+              Some(
+                TreeTraverser.transform(clazz) {
                   case id@Identifier(value, template) => typeMap.get(value) map {
                       case Identifier(typeMapValue, _) => Identifier(typeMapValue, template).setPos(id)
                       case other                       => other
@@ -79,8 +80,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
                       template = Nil
                     ).setPos(clazz)
                 }
-                Some(newDecl)
-              }
+              )
             }
           }
         } map { clazz =>
