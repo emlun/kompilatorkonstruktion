@@ -23,6 +23,10 @@ object Trees {
     def symbolComment: String = "#" + (Try(symbol.id) getOrElse "??")
   }
 
+  sealed trait TemplateTree {
+    val template: List[Identifier]
+  }
+
   case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
     def pureClasses: List[ClassDecl] = classes filter { _.template.isEmpty }
   }
@@ -32,7 +36,7 @@ object Trees {
       parent: Option[Identifier],
       vars: List[VarDecl],
       methods: List[MethodDecl],
-      template: List[Identifier] = Nil) extends SymbolicTree[ClassSymbol] {
+      template: List[Identifier] = Nil) extends SymbolicTree[ClassSymbol] with TemplateTree {
     def pureMethods: List[MethodDecl] = methods filter { _.template.isEmpty }
   }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
@@ -43,7 +47,7 @@ object Trees {
       vars: List[VarDecl],
       stats: List[StatTree],
       retExpr: ExprTree,
-      template: List[Identifier] = Nil) extends SymbolicTree[MethodSymbol]
+      template: List[Identifier] = Nil) extends SymbolicTree[MethodSymbol] with TemplateTree
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
 
   sealed trait TypeTree extends Tree with Typed {
