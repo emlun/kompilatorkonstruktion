@@ -18,23 +18,18 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
     (program: Option[Program]): Option[Program] = program flatMap { program =>
     debug("ClassTemplateExpander.run")
 
-    def getClassTemplateReferences(program: Program): List[Identifier] = {
-      def getInType(tpe: TypeTree): List[Identifier] = tpe match {
-          case Identifier(value, Nil)         => Nil
-          case id@Identifier(value, template) => (template flatMap getInType _) match {
-              case Nil      => List(id)
-              case nonempty => nonempty
-            }
-          case _                              => Nil
-        }
-
+    def getClassTemplateReferences(program: Program): List[Identifier] =
       (TreeTraverser.collect(program,
         descendIntoDeclarationIds = false,
         methodCallIdsMatch = false,
         descendIntoTemplates = false) {
-        case tpe: TypeTree => getInType(tpe)
+        case id@Identifier(value, head :: tail) =>
+          if((head :: tail) forall {
+              case Identifier(_, template) => template.isEmpty
+              case _                       => true
+            }) List(id)
+          else Nil
       }).toSet.toList
-    }
 
     def expandClassTemplate(program: Program)(reference: Identifier): Program = {
       def expandInProgram(program: Program, reference: Identifier): Option[Program] = {
