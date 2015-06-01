@@ -2,6 +2,7 @@ package koolc
 package analyzer
 
 import ast.Trees._
+import ast.TreeTraverser
 
 import Symbols._
 import Types._
@@ -199,36 +200,19 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
     }
 
     ////
-    def findMethodInExpr(expr: ExprTree): List[MethodCall] = {
-      expr match {
-        case And(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
-        case Or(lhs,rhs) => findMethodInExpr(lhs) ++  findMethodInExpr(rhs)
-        case Plus(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
-        case Minus(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
-        case Times(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
-        case Div(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
-        case LessThan(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
-        case Equals(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
-        case ArrayRead(arr, index) => findMethodInExpr(arr) ++ findMethodInExpr(index)
-        case ArrayLength(arr) => findMethodInExpr(arr)
-        case NewIntArray(size) => findMethodInExpr(size)
-        case New(obj) => findMethodInExpr(obj)
-        case Not(expr) => findMethodInExpr(expr)
-
+    def findMethodInExpr(expr: ExprTree): List[MethodCall] =
+      TreeTraverser.collect(expr) {
         case call@MethodCall(obj, methId, args) => {
           findMethodInExpr(obj) match {
             case Nil => {
-              if(methId.template.isEmpty){
+              if(methId.template.isEmpty) {
                 (args flatMap findMethodInExpr _ )
-              }else
-                List(call)
-              }
-              case whatever => whatever
+              } else List(call)
             }
+            case whatever => whatever
           }
-        case _ => Nil
+        }
       }
-    }
 
     def findMethodInStatment(stat: StatTree): List[MethodCall] = {
       stat match {
