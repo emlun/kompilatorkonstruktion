@@ -227,6 +227,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         resolveMethodCall(ref) map { sym =>
           val methodClassSymbol = sym.classSymbol
           val methodClass = sym.classSymbol.decl
+          val methodClassName = methodClass.id.value
           val expandedId = expandMethodTemplateId(ref.meth)
 
           val typeMap: Map[String, TypeTree] = (sym.decl.template map { _.value } zip ref.meth.template).toMap
@@ -262,18 +263,16 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
             )
             newMethodDecl.setSymbol(newMethodSymbol)
 
-            val expandedProgram: Program = Program(
-              program.main,
-              program.classes map { clazz =>
-                if(clazz.id.value == methodClass.id.value) {
-                  val newClass = clazz.copy(methods = newMethodDecl +: clazz.methods).setPos(clazz).setSymbol(sym.classSymbol)
+            val expandedProgram: Program =
+              TreeTraverser.transform(program) {
+                case clazz@ClassDecl(Identifier(`methodClassName`, _), _, _, _, _) => {
+                  val newClass = clazz.copy(
+                      methods = newMethodDecl +: clazz.methods
+                    ).setPos(clazz).setSymbol(sym.classSymbol)
                   newClass.symbol.methods = newClass.symbol.methods + (expandedId.value -> newMethodDecl.symbol)
                   newClass
-                } else {
-                  clazz
                 }
               }
-            )
 
             debug("Expanded program:")
             debug(koolc.ast.Printer.printTree(true)(expandedProgram))
