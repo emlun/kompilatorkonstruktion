@@ -11,6 +11,9 @@ proposal.dvi
 proposal.log
 proposal.pdf
 
+/build/
+*.class
+
 # SBT
 
 /project/

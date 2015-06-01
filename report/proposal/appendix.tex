@@ -1,0 +1,19 @@
+\begin{table}[h]
+  \caption{A list of the changes we are implementing for the language.}
+  \begin{tabular}{ l  c  l}
+    \hline
+    ClassDeclaration & ::= & \textbf{class} Identifier($\langle$ Identifier$\rangle$)?
+    (\textbf{extends} Identifier)?  \\
+    && \{(VarDeclaration)* (MethodDeclaration)* \}  \\
+    \hline
+    MethodDeclaration & ::= & \textbf{def} Identifier($\langle$ Identifier$\rangle$)?
+    \textbf{(}( Identifier : Type ( , Identifier : Type )* )? \textbf{):}\\
+    &&Type \textbf{=}
+    { ( VarDeclaration )* ( Statement )*
+    \textbf{return} Expression ; }\\
+    \hline
+    Expression & ::= &  Expression . Identifier($\langle$ Type (,Type )*$\rangle$ )?( ( Expression ( , Expression )* )? \textbf{)} \\
+    & ::= & \textbf{new} Identifier ($\langle$ Identifier$\rangle$)? \textbf{()} \\
+    \hline
+  \end{tabular}
+\end{table}

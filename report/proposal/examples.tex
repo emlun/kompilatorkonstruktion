@@ -1,0 +1,104 @@
+One application where templates are very useful is for general-purpose library
+code. The following example illustrates how they can be leveraged for a generic
+list class and a sad imitation of Scala's \textbf{Option} monad.
+
+The usefulness of this example comes especially from the fact that the KOOL
+grammar doesn't allow arrays of other types than \textbf{Int}, and doesn't
+provide a way to check for null values. For example, the Maybe template below
+saves us from having to add extra boolean flags all over the place just to keep
+track of whether other fields contain values or not --- now we can encapsulate
+that logic in a reusable component.
+
+\begin{lstlisting}
+// Template class
+class Maybe<T> {
+  var is: Bool; var value: T;
+  def set(newValue: T): Maybe<T> = {
+    value = newValue;
+    is = true;
+    return this;
+  }
+  def unset(): Maybe<T> = {
+    is = false;
+    return this;
+  }
+  def isDefined(): Bool = { return is; }
+  def get(): T = { return value; }
+}
+
+// Multiple template parameters
+class Pair<A, B> {
+  var left: A; var right: B;
+  def getLeft(): A = { return left; }
+  def getRight(): B = { return right; }
+  def setLeft(newLeft: A): Pair<A, B> = {
+    left = newLeft;
+    return this;
+  }
+  def setRight(newRight: A): Pair<A, B> = {
+    right = newRight;
+    return this;
+  }
+}
+
+// Template methods
+class MaybeUtil {
+  def yep<T>(newValue: T): Maybe<T> = {
+    return new Maybe<T>().set(newValue);
+  }
+  def nope<T>(): Maybe<T> = {
+    return new Maybe<T>().unset();
+  }
+}
+
+// Recursive template class
+class LinkedList<T> {
+  var head: Maybe<T>; var tail: Maybe<LinkedList<T>>;
+  def init(): LinkedList<T> = {
+    head = new MaybeUtil().nope<Int>();
+    tail = new MaybeUtil().nope<LinkedList<T>>();
+    return this;
+  }
+  def setHead(newHead: T): LinkedList<T> = {
+    head = new MaybeUtil().yep<T>(newHead);
+    return this;
+  }
+  def setTail(newTail: LinkedList<T>): LinkedList<T> = {
+    tail = new MaybeUtil().yep<T>(newTail);
+    return this;
+  }
+  def getHead(): Maybe<T> = { return head; }
+  def getTail(): Maybe<LinkedList<T>> = { return tail; }
+  def prepend(newHead: T): LinkedList<T> = {
+    return new LinkedList<T>().init()
+      .setHead(newHead).setTail(this);
+  }
+  def append(item: T): LinkedList<T> = {
+    var currentTail: LinkedList<T>;
+    var dummy: LinkedList<T>;
+    currentTail = this;
+    while(currentTail.getTail().isDefined()) {
+      currentTail = currentTail.getTail().get();
+    }
+    dummy = currentTail.setTail(
+      new LinkedList<T>().init().setHead(item));
+    return this;
+  }
+  def size(): Int = {
+    var result: Int;
+    result = 0;
+    if(head.isDefined()) {
+      result = result + 1;
+    }
+    if(tail.isDefined()) {
+      result = result + tail.get().size();
+    }
+    return result;
+  }
+}
+\end{lstlisting}
+
+The main corner case is nested template references, such as \textbf{new
+Maybe$\langle$LinkedList$\langle$LinkedList$\langle$Int$\rangle\rangle\rangle$()}.
+We can either run the template expansion step multiple times, or make sure to
+always expand deeper levels of nested template references first.
