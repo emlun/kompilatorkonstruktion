@@ -9,6 +9,7 @@ package analyzer
 
 import utils._
 import ast.Trees._
+import ast.TreeTraverser
 
 object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] {
 
@@ -229,7 +230,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
           case _              => tpe
         }
 
-      ProgramTransformer(program, {
+      TreeTraverser.transform(program, {
         case m: MethodDecl => m.template.isEmpty
         case _             => true
       }) {

@@ -5,12 +5,12 @@ Petter Lundahl
 ***/
 
 package koolc
-package utils
+package ast
 
-import ast.Trees._
+import Trees._
 
-object ProgramTransformer {
-  def apply[S <: Tree](t: S, branchFilter: Tree => Boolean = (_ => true))(transform: Tree => Tree): S = {
+object TreeTraverser {
+  def transform[S <: Tree](t: S, branchFilter: Tree => Boolean = (_ => true))(transform: Tree => Tree): S = {
 
     def transformTree[T <: Tree](tree: T): T =
       transform(
