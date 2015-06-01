@@ -68,36 +68,26 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
               }
             }
 
-            def expandInExpr(expr: ExprTree): ExprTree = {
-              TreeTraverser.transform(expr) {
-                case tpe: TypeTree => expandTypeTree(tpe)
-                case New(tpe) => tpe match {
-                    case id: Identifier => New(id).setPos(expr)
-                    case other => {
-                      ctx.reporter.error("Expected class type, found " + other, tpe)
-                      IntLit(0).setPos(tpe)
-                    }
-                  }
-                case This() => This()
-              }
-            }
-
-            def expandTemplateReferencesInMethod(method: MethodDecl): MethodDecl =
-              TreeTraverser.transform(method) {
-                case tpe: TypeTree => expandTypeTree(tpe)
-                case expr: ExprTree => expandInExpr(expr)
-              }
-
             val newClassId = expandClassId(clazz.id, types)
             program.classes find { clazz => clazz.id.value == newClassId.value } match {
               case Some(_) => None
               case None => {
-                val newDecl = ClassDecl(
-                  id = newClassId.copy().setPos(newClassId),
-                  parent = clazz.parent map { parent => expandTypeTree(parent).asInstanceOf[Identifier] },
-                  vars = clazz.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
-                  methods = clazz.methods map expandTemplateReferencesInMethod _,
-                  template = Nil).setPos(clazz)
+                val newDecl = TreeTraverser.transform(clazz) {
+                  case tpe: TypeTree => expandTypeTree(tpe)
+                  case This()        => This()
+                  case expr@New(tpe) => tpe match {
+                      case id: Identifier => New(id).setPos(expr)
+                      case other          => {
+                        ctx.reporter.error("Expected class type, found " + other, tpe)
+                        IntLit(0).setPos(tpe)
+                      }
+                    }
+                  case clazz@ClassDecl(id, parent, vars, methods, template) =>
+                    clazz.copy(
+                      id = newClassId.copy().setPos(id),
+                      template = Nil
+                    ).setPos(clazz)
+                }
                 Some(newDecl)
               }
             }
