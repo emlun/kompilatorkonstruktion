@@ -18,6 +18,7 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
 
   val VALID_FILES =
     "class-and-method-templates.kpp" ::
+    "class-metatemplate.kpp" ::
     "class-templates-basic.kpp" ::
     "complicated-templates.kpp" ::
     "method-templates-basic.kpp" ::

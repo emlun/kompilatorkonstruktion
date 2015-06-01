@@ -1,0 +1,22 @@
+object Main { def main(): Unit = {
+  println(new Meta<NameProxy>().get<Foo>().name());
+  println(new Meta<NameProxy>().get<Bar>().name());
+}}
+
+class NameProxy<T> {
+  def name(): String = { return new T().name(); }
+}
+
+class Foo {
+  def name(): String = { return "Foo"; }
+}
+
+class Bar {
+  def name(): String = { return "Bar"; }
+}
+
+class Meta<T> {
+  def get<S>(): T<S> = {
+    return new T<S>();
+  }
+}
