@@ -237,7 +237,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
             debug(typeMap)
 
             val newMethodDecl = TreeTraverser.transform(sym.decl) {
-              case method: MethodDecl             => method.copy(id = expandedId, template = Nil)
+              case method: MethodDecl             => method.copy(id = expandedId, template = Nil).setPos(method)
               case ths: This                      => This().setPos(ths)
               case id@Identifier(value, template) => typeMap.get(value) map {
                   case Identifier(typeMapValue, _) => Identifier(typeMapValue, template).setPos(id)
