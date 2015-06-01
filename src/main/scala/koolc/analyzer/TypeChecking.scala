@@ -241,11 +241,17 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               case _                     => tpe
             }
 
-          def expandInExpr(expr: ExprTree): ExprTree =
-            TreeTraverser.transform(expr) {
-              case tpe: TypeTree => expandTypeTree(tpe)
-              case ths: This     => This().setPos(ths)
-              case New(tpe)      => expandTypeTree(tpe) match {
+          val expandedProgram = methodClassSymbol.lookupMethod(expandedId.value) map { sym =>
+            program
+          } getOrElse {
+            debug("Expanding method " + ref.meth.value + " with typeMap:")
+            debug(typeMap)
+
+            val newMethodDecl = TreeTraverser.transform(sym.decl) {
+              case method: MethodDecl => method.copy(id = expandedId, template = Nil)
+              case tpe: TypeTree      => expandTypeTree(tpe)
+              case ths: This          => This().setPos(ths)
+              case expr@New(tpe)      => tpe match {
                 case id: Identifier => New(id).setPos(expr)
                 case other => {
                   ctx.reporter.error("Expected class type, found " + other, tpe)
@@ -254,41 +260,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               }
             }
 
-          def expandTemplateReferencesInStatement(statement: StatTree): StatTree = statement match {
-              case Block(stats)                 => Block(stats map expandTemplateReferencesInStatement _).setPos(statement)
-              case If(expr, thn, els)           => If(
-                  expandInExpr(expr),
-                  expandTemplateReferencesInStatement(thn),
-                  els map expandTemplateReferencesInStatement _
-                ).setPos(statement)
-              case While(expr, stat)            => While(
-                  expandInExpr(expr),
-                  expandTemplateReferencesInStatement(stat)
-                ).setPos(statement)
-              case Println(expr)                => Println(expandInExpr(expr)).setPos(statement)
-              case Assign(id, expr)             => Assign(id.copy().setPos(id), expandInExpr(expr)).setPos(statement)
-              case ArrayAssign(id, index, expr) => ArrayAssign(
-                  id.copy().setPos(id),
-                  expandInExpr(index),
-                  expandInExpr(expr)
-                ).setPos(statement)
-            }
-
-          val expandedProgram = methodClassSymbol.lookupMethod(expandedId.value) map { sym =>
-            program
-          } getOrElse {
-            debug("Expanding method " + ref.meth.value + " with typeMap:")
-            debug(typeMap)
-
-            val newMethodDecl = MethodDecl(
-              retType = expandTypeTree(sym.decl.retType),
-              id = expandedId,
-              args = sym.decl.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy().setPos(arg.id)).setPos(arg) },
-              vars = sym.decl.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
-              stats = sym.decl.stats map expandTemplateReferencesInStatement _,
-              retExpr = expandInExpr(sym.decl.retExpr),
-              template = Nil
-            ).setPos(sym.decl)
             val newMethodSymbol = new MethodSymbol(
               name = expandedId.value,
               classSymbol = sym.classSymbol,
