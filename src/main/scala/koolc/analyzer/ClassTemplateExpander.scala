@@ -56,24 +56,15 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
           } flatMap { clazz =>
             val typeMap: Map[String, TypeTree] = (clazz.template map { _.value } zip types).toMap
 
-            def expandTypeTree(tpe: TypeTree): TypeTree = {
-              tpe match {
-                case id@Identifier(value, template) => typeMap.get(value) match {
-                  case Some(Identifier(templateValue, _)) =>
-                    Identifier(templateValue, template map expandTypeTree).setPos(id)
-                  case Some(templateValue) => templateValue
-                  case None                => Identifier(value, template map expandTypeTree _).setPos(id)
-                }
-                case _                     => tpe
-              }
-            }
-
             val newClassId = expandClassId(clazz.id, types)
             program.classes find { clazz => clazz.id.value == newClassId.value } match {
               case Some(_) => None
               case None => {
                 val newDecl = TreeTraverser.transform(clazz) {
-                  case tpe: TypeTree => expandTypeTree(tpe)
+                  case id@Identifier(value, template) => typeMap.get(value) map {
+                      case Identifier(typeMapValue, _) => Identifier(typeMapValue, template).setPos(id)
+                      case other                       => other
+                    } getOrElse id
                   case This()        => This()
                   case expr@New(tpe) => tpe match {
                       case id: Identifier => New(id).setPos(expr)
