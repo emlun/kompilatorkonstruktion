@@ -108,8 +108,8 @@ object TreeTraverser {
       (transform orElse treeIdentity)(
         if((branchFilter orElse any2true)(tree)) {
           (tree match {
-            case Program(main, classes) => Program(transformTree(main), classes map transformTree).setPos(tree)
-            case MainObject(id, stats)  => MainObject(transformTree(id), stats map transformTree).setPos(tree)
+            case Program(main, classes) => Program(transformTree(main), classes map transformTree)
+            case MainObject(id, stats)  => MainObject(transformTree(id), stats map transformTree)
             case clazz@ClassDecl(id, parent, vars, methods, template) =>
               transformTemplateTree(clazz,
                 ClassDecl(
