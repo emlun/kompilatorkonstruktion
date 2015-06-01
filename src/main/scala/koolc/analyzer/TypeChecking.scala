@@ -231,14 +231,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
           val typeMap: Map[String, TypeTree] = (sym.decl.template map { _.value } zip ref.meth.template).toMap
 
-          def expandTypeTree(tpe: TypeTree): TypeTree = tpe match {
-              case id@Identifier(value, template) => typeMap.get(value) map {
-                  case Identifier(typeMapValue, _) => Identifier(typeMapValue, template).setPos(id)
-                  case other                       => other
-                } getOrElse id
-              case _                     => tpe
-            }
-
           val expandedProgram = methodClassSymbol.lookupMethod(expandedId.value) map { sym =>
             program
           } getOrElse {
@@ -246,12 +238,15 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
             debug(typeMap)
 
             val newMethodDecl = TreeTraverser.transform(sym.decl) {
-              case method: MethodDecl => method.copy(id = expandedId, template = Nil)
-              case tpe: TypeTree      => expandTypeTree(tpe)
-              case ths: This          => This().setPos(ths)
-              case expr@New(tpe)      => tpe match {
+              case method: MethodDecl             => method.copy(id = expandedId, template = Nil)
+              case ths: This                      => This().setPos(ths)
+              case id@Identifier(value, template) => typeMap.get(value) map {
+                  case Identifier(typeMapValue, _) => Identifier(typeMapValue, template).setPos(id)
+                  case other                       => other
+                } getOrElse id
+              case expr@New(tpe)                  => tpe match {
                 case id: Identifier => New(id).setPos(expr)
-                case other => {
+                case other          => {
                   ctx.reporter.error("Expected class type, found " + other, tpe)
                   IntLit(0).setPos(tpe)
                 }
