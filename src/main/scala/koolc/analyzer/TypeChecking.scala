@@ -2,16 +2,24 @@ package koolc
 package analyzer
 
 import ast.Trees._
+import ast.TreeTraverser
 
 import Symbols._
 import Types._
 import utils._
+import Debug.debug
+
+import scala.util.Try
 
 object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
 
   /** Typechecking does not produce a value, but has the side effect of
    * attaching types to trees and potentially outputting error messages. */
-  def run(ctx: Context)(prog: Option[Program]): Option[Program] = {
+  def run(ctx: Context)(prog: Option[Program]): Option[Program] = prog flatMap { program =>
+    debug("TypeChecking.run")
+    debug("Program:")
+    debug(koolc.ast.Printer.printTree(true)(program))
+
     import ctx.reporter._
 
     def resolveMethodCall(call: MethodCall): Option[MethodSymbol] = {
@@ -112,7 +120,6 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               ctx.reporter.error(s"Too many parameters for method ${methId.value}", call)
             }
 
-            tcExpr(methodSymbol.decl.retExpr)
             tcTypeTree(methodSymbol.decl.retType)
           } getOrElse {
             ctx.reporter.error(s"Unknown method ${methId.value} in type ${objType}")
@@ -193,9 +200,176 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       }
     }
 
-    prog map { p =>
-      p.main.stats foreach { stat => tcStat(stat)}
-      p.classes foreach {
+    ////
+    def findMethodInExpr(expr: ExprTree): List[MethodCall] =
+      TreeTraverser.collect(expr) {
+        case call@MethodCall(obj, methId, args) => {
+          findMethodInExpr(obj) match {
+            case Nil => {
+              Try(resolveMethodCall(call)) getOrElse None map { sym =>
+                if(sym.decl.template.size != methId.template.size) {
+                  ctx.reporter.error(s"Wrong number of type parameters for method template ${sym.name} (expected ${sym.decl.template.size}, found ${methId.template.size}).", methId)
+                }
+              }
+              if(methId.template.isEmpty) {
+                (args flatMap findMethodInExpr _ )
+              } else List(call)
+            }
+            case whatever => whatever
+          }
+        }
+      }
+
+    def findMethodTemplateReferences(program: Program): List[MethodCall] =
+      TreeTraverser.collect(program, descendIntoTemplates = false) {
+        case expr: ExprTree => findMethodInExpr(expr)
+      }
+
+    def expandMethodTemplateReferences(program: Program, refs: List[MethodCall]): Program = {
+      refs.foldLeft(program) { (program: Program, ref: MethodCall) =>
+        resolveMethodCall(ref) map { sym =>
+          val methodClassSymbol = sym.classSymbol
+          val methodClass = sym.classSymbol.decl
+          val methodClassName = methodClass.id.value
+          val expandedId = ref.meth.expandTemplateName
+
+          val typeMap: Map[String, TypeTree] = (sym.decl.template map { _.value } zip ref.meth.template).toMap
+
+          val expandedProgram = methodClassSymbol.lookupMethod(expandedId.value) map { sym =>
+            program
+          } getOrElse {
+            debug("Expanding method " + ref.meth.value + " with typeMap:")
+            debug(typeMap)
+
+            val newMethodDecl = TreeTraverser.transform(sym.decl) {
+              case method: MethodDecl             => method.copy(id = expandedId, template = Nil).setPos(method)
+              case ths: This                      => This().setPos(ths)
+              case id@Identifier(value, template) => typeMap.get(value) map {
+                  case Identifier(typeMapValue, _) => Identifier(typeMapValue, template).setPos(id)
+                  case other                       => other
+                } getOrElse id
+              case expr@New(tpe)                  => tpe match {
+                case id: Identifier => New(id).setPos(expr)
+                case other          => {
+                  ctx.reporter.error("Expected class type, found " + other, tpe)
+                  IntLit(0).setPos(tpe)
+                }
+              }
+            }
+
+            val newMethodSymbol = new MethodSymbol(
+              name = expandedId.value,
+              classSymbol = sym.classSymbol,
+              members = sym.members,
+              argList = sym.argList,
+              decl = newMethodDecl
+            )
+            newMethodDecl.setSymbol(newMethodSymbol)
+
+            val expandedProgram: Program =
+              TreeTraverser.transform(program) {
+                case clazz@ClassDecl(Identifier(`methodClassName`, _), _, _, _, _) => {
+                  val newClass = clazz.copy(
+                      methods = newMethodDecl +: clazz.methods
+                    ).setPos(clazz).setSymbol(sym.classSymbol)
+                  newClass.symbol.methods = newClass.symbol.methods + (expandedId.value -> newMethodDecl.symbol)
+                  newClass
+                }
+              }
+
+            debug("Expanded program:")
+            debug(koolc.ast.Printer.printTree(true)(expandedProgram))
+
+            expandedProgram
+          }
+
+          def replaceInExpr(expr: ExprTree): ExprTree =
+            TreeTraverser.transform(expr, {
+              case call: MethodCall => false
+            }) {
+              case call@MethodCall(obj, meth, args) => {
+                Try(resolveMethodCall(call)) getOrElse None flatMap { callSym: MethodSymbol =>
+                  if(meth == ref.meth && sym == callSym) {
+                    Some(MethodCall(
+                      replaceInExpr(obj),
+                      expandedId.copy().setPos(meth),
+                      (args map replaceInExpr _)
+                    ).setPos(expr))
+                  } else {
+                    None
+                  }
+                } getOrElse {
+                  MethodCall(
+                    obj = replaceInExpr(obj),
+                    meth = meth.copy().setPos(meth),
+                    args = args map replaceInExpr _
+                  ).setPos(call)
+                }
+              }
+            }
+
+          val replacedProgram: Program =
+            TreeTraverser.transform(expandedProgram, {
+              case call: MethodCall => false
+            }) {
+              case call: MethodCall => replaceInExpr(call)
+            }
+
+          debug("Replaced program:")
+          debug(koolc.ast.Printer.printTree(true)(replacedProgram))
+
+          replacedProgram
+        } getOrElse {
+          ctx.reporter.error(s"Template method not found: ${ref.meth.value}", ref)
+          program
+        }
+      }
+    }
+
+    program.classes foreach { clazz =>
+      clazz.methods filter { ! _.template.isEmpty } foreach { method =>
+        method.template.foldLeft[Set[Identifier]](
+          clazz.template.toSet ++ program.classes.map(clazz => Identifier(clazz.id.value, Nil).setPos(clazz.id)).toSet
+        ) { (allIds, paramId) =>
+          debug("paramId: " + paramId)
+          allIds find { _ == paramId } map { existingId =>
+            ctx.reporter.error(s"Template parameter name collision: '${paramId.value}'", paramId)
+            ctx.reporter.info(s"Name '${paramId.value}' first defined here:", existingId)
+            allIds
+          } getOrElse {
+            allIds + paramId
+          }
+        }
+      }
+    }
+
+    val methodTemplateRefs = findMethodTemplateReferences(program)
+
+    if(ctx.reporter.hasErrors) {
+      return None
+    }
+
+    if(methodTemplateRefs.isEmpty) {
+      debug()
+      debug("Nothing to expand - removing template methods!")
+      debug()
+
+      // Remove template classes and methods
+      val reducedProgram = Program(program.main,
+        program.classes filter { _.template.isEmpty } map { clazz =>
+          clazz.copy(methods = clazz.methods filter { _.template.isEmpty }).setPos(clazz).setSymbol(clazz.symbol)
+        }
+      )
+
+      debug()
+      debug("Commencing type checks!")
+      debug()
+      debug("Program:")
+      debug()
+      debug(koolc.ast.Printer.printTree(true)(reducedProgram))
+
+      reducedProgram.main.stats foreach { stat => tcStat(stat)}
+      reducedProgram.classes foreach {
         clazz => clazz.methods foreach {
           method => {
             method.symbol.overridden map { overridden =>
@@ -221,11 +395,19 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
           }
         }
       }
-    }
 
-    if(ctx.reporter.hasErrors) {
-      None
-    } else prog
+      debug("Finished program:")
+      debug(koolc.ast.Printer.printTree(true)(reducedProgram))
+      if(ctx.reporter.hasErrors) {
+        None
+      } else Some(reducedProgram)
+    } else {
+      val newProgram = expandMethodTemplateReferences(program, methodTemplateRefs)
+      debug()
+      debug("Things were expanded - returning to class template expander!")
+      debug()
+      run(ctx)(ClassTemplateExpander.run(ctx)(Some(newProgram)))
+    }
   }
 
 }

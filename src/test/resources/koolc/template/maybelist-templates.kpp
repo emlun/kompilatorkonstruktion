@@ -40,16 +40,16 @@ class MaybeUtil {
 class LinkedList<T> {
   var head: Maybe<T>; var tail: Maybe<LinkedList<T>>;
   def init(): LinkedList<T> = {
-    head = new MaybeUtil().nope<Int>(); // Explicit type parameter required
+    head = new MaybeUtil().nope<T>(); // Explicit type parameter required
     tail = new MaybeUtil().nope<LinkedList<T>>();
     return this;
   }
   def setHead(newHead: T): LinkedList<T> = {
-    head = new MaybeUtil().yep(newHead); // Type parameter can be inferred from argument
+    head = new MaybeUtil().yep<T>(newHead); // Type parameter can be inferred from argument
     return this;
   }
   def setTail(newTail: LinkedList<T>): LinkedList<T> = {
-    tail = new MaybeUtil().yep(newTail);
+    tail = new MaybeUtil().yep<LinkedList<T>>(newTail);
     return this;
   }
   def getHead(): Maybe<T> = { return head; }

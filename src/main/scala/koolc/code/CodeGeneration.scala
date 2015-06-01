@@ -102,6 +102,8 @@ object CodeGeneration extends Pipeline[Option[Program], Unit] {
     }
 
   def run(ctx: Context)(prog: Option[Program]): Unit = prog map { prog =>
+    println("CodeGeneration.run")
+
     import ctx.reporter._
 
     /** Writes the proper .class file in a given directory. An empty string for dir is equivalent to "./". */

@@ -1,0 +1,18 @@
+object Main { def main(): Unit = { } }
+
+class Bar<T> {}
+class Foo {
+  def foo(): Foo = {
+    var a: Foo;
+    var b: Bar<Foo>;
+    var c: Bar<Bar<Foo>>;
+    a = this.bar<Foo>(new Foo());
+    b = this.bar<Bar<Foo>>(new Bar<Foo>());
+    c = this.bar<Bar<Bar<Foo>>>(new Bar<Bar<Foo>>());
+    return this.bar<Foo>(a);
+  }
+  def bar<T>(a: T): T = {
+    var b: T;
+    return new T();
+  }
+}

@@ -4,7 +4,7 @@ plugins {
 apply plugin: 'scala'
 apply plugin: 'eclipse'
 
-version = '0.7.0'
+version = '0.8.0'
 ext.appendix = 'emlun_plundahl'
 
 task wrapper(type: Wrapper) {
@@ -45,7 +45,7 @@ jar {
       'Specification-Vendor': 'koolc',
       'Specification-Title': 'koolc',
       'Specification-Version': '1.2',
-      'Implementation-Title': "emlun & plundahl's KOOL compiler",
+      'Implementation-Title': "emlun & plundahl's KOOL++ compiler",
       'Implementation-Vendor-Id': 'emlun & plundahl',
       'Implementation-Vendor': 'Petter Lundahl and Emil Lundberg',
       'Implementation-Version': project.version,
