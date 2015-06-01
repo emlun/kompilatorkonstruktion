@@ -315,5 +315,77 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
         }
       }
     }
+
+    describe("detect if a template class is referenced with") {
+      it("no template arguments.") {
+        val source = """
+          object Main { def main(): Unit = {
+            println(new Foo().foo());
+          } }
+          class Foo<T> {
+            def foo(): String = { return "Foo"; }
+          }
+        """
+        assertStringFails(source)
+      }
+      it("too few template arguments.") {
+        val source = """
+          object Main { def main(): Unit = {
+            println(new Foo<Int>().foo());
+          } }
+          class Foo<A, B> {
+            def foo(): String = { return "Foo"; }
+          }
+        """
+        assertStringFails(source)
+      }
+      it("too many template arguments.") {
+        val source = """
+          object Main { def main(): Unit = {
+            println(new Foo<Int, Bool, String>().foo());
+          } }
+          class Foo<A, B> {
+            def foo(): String = { return "Foo"; }
+          }
+        """
+        assertStringFails(source)
+      }
+    }
+
+    describe("detect if a template method is referenced with") {
+      it("no template arguments.") {
+        val source = """
+          object Main { def main(): Unit = {
+            println(new Foo().foo());
+          } }
+          class Foo {
+            def foo<T>(): String = { return "Foo"; }
+          }
+        """
+        assertStringFails(source)
+      }
+      it("too few template arguments.") {
+        val source = """
+          object Main { def main(): Unit = {
+            println(new Foo().foo<Int>());
+          } }
+          class Foo {
+            def foo<A, B>(): String = { return "Foo"; }
+          }
+        """
+        assertStringFails(source)
+      }
+      it("too many template arguments.") {
+        val source = """
+          object Main { def main(): Unit = {
+            println(new Foo().foo<Int, Bool, String>());
+          } }
+          class Foo {
+            def foo<A, B>(): String = { return "Foo"; }
+          }
+        """
+        assertStringFails(source)
+      }
+    }
   }
 }
