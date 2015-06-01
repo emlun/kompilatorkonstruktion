@@ -241,34 +241,17 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               case _                     => tpe
             }
 
-          def expandInExpr(expr: ExprTree): ExprTree = expr match {
-              case And(lhs, rhs)               => And(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-              case Or(lhs, rhs)                => Or(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-              case Plus(lhs, rhs)              => Plus(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-              case Minus(lhs, rhs)             => Minus(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-              case Times(lhs, rhs)             => Times(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-              case Div(lhs, rhs)               => Div(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-              case LessThan(lhs, rhs)          => LessThan(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-              case Equals(lhs, rhs)            => Equals(expandInExpr(lhs), expandInExpr(rhs)).setPos(expr)
-              case ArrayRead(arr, index)       => ArrayRead(expandInExpr(arr), expandInExpr(index)).setPos(expr)
-              case ArrayLength(arr)            => ArrayLength(expandInExpr(arr)).setPos(expr)
-              case MethodCall(obj, meth, args) => MethodCall(
-                  expandInExpr(obj),
-                  Identifier(meth.value, meth.template map expandTypeTree).setPos(meth),
-                  (args map expandInExpr _)
-                ).setPos(expr)
-              case NewIntArray(size)           => NewIntArray(expandInExpr(size)).setPos(expr)
-              case Not(expr)                   => Not(expandInExpr(expr)).setPos(expr)
-              case New(tpe)                    => expandTypeTree(tpe) match {
+          def expandInExpr(expr: ExprTree): ExprTree =
+            TreeTraverser.transform(expr) {
+              case tpe: TypeTree => expandTypeTree(tpe)
+              case ths: This     => This().setPos(ths)
+              case New(tpe)      => expandTypeTree(tpe) match {
                 case id: Identifier => New(id).setPos(expr)
                 case other => {
                   ctx.reporter.error("Expected class type, found " + other, tpe)
                   IntLit(0).setPos(tpe)
                 }
               }
-              case ths: This                   => This().setPos(ths)
-              case id: Identifier              => id.copy().setPos(id)
-              case whatever                    => whatever
             }
 
           def expandTemplateReferencesInStatement(statement: StatTree): StatTree = statement match {
