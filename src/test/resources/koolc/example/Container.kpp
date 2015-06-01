@@ -1,0 +1,73 @@
+object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
+
+class RealMain {
+  var intC: Container<Int>;
+  var stringC: Container<String>;
+  def realMain(): Bool = {
+    intC = new Container<Int>().set(7);
+    stringC = new Container<String>().set("The number is: ");
+    println(stringC.get() + intC.get());
+    return false;
+  }
+}
+
+class Container<T>{
+  var item: T;
+  def set(x:T): Container<T> = {
+    item = x;
+    return this;
+  }
+  def get(): T = {
+    return item;
+  }
+}
+
+
+
+/************* RESULTS IN :::
+
+object Main {
+  def main() : Unit = {
+    if ( new RealMain().realMain (  ) )
+    {
+
+    }
+  }
+}
+
+class Container$String {
+  var item : String;
+  def set ( x : String ) : Container$String = {
+    item = x;
+    return this;
+  }
+
+  def get (  ) : String = {
+    return item;
+  }
+}
+
+class Container$Int {
+  var item : Int;
+  def set ( x : Int ) : Container$Int = {
+    item = x;
+    return this;
+  }
+
+  def get (  ) : Int = {
+    return item;
+  }
+}
+
+class RealMain {
+  var intC : Container$Int;
+  var stringC : Container$String;
+  def realMain (  ) : Bool = {
+    intC = new Container$Int().set ( 7 );
+    stringC = new Container$String().set ( "The number is: " );
+    println( (stringC.get (  ) + intC.get (  )) );
+    return false;
+  }
+}
+
+*********************/

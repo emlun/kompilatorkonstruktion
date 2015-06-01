@@ -1,0 +1,12 @@
+object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
+
+class RealMain {
+  var test: Vector<Int>;
+  def realMain(): Bool = {
+    return false;
+  }
+}
+
+class Vector<T> {
+  var test: Vector<Vector<T>>;
+}

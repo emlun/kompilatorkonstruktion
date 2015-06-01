@@ -10,12 +10,16 @@ package analyzer
 import utils._
 import ast.Trees._
 import Symbols._
+import Debug.debug
 
 
 object NameResolver {
 
   def run(ctx: Context)
          (program: Program, mainSymbol: ClassSymbol, classSymbols: List[ClassSymbol]): Option[Program] = {
+    debug("NameResolver.run")
+    debug("Program:")
+    debug(koolc.ast.Printer.printTree(true)(program))
 
     var everyUsedVariable: List[VariableSymbol] = List.empty;
 
@@ -44,6 +48,9 @@ object NameResolver {
 
     def lookupType(global: GlobalScope, mainSymbol: ClassSymbol)(id: Identifier): Option[ClassSymbol] =
       global.lookupClass(id.value) map { classSymbol =>
+        if(!classSymbol.decl.template.isEmpty) {
+          ctx.reporter.error(s"Template class ${id.value} requires ${classSymbol.decl.template.size} type parameters.", id)
+        }
         if(classSymbol == mainSymbol) {
           ctx.reporter.error(s"Main object cannot be used as type.", id);
         }
@@ -141,17 +148,21 @@ object NameResolver {
 
 
       def setOnMethod(method: MethodDecl): Set[VariableSymbol] = {
-        setOnType(method.retType)
-        method.args foreach { param   => setOnType(param.tpe)   }
-        method.vars foreach { varDecl => setOnType(varDecl.tpe) }
+        if(method.template.isEmpty) {
+          setOnType(method.retType)
+          method.args foreach { param   => setOnType(param.tpe)   }
+          method.vars foreach { varDecl => setOnType(varDecl.tpe) }
 
-        val usedVars = (method.stats flatMap setOnStatement _) ++:
-          setOnExpression(method.retExpr)
+          val usedVars = (method.stats flatMap setOnStatement _) ++:
+            setOnExpression(method.retExpr)
 
-        everyUsedVariable = everyUsedVariable ++ usedVars.toList
+          everyUsedVariable = everyUsedVariable ++ usedVars.toList
 
-        //method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(method.symbol))
-        usedVars
+          //method.args ++ method.vars foreach warnIfUnused(usedVars, clazz, Some(method.symbol))
+          usedVars
+        } else {
+          method.symbol.members.values.toSet
+        }
       }
 
 
@@ -193,7 +204,7 @@ object NameResolver {
 
       classDecl.vars foreach setSymbolReferences(lookupType, clazz, clazz.lookupVar _)
 
-      val usedVars = classDecl.methods flatMap { method =>
+      val usedVars = classDecl.pureMethods flatMap { method =>
         setSymbolReferences(lookupType, clazz, method.symbol.lookupVar _)(method)
       }
 
@@ -206,7 +217,7 @@ object NameResolver {
 
     program.main.stats foreach setSymbolReferences(lookupType(global, mainSymbol), mainSymbol, (_ => None))
 
-    program.classes foreach { clazz =>
+    program.classes filter { _.template.isEmpty } foreach { clazz =>
       setSymbolReferencesOnClass(lookupType(global, mainSymbol), mainSymbol, clazz)(clazz.symbol)
     }
 
@@ -214,7 +225,7 @@ object NameResolver {
     {
       clazz.parent match {
         case Some(parent) => {
-          clazz.methods.foreach{
+          clazz.pureMethods.foreach{
             method =>
             parent.lookupMethod(method._1) match {
               case Some(pMethod) => method._2.overridden = Some(pMethod)
@@ -229,7 +240,7 @@ object NameResolver {
 
     def checkMethods(clazz: ClassSymbol):Unit =
     {
-      clazz.methods.foreach{
+      clazz.pureMethods.foreach{
         method => method._2.overridden match{
           case Some(pMethod) => {
             if(method._2.params.size != pMethod.params.size)
@@ -245,13 +256,13 @@ object NameResolver {
       clazz.parent match {
         case Some(parent) =>{
           clazz.members.foreach{
-            member => //println(method._1)
-            parent.lookupVar(member._1) match {
-              case Some(pMember) => {
-                  ctx.reporter.error(s"${member._1}  test member declaration overrides previous declaration at ${pMember.position}.", member._2)
+            member =>
+              parent.lookupVar(member._1) match {
+                case Some(pMember) => {
+                    ctx.reporter.error(s"${member._1}  test member declaration overrides previous declaration at ${pMember.position}.", member._2)
+                }
+                case None =>
               }
-              case None =>
-            }
           }
         }
         case None =>
@@ -268,17 +279,17 @@ object NameResolver {
         case _ => {}
       }
 
-    program.classes foreach { clazz =>
+    program.classes filter { _.template.isEmpty } foreach { clazz =>
       clazz.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
-      clazz.methods foreach { method =>
+      clazz.pureMethods foreach { method =>
         method.args foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
         method.vars foreach { varpar => setTypeOnVarOrParam(varpar.tpe, varpar.symbol) }
       }
     }
 
-    program.classes foreach { clazz =>
+    program.classes filter { _.template.isEmpty } foreach { clazz =>
       clazz.vars foreach warnIfUnused(everyUsedVariable.toSet, clazz.symbol)
-      clazz.methods foreach { method =>
+      clazz.pureMethods foreach { method =>
         /*We are not suposed to check if method arguments are used (they aren't atleast)*/
         /*method.args ++ */method.vars foreach warnIfUnused(everyUsedVariable.toSet, clazz.symbol, Some(method.symbol))
       }

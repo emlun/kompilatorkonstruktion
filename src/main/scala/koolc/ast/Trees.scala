@@ -23,14 +23,22 @@ object Trees {
     def symbolComment: String = "#" + (Try(symbol.id) getOrElse "??")
   }
 
-  case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree
+  sealed trait TemplateTree {
+    val template: List[Identifier]
+  }
+
+  case class Program(main: MainObject, classes: List[ClassDecl]) extends Tree {
+    def pureClasses: List[ClassDecl] = classes filter { _.template.isEmpty }
+  }
   case class MainObject(id: Identifier, stats: List[StatTree]) extends SymbolicTree[ClassSymbol]
   case class ClassDecl(
       id: Identifier,
       parent: Option[Identifier],
       vars: List[VarDecl],
       methods: List[MethodDecl],
-      template: List[Identifier] = Nil) extends SymbolicTree[ClassSymbol]
+      template: List[Identifier] = Nil) extends SymbolicTree[ClassSymbol] with TemplateTree {
+    def pureMethods: List[MethodDecl] = methods filter { _.template.isEmpty }
+  }
   case class VarDecl(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
   case class MethodDecl(
       retType: TypeTree,
@@ -39,7 +47,7 @@ object Trees {
       vars: List[VarDecl],
       stats: List[StatTree],
       retExpr: ExprTree,
-      template: List[Identifier] = Nil) extends SymbolicTree[MethodSymbol]
+      template: List[Identifier] = Nil) extends SymbolicTree[MethodSymbol] with TemplateTree
   sealed case class Formal(tpe: TypeTree, id: Identifier) extends SymbolicTree[VariableSymbol]
 
   sealed trait TypeTree extends Tree with Typed {
@@ -50,6 +58,7 @@ object Trees {
       case StringType()      => "String"
       case Identifier(value,template) => value
     }
+    def expandTemplateName: TypeTree = this
   }
   case class IntArrayType() extends TypeTree
   case class IntType() extends TypeTree
@@ -81,7 +90,14 @@ object Trees {
 
   case class True() extends ExprTree
   case class False() extends ExprTree
-  case class Identifier(value: String, template: List[TypeTree] = Nil) extends TypeTree with ExprTree with SymbolicTree[Symbol]
+  case class Identifier(value: String, template: List[TypeTree] = Nil)
+      extends TypeTree with ExprTree with SymbolicTree[Symbol] {
+    override def expandTemplateName: Identifier =
+      Identifier(
+        value + (if(!template.isEmpty) "$" + (template map { _.expandTemplateName.name } mkString ",") else ""),
+        Nil
+      ).setPos(this)
+  }
 
   case class This() extends ExprTree with SymbolicTree[ClassSymbol]
   case class NewIntArray(size: ExprTree) extends ExprTree

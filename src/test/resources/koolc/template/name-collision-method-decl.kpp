@@ -1,0 +1,5 @@
+object Main { def main(): Unit = {} }
+class Foo {
+  def bar<T>(): Int = { return 0; }
+}
+class T {}

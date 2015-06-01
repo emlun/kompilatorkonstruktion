@@ -1,0 +1,42 @@
+object Main { def main(): Unit = { if(new RealMain().realMain()){} } }
+
+class RealMain {
+  def realMain(): Bool = {
+    println(this.returnMe<Int>(10));
+    println(this.returnMe<String>("hej"));
+    println(this.returnMe<String>("hej"));
+    println(this.returnMe<String>("hej"));
+    println(this.returnMe<String>("hej"));
+    println(this == this.returnMe<Pair<String, Int>>(new Pair<String, Int>()));
+    return false;
+  }
+
+  def returnMe<T>(me: T): T = {
+    var foo: Pair<Bool, Int[]>;
+    return me;
+  }
+  def doSomething<T>(): Int = {
+    var foo: Int;
+    return 0;
+  }
+}
+
+class Pair<A, B> {
+  var a: A;
+  var b: B;
+}
+
+class BetterPair<A, B> extends Pair<A, B> {
+  def setLeft(newA: A): BetterPair<A, B> = {
+    a = newA;
+    return this;
+  }
+  def setRight(newB: B): BetterPair<A, B> = {
+    b = newB;
+    return this;
+  }
+  def left(): A = { return a; }
+  def right(): B = { return b; }
+}
+
+class IntPair extends BetterPair<Int, Int> {}

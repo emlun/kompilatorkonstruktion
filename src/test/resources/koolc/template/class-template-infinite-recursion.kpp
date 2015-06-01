@@ -1,0 +1,8 @@
+object Main {
+  def main(): Unit = {
+    if(new Foo<Int>() == new Foo<Int>()) {}
+  }
+}
+class Foo<T> {
+  var a: Foo<Foo<T>>;
+}

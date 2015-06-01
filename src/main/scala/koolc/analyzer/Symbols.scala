@@ -67,6 +67,7 @@ object Symbols {
       }
 
     val tpe: Type = TObject(this)
+    def pureMethods: Map[String, MethodSymbol] = methods filter { case (_, sym) => sym.decl.template.isEmpty }
   }
 
   class MethodSymbol(
