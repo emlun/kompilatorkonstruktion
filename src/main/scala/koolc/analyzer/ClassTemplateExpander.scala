@@ -82,21 +82,11 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
               }
             }
 
-            def expandTemplateReferencesInStatement(statement: StatTree): StatTree =
-              TreeTraverser.transform(statement) {
+            def expandTemplateReferencesInMethod(method: MethodDecl): MethodDecl =
+              TreeTraverser.transform(method) {
+                case tpe: TypeTree => expandTypeTree(tpe)
                 case expr: ExprTree => expandInExpr(expr)
               }
-
-            def expandTemplateReferencesInMethod(method: MethodDecl): MethodDecl = {
-              MethodDecl(
-                retType = expandTypeTree(method.retType),
-                id = method.id.copy().setPos(method.id),
-                args = method.args map { arg => Formal(expandTypeTree(arg.tpe), arg.id.copy().setPos(arg.id)).setPos(arg) },
-                vars = method.vars map { varDecl => VarDecl(expandTypeTree(varDecl.tpe), varDecl.id.copy().setPos(varDecl.id)).setPos(varDecl) },
-                stats = method.stats map expandTemplateReferencesInStatement _,
-                retExpr = expandInExpr(method.retExpr),
-                template = method.template).setPos(method)
-            }
 
             val newClassId = expandClassId(clazz.id, types)
             program.classes find { clazz => clazz.id.value == newClassId.value } match {
