@@ -1,6 +1,8 @@
 object Main { def main(): Unit = {
   println(new Meta<NameProxy>().get<Foo>().name());
   println(new Meta<NameProxy>().get<Bar>().name());
+  println(new Meta<Foo>().get2<NameProxy>().name());
+  println(new Meta<Bar>().get2<NameProxy>().name());
 }}
 
 class NameProxy<T> {
@@ -18,5 +20,8 @@ class Bar {
 class Meta<T> {
   def get<S>(): T<S> = {
     return new T<S>();
+  }
+  def get2<S>(): S<T> = {
+    return new S<T>();
   }
 }
