@@ -84,10 +84,16 @@ object TreeTraverser {
     clct(t)
   }
 
-  def transform[S <: Tree]
-      (t: S, branchFilter: PartialFunction[Tree, Boolean] = any2true)
-      (transform: PartialFunction[Tree, Tree])
-      : S = {
+  def transform[S <: Tree](
+        t: S, branchFilter: PartialFunction[Tree, Boolean] = any2true,
+        descendIntoTemplates: Boolean = true
+      )(
+        transform: PartialFunction[Tree, Tree]
+      ): S = {
+
+    def transformTemplateTree[T <: TemplateTree](tree: T, value: =>T): T =
+      if(tree.template.isEmpty || descendIntoTemplates) value
+      else tree
 
     def transformTree[T <: Tree](tree: T): T =
       (transform orElse treeIdentity)(
@@ -95,24 +101,28 @@ object TreeTraverser {
           (tree match {
             case Program(main, classes) => Program(transformTree(main), classes map transformTree).setPos(tree)
             case MainObject(id, stats)  => MainObject(transformTree(id), stats map transformTree).setPos(tree)
-            case ClassDecl(id, parent, vars, methods, template) =>
-              ClassDecl(
-                transformTree(id),
-                parent map transformTree,
-                vars map transformTree,
-                methods map transformTree,
-                template
+            case clazz@ClassDecl(id, parent, vars, methods, template) =>
+              transformTemplateTree(clazz,
+                ClassDecl(
+                  transformTree(id),
+                  parent map transformTree,
+                  vars map transformTree,
+                  methods map transformTree,
+                  template
+                )
               )
             case VarDecl(tpe, id)       => VarDecl(transformTree(tpe), transformTree(id))
-            case MethodDecl(retType, id, args, vars, stats, retExpr, template) =>
-              MethodDecl(
-                transformTree(retType),
-                transformTree(id),
-                args map transformTree,
-                vars map transformTree,
-                stats map transformTree,
-                transformTree(retExpr),
-                template
+            case method@MethodDecl(retType, id, args, vars, stats, retExpr, template) =>
+              transformTemplateTree(method,
+                MethodDecl(
+                  transformTree(retType),
+                  transformTree(id),
+                  args map transformTree,
+                  vars map transformTree,
+                  stats map transformTree,
+                  transformTree(retExpr),
+                  template
+                )
               )
             case Formal(tpe, id)        => Formal(transformTree(tpe), transformTree(id))
 

@@ -230,9 +230,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
           case _              => tpe
         }
 
-      TreeTraverser.transform(program, {
-        case m: MethodDecl => m.template.isEmpty
-      }) {
+      TreeTraverser.transform(program, descendIntoTemplates = false) {
         case tpe: TypeTree => replaceType(tpe)
       }
     }
