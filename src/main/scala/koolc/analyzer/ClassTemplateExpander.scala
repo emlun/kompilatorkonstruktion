@@ -65,7 +65,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
                       case Identifier(typeMapValue, _) => Identifier(typeMapValue, template).setPos(id)
                       case other                       => other
                     } getOrElse id
-                  case This()        => This()
+                  case ths: This     => ths.copy().setPos(ths)
                   case expr@New(tpe) => tpe match {
                       case id: Identifier => New(id).setPos(expr)
                       case other          => {
