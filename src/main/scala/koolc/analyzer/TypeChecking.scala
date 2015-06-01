@@ -305,26 +305,12 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               }
             }
 
-          def replaceTemplatesInStatement(statement: StatTree): StatTree =
-            TreeTraverser.transform(statement, {
+          val replacedProgram: Program =
+            TreeTraverser.transform(expandedProgram, {
               case call: MethodCall => false
             }) {
               case call: MethodCall => replaceInExpr(call)
             }
-
-          val replacedProgram: Program = Program(
-            expandedProgram.main.copy(stats = expandedProgram.main.stats map replaceTemplatesInStatement _).setPos(expandedProgram.main),
-            expandedProgram.classes map { clazz =>
-              debug("Replace in class " + clazz.id.value)
-              clazz.copy(methods = clazz.methods map { method =>
-                debug("Replace in method " + method.id.value)
-                method.copy(
-                  stats = method.stats map replaceTemplatesInStatement _,
-                  retExpr = replaceInExpr(method.retExpr)
-                ).setPos(method)
-              }).setPos(clazz)
-            }
-          )
 
           debug("Replaced program:")
           debug(koolc.ast.Printer.printTree(true)(replacedProgram))
