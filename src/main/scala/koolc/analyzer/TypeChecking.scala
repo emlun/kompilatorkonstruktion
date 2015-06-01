@@ -215,9 +215,7 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       }
 
     def findMethodTemplateReferences(program: Program): List[MethodCall] =
-      TreeTraverser.collect(program, {
-        case method: MethodDecl => method.template.isEmpty
-      }) {
+      TreeTraverser.collect(program, descendIntoTemplates = false) {
         case expr: ExprTree => findMethodInExpr(expr)
       }
 
