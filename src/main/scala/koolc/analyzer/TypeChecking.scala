@@ -305,26 +305,12 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
               }
             }
 
-          def replaceTemplatesInStatement(statement: StatTree): StatTree = statement match {
-              case Block(stats)                 => Block(stats map replaceTemplatesInStatement _).setPos(statement)
-              case If(expr, thn, els)           => If(
-                  replaceInExpr(expr),
-                  replaceTemplatesInStatement(thn),
-                  els map replaceTemplatesInStatement _
-                ).setPos(statement)
-              case While(expr, stat)            => While(
-                  replaceInExpr(expr),
-                  replaceTemplatesInStatement(stat)
-                ).setPos(statement)
-              case Println(expr)                => Println(replaceInExpr(expr)).setPos(statement)
-              case Assign(id, expr)             => Assign(id, replaceInExpr(expr)).setPos(statement)
-              case ArrayAssign(id, index, expr) => ArrayAssign(
-                  id,
-                  replaceInExpr(index),
-                  replaceInExpr(expr)
-                ).setPos(statement)
+          def replaceTemplatesInStatement(statement: StatTree): StatTree =
+            TreeTraverser.transform(statement, {
+              case call: MethodCall => false
+            }) {
+              case call: MethodCall => replaceInExpr(call)
             }
-
 
           val replacedProgram: Program = Program(
             expandedProgram.main.copy(stats = expandedProgram.main.stats map replaceTemplatesInStatement _).setPos(expandedProgram.main),
