@@ -11,17 +11,17 @@ import Trees._
 
 object TreeTraverser {
 
-  private val tree2true: PartialFunction[Tree, Boolean] = { case _ => true }
+  private val any2true: PartialFunction[Any, Boolean]   = { case _ => true }
   private val treeIdentity: PartialFunction[Tree, Tree] = { case t => t }
 
   def transform[S <: Tree]
-      (t: S, branchFilter: PartialFunction[Tree, Boolean] = tree2true)
+      (t: S, branchFilter: PartialFunction[Tree, Boolean] = any2true)
       (transform: PartialFunction[Tree, Tree])
       : S = {
 
     def transformTree[T <: Tree](tree: T): T =
       (transform orElse treeIdentity)(
-        if((branchFilter orElse tree2true)(tree)) {
+        if((branchFilter orElse any2true)(tree)) {
           (tree match {
             case Program(main, classes) => Program(transformTree(main), classes map transformTree).setPos(tree)
             case MainObject(id, stats)  => MainObject(transformTree(id), stats map transformTree).setPos(tree)
