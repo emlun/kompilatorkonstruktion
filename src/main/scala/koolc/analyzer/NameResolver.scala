@@ -48,6 +48,9 @@ object NameResolver {
 
     def lookupType(global: GlobalScope, mainSymbol: ClassSymbol)(id: Identifier): Option[ClassSymbol] =
       global.lookupClass(id.value) map { classSymbol =>
+        if(!classSymbol.decl.template.isEmpty) {
+          ctx.reporter.error(s"Template class ${id.value} requires ${classSymbol.decl.template.size} type parameters.", id)
+        }
         if(classSymbol == mainSymbol) {
           ctx.reporter.error(s"Main object cannot be used as type.", id);
         }
