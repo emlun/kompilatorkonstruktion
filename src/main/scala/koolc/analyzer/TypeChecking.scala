@@ -198,9 +198,9 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       }
     }
 
-  ////
-  def findMethodInExpr(expr: ExprTree): List[MethodCall] = {
-    expr match {
+    ////
+    def findMethodInExpr(expr: ExprTree): List[MethodCall] = {
+      expr match {
         case And(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
         case Or(lhs,rhs) => findMethodInExpr(lhs) ++  findMethodInExpr(rhs)
         case Plus(lhs,rhs) => findMethodInExpr(lhs) ++ findMethodInExpr(rhs)
