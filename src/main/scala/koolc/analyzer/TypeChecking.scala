@@ -206,6 +206,11 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
         case call@MethodCall(obj, methId, args) => {
           findMethodInExpr(obj) match {
             case Nil => {
+              Try(resolveMethodCall(call)) getOrElse None map { sym =>
+                if(sym.decl.template.size != methId.template.size) {
+                  ctx.reporter.error(s"Wrong number of type parameters for method template ${sym.name} (expected ${sym.decl.template.size}, found ${methId.template.size}).", methId)
+                }
+              }
               if(methId.template.isEmpty) {
                 (args flatMap findMethodInExpr _ )
               } else List(call)
@@ -338,11 +343,11 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
       }
     }
 
+    val methodTemplateRefs = findMethodTemplateReferences(program)
+
     if(ctx.reporter.hasErrors) {
       return None
     }
-
-    val methodTemplateRefs = findMethodTemplateReferences(program)
 
     if(methodTemplateRefs.isEmpty) {
       debug()
