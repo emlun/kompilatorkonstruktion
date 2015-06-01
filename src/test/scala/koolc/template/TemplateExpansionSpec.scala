@@ -34,28 +34,6 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
     "name-collision-method-decl.kpp" ::
     Nil
 
-  describe("The class template expander") {
-    it("replaces template references in method calls in expanded classes.") {
-      val source = """
-      object Main { def main(): Unit = {} }
-      class Foo<T> {
-        def foo(): Int = {
-          return new Bar().bar<Bar>();
-        }
-      }
-      class Bar {
-        def bar<T>(): Int = { return 0; }
-      }
-      """
-      checkResultForString(source) { (ctx, program) =>
-        ctx.reporter shouldBe errorless
-        program should not be None
-
-        //inside(program.get)
-      }
-    }
-  }
-
   describe("The template expanders") {
 
     they("don't expand unreferenced templates.") {
@@ -320,30 +298,6 @@ class TemplateExpansionSpec extends FunSpec with TestUtils with Matchers with Re
         class T {}
       """
       assertStringFails(source)
-    }
-
-    they("correctly expand methods with the same names in different classes") {
-      val source = """
-        object Main { def main(): Unit = {
-          if(new Bar<Foo>().set(new Foo()).as<Boo>() == new Foo()) {}
-        } }
-
-        class Foo {
-          def as<T>(): T = {
-            return new T();
-          }
-        }
-        class Boo {}
-        class Bar<T> {
-          var value: T;
-          def set(newValue: T): Bar<T> = {
-            value = newValue;
-            return this;
-          }
-          def as<S>(): Bar<S> = { return new Bar<S>().set(value.as<S>()); }
-        }
-      """
-      assertStringSucceeds(source)
     }
 
     describe("successfully expand") {
