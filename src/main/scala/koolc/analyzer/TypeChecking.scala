@@ -232,12 +232,10 @@ object TypeChecking extends Pipeline[ Option[Program], Option[Program]] {
           val typeMap: Map[String, TypeTree] = (sym.decl.template map { _.value } zip ref.meth.template).toMap
 
           def expandTypeTree(tpe: TypeTree): TypeTree = tpe match {
-              case id@Identifier(value, template) => typeMap.get(value) match {
-                case Some(replacement@Identifier(templateValue, templateValueTemplate)) =>
-                  Identifier(templateValue, templateValueTemplate map expandTypeTree _).setPos(id)
-                case Some(templateValue) => templateValue
-                case None                => Identifier(value, template map expandTypeTree _).setPos(id)
-              }
+              case id@Identifier(value, template) => typeMap.get(value) map {
+                  case Identifier(typeMapValue, _) => Identifier(typeMapValue, template).setPos(id)
+                  case other                       => other
+                } getOrElse id
               case _                     => tpe
             }
 
