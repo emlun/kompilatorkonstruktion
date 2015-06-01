@@ -69,14 +69,7 @@ object ClassTemplateExpander extends Pipeline[Option[Program], Option[Program]] 
             }
 
             def expandInExpr(expr: ExprTree): ExprTree = {
-              TreeTraverser.transform(expr, {
-                case MethodCall(_,_,_) | New(_) => false
-              }) {
-                case call@MethodCall(obj, meth, args) => MethodCall(
-                    expandInExpr(obj),
-                    meth,
-                    (args map expandInExpr)
-                  )
+              TreeTraverser.transform(expr) {
                 case New(tpe) => expandTypeTree(tpe) match {
                     case id: Identifier => New(id).setPos(expr)
                     case other => {
