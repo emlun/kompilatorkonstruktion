@@ -13,6 +13,7 @@ proposal.pdf
 
 /build/
 *.class
+*.pdf
 
 # SBT
 
