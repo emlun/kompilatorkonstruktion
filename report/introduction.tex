@@ -1,27 +1,3 @@
-\iffalse
-We want to implement templates in a similar way to C++, in the appendix you can
-see the changes we want to do to the language.
-
-To implement this we will add a new phase between the name analysis and type
-checking to expand the templates with the needed types. If we for example
-define a method \textbf{max\tmpl{T}(a:T,b:T):T} and call it with a pair of Ints
-and a pair of Strings we need to expand the code into one method for Ints and
-one for strings, for example \textbf{max\$Int(a:Int,b:Int):Int}.
-
-This in addition to adding a new Type or Symbol for templates is all the
-changes we think are necessary for implementing templates. In particular, the
-type checking and code generation phases should not need to be modified since
-we will require explicit type arguments in references to template types and
-methods. Automatic inference of type parameters where possible is proposed as a
-further extension if we get the time.
-
-In the name analysis phase we simply add a template symbol to all references to
-templates, and in the phase before type checking we expand the template by adding
-any needed classes and methods to the AST. The template symbol contains a list of
-either methodSymbols or classSymbols for all the versions that has been created.
-\fi
-
-\iftrue
 The first thing our compiler does is to check whether the code complies to
 the BNF, this is done in two steps by first tokenizing the code into the
 tokens found in our language, and then in the parser check whether the order
@@ -39,5 +15,3 @@ To implement this we added two new phases, one for expanding class templates
 and one for expanding method templates. Instead of running every phase once, we
 run parts of the program multiple times. \figref{compiler-flowchart}
 illustrates the flow between compiler phases.
-
-\fi
