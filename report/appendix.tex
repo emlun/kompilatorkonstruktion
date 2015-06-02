@@ -13,9 +13,7 @@
     \textbf{return} Expression ; \}\\
     \hline
     Expression & ::= &  Expression . Identifier($\langle$ Type (,Type )*$\rangle$ )?( ( Expression ( , Expression )* )? \textbf{)} \\
-    & ::= & \textbf{new} Identifier ($\langle$ Identifier$\rangle$)? \textbf{()} \\
-    \hline
-    Statement & ::= & new Identifier$\langle$Type(, Type)*$\rangle$ \\
+               & ::= & \textbf{new} Identifier ($\langle$ Type (, Type)* $\rangle$)? \textbf{()} \\
     \hline
     Type & ::= & Identifier$\langle$Type(, Type)*$\rangle$ \\
     \hline
