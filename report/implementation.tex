@@ -26,7 +26,7 @@ implementation simple:
     \item Method template parameters may not shadow class template parameters
 \end{itemize}
 
-These properties allow for easy lookup of templates, since for example there is no need to search
+These properties allow for easy lookup of templates, for example there is no need to search
 for template declarations in statements. This makes the implementation easy --- in fact, class
 templates can be completely expanded as a separate phase before name analysis since the name lookup
 in this case is so simple. Method template expansion is done as part of the type checking phase,
