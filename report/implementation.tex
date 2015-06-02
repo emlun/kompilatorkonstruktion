@@ -59,6 +59,20 @@ only expanding the innermost template references --- \textbf{LinkedList\tmpl{Int
 in each iteration, the procedure is made simpler because we know the type arguments will always be
 concrete types.
 
+\subsubsection{Avoiding name collisions}
+
+In order to guarantee that the names of expanded classes and methods don't collide with existing
+classes and methods, the names of expanded classes and methods --- which are only used internally
+--- use the characters \textbf{\$} and \textbf{,} to denote template arguments. For instance, the
+expanded name of the class \textbf{Pair\tmpl{LinkedList\tmpl{Int},String}} is
+\textbf{Pair\$LinkedList\$Int,String}. Since these additional characters are not allowed by the KOOL
+syntax, expanded names can never collide with names of plain classes or methods. This naming scheme
+also guarantees that expanded names cannot collide with each other, since every template must always
+be referenced with the same number of template arguments. Knowing that the template \textbf{A} takes
+2 type parameters, \textbf{B} takes 1 and \textbf{C} takes 3, we can uniquely reconstruct the
+template reference \textbf{A\tmpl{B\tmpl{C\tmpl{Int,Bool,Int[]}}, C\tmpl{B\tmpl{Bool},Bool,Bool}}}
+from the name \textbf{A\$B\$C\$Int,Bool,Int[], C\$B\$Bool,Bool,Bool}.
+
 
 \emph{Describe all non-obvious tricks you used. Tell us what you thought was hard and
 why. If it took you time to figure out the solution to a problem, it probably
