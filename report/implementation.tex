@@ -7,7 +7,7 @@ parameter with the type value of the parameter.  If you for example have a templ
 Foo$\langle$Int,Bool$\rangle$}, all you have to do is copy the class definition for
 \textbf{Foo$\langle$T,V$\rangle$} and replace all T:s with Int and V:s with Bool. For simple
 programs this can be done by hand without much effort, but for more complex programs it can be hard
-to calculate which ``real'' versions of the template classes are necessary, and expanding them all
+to calculate which expanded versions of the template classes are necessary, and expanding them all
 might be impossible. We've solved this problem by iteratively searching for template references and
 expanding the class or method templates one by one. In the end the result is a normal KOOL source
 file without any of our extended grammar, except that the identifiers of expanded classes and
