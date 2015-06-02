@@ -1,34 +1,22 @@
-If implementing templates turns out to be too simple, we want to also implement
-automatic inference of type parameters in method calls. This will not always be
-possible, as illustrated by the following example, in which case compilation
-will fail with an error message.
+A possible extension to the kool templates is to implement value parameters for
+templates in a similar way to what is possible in C++, meaning that you instead
+of only allowing identifiers as template arguments when you define a template
+class or method, you also allow primitive types. For example
+\textbf{Foo$\langle$Int$\rangle$}, witch means the class should be instantiated
+as \textbf{bar = new Foo$\langle$17$\rangle$}. This can be a powerful tool if
+you for instance wants to define a matrix class for n-dimensional matrices.
+
+Another interesting extension if you allow value parameters and multiple
+class decelerations for templates is using first matching templates. Making
+this kind of code viable:
 
 \begin{lstlisting}
-class True {
-  def get(): Bool = { return true; }
-}
-class False {
-  def get(): Bool = { return false; }
-}
-class X {
-  def make<T>(): T = { return new T(); }
-  def identity<T>(a: T): T = { return a; }
-}
-object Main {
-  def main(): Unit = {
-    if(new X().identity(new True()).get()) {
-      if(new X().make().get()) {
-        println("False"); // Will this be printed?
-      } else {
-        println("True");  // Will this be printed?
-      }
-      println("Impossible");
-    }
-  }
-}
+
+class Foo<Int>{...}
+class Foo<T>{...}
+class Foo<T,V>{...}
+
 \end{lstlisting}
 
-This extension will require changes to the type checking phase of the compiler.
-
-If we still have more time after this, we want to also implement First-class
-Functions.
+And calling it with \textbf{bar = new Foo$\langle$Int$\rangle$} would invoke
+the first, \textbf{bar = new Foo$\langle$String$\rangle$} the second and so on.
