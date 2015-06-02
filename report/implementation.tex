@@ -10,7 +10,8 @@ programs this can be done by hand without much effort, but for more complex prog
 to calculate which ``real'' versions of the template classes are necessary, and expanding them all
 might be impossible. We've solved this problem by iteratively searching for template references and
 expanding the class or method templates one by one. In the end the result is a normal KOOL source
-file without any of our extended grammar.
+file without any of our extended grammar, except that the identifiers of expanded classes and
+methods will contain illegal characters.
 
 \subsection{Implementation Details}
 
