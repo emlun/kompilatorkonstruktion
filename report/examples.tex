@@ -99,7 +99,7 @@ class LinkedList<T> {
 \end{lstlisting}
 
 The main corner case is nested template references, such as \textbf{new
-Maybe$\langle$LinkedList$\langle$LinkedList$\langle$Int$\rangle\rangle\rangle$()}.
+Maybe\tmpl{LinkedList\tmpl{LinkedList\tmpl{Int}}}()}.
 We can either run the template expansion step multiple times, or make sure to
 always expand deeper levels of nested template references first.
 
@@ -107,7 +107,7 @@ always expand deeper levels of nested template references first.
 \subsection{Simple example with expanded code}
 This is a simple example showing how templets are expanded into
 'real' classes. As we can see in the first section we have a template class
-Container$\langle$T$\rangle$ that in the second part has been expanded into
+Container\tmpl{T} that in the second part has been expanded into
 two 'real' classes, Container\$Int and Container\$String, with coresponding
 methods.
 
