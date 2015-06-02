@@ -22,10 +22,10 @@ either methodSymbols or classSymbols for all the versions that has been created.
 \fi
 
 \iftrue
-The first thing our compiled does is checking whether the code complies to
-the BNF, this is done in two steps by first tokening the code into the
+The first thing our compiler does is to check whether the code complies to
+the BNF, this is done in two steps by first tokenizing the code into the
 tokens found in our language, and then in the parser check whether the order
-of the tokens are complaint with our language and during this phase build an ast.
+of the tokens is complaint with our language and during this phase build an AST.
 In the next part, name analysis, we make sure that the code follows a short set
 of rules and attach symbols to all identifiers. After the name analysis we run type
 checking where we detect and make sure that all expressions produce the correct
@@ -38,6 +38,6 @@ see the changes we want to do to the language.
 To implement this we will add two new phases, one for expanding class templates
 and one for expanding method templates, and instead of running every phase once
 we will have to run parts of the program multiple times. For a detailed view
-look at figure \figref{compiler-flowchart}.
+look at \figref{compiler-flowchart}.
 
 \fi

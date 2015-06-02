@@ -1,17 +1,16 @@
 \subsection{Theoretical Background}
-There is not a lot of complex theory behind simple C++ style templet expansion,
-in theory all you have to do is create a new class or method where you have
-replaced every instance of a template variable with its' corresponding type.
-If you for example have a template class \textbf{Foo$\langle$T,V$\rangle$} and you
-invoke it by calling \textbf{bar = new Foo$\langle$Int,Bool$\rangle$}, all you have to
-do is copy the class defenition for \textbf{Foo$\langle$T,V$\rangle$} and replace all
-T:s with Int and V:s with Bool. For simple programs this can be done by hand
-without much effort, but for more complex programs it can be hard to calculate
-which 'real' versions of the template classes is nessesary, and expanding all
-might be impossible. We've solved this problem by iteretively searching for
-template initiations and expanding the template classes or methods one by one.
-Which in the end results in a normal kool source-file without any of our
-extended grammar.
+
+There is not a lot of complex theory behind simple C++ style template expansion, in theory all you
+have to do is create a new class or method where you have replaced every instance of a template
+parameter with the type value of the parameter.  If you for example have a template class
+\textbf{Foo$\langle$T,V$\rangle$} and you invoke it by calling \textbf{bar = new
+Foo$\langle$Int,Bool$\rangle$}, all you have to do is copy the class definition for
+\textbf{Foo$\langle$T,V$\rangle$} and replace all T:s with Int and V:s with Bool. For simple
+programs this can be done by hand without much effort, but for more complex programs it can be hard
+to calculate which ``real'' versions of the template classes are necessary, and expanding them all
+might be impossible. We've solved this problem by iteratively searching for template references and
+expanding the class or method templates one by one. In the end the result is a normal KOOL source
+file without any of our extended grammar.
 
 \subsection{Implementation Details}
 
@@ -19,7 +18,7 @@ We make use of some properties of the KOOL language and our template specificati
 implementation simple:
 
 \begin{itemize}
-    \item All classes are declared the the top level
+    \item All classes are declared at the top level
     \item All methods are declared at the top level of a class
     \item The language has no inclusion or import feature
     \item Template parameters may not shadow class declarations
