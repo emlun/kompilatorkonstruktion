@@ -15,12 +15,15 @@ extended grammar.
 
 \subsection{Implementation Details}
 
-We make use of some properties of the KOOL language to make the implementation simple:
+We make use of some properties of the KOOL language and our template specification to make the
+implementation simple:
 
 \begin{itemize}
     \item All classes are declared the the top level
     \item All methods are declared at the top level of a class
     \item The language has no inclusion or import feature
+    \item Template parameters may not shadow class declarations
+    \item Method template parameters may not shadow class template parameters
 \end{itemize}
 
 These properties allow for easy lookup of templates, since for example there is no need to search
@@ -28,6 +31,9 @@ for template declarations in statements. This makes the implementation easy --- 
 templates can be completely expanded as a separate phase before name analysis since the name lookup
 in this case is so simple. Method template expansion is done as part of the type checking phase,
 since we need to know the receiver type of a method call before we can look up the method template.
+The last two points mean we can replace template parameters in expanded templates based on name
+alone, without needing to resolve whether a type name refers to a concrete class or a type
+parameter.
 
 Since templates may reference themselves or other templates, template expansion is done iteratively.
 The class template expansion phase loops back to itself if any templates were expanded, and the
@@ -43,7 +49,13 @@ expanded. \figref{compiler-flowchart} illustrates the flow between compiler phas
 \end{figure}
 
 In each iteration of the template expansion phases, only the leaves in each tree of template
-parameters is expanded.
+arguments is expanded. This helps ensure that the types passed as template arguments are always
+complete --- for instance, consider the template reference
+\textbf{Maybe\tmpl{LinkedList\tmpl{Int}}}. If we were to expand the \textbf{Maybe} template first,
+we would need to account for the fact that its type argument is also a template type. By instead
+only expanding the innermost template references --- \textbf{LinkedList\tmpl{Int}} in this case ---
+in each iteration, the procedure is made simpler because we know the type arguments will always be
+concrete types.
 
 
 \emph{Describe all non-obvious tricks you used. Tell us what you thought was hard and
