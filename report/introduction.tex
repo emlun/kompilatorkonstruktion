@@ -29,15 +29,15 @@ of the tokens is complaint with our language and during this phase build an AST.
 In the next part, name analysis, we make sure that the code follows a short set
 of rules and attach symbols to all identifiers. After the name analysis we run type
 checking where we detect and make sure that all expressions produce the correct
-type. And finally after the type checking we generate Java byte-code.
+type. And finally after the type checking we generate Java bytecode.
 
-To make the language a bit more powerful and easy to work with we want to
-implement templates in a similar way to C++, in the appendix you can
-see the changes we want to do to the language.
+To make the language a bit more powerful and easy to work with, we have added
+templates similar to those in C++. In the appendix you can see the changes we
+want to do to the language syntax.
 
-To implement this we will add two new phases, one for expanding class templates
-and one for expanding method templates, and instead of running every phase once
-we will have to run parts of the program multiple times. For a detailed view
-look at \figref{compiler-flowchart}.
+To implement this we added two new phases, one for expanding class templates
+and one for expanding method templates. Instead of running every phase once, we
+run parts of the program multiple times. \figref{compiler-flowchart}
+illustrates the flow between compiler phases.
 
 \fi
