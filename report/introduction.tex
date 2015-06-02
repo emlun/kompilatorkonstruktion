@@ -1,3 +1,4 @@
+\iffalse
 We want to implement templates in a similar way to C++, in the appendix you can
 see the changes we want to do to the language.
 
@@ -18,16 +19,25 @@ In the name analysis phase we simply add a template symbol to all references to
 templates, and in the phase before type checking we expand the template by adding
 any needed classes and methods to the AST. The template symbol contains a list of
 either methodSymbols or classSymbols for all the versions that has been created.
+\fi
 
-\iffalse
-The first thing our compiled does is checking whether the code compiles to
-the BNF, this is done in two steps by first tokenizing the code into the
+\iftrue
+The first thing our compiled does is checking whether the code complies to
+the BNF, this is done in two steps by first tokening the code into the
 tokens found in our language, and then in the parser check whether the order
-of the tokens are in complient with our language. We had to add some rules to
-the BNF to make room for templates, the addition can be found in the appendix.
-In the next part, name analysis we make sure that the code follows a set of rules
-and attatch symbols to all identifiers. After the name analysis we run type
+of the tokens are complaint with our language and during this phase build an ast.
+In the next part, name analysis, we make sure that the code follows a short set
+of rules and attach symbols to all identifiers. After the name analysis we run type
 checking where we detect and make sure that all expressions produce the correct
-type. To make this part work with templates we have to expand all templates
-befor we run the type checking, and modify the symbols slighetly.
+type. And finally after the type checking we generate Java byte-code.
+
+To make the language a bit more powerful and easy to work with we want to
+implement templates in a similar way to C++, in the appendix you can
+see the changes we want to do to the language.
+
+To implement this we will add two new phases, one for expanding class templates
+and one for expanding method templates, and instead of running every phase once
+we will have to run parts of the program multiple times. For a detailed view
+look at figure \figref{compiler-flowchart}.
+
 \fi
