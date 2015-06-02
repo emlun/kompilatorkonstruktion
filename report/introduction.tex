@@ -2,10 +2,10 @@ We want to implement templates in a similar way to C++, in the appendix you can
 see the changes we want to do to the language.
 
 To implement this we will add a new phase between the name analysis and type
-checking to expand the templates with the needed types. If we for example define
-a method \textbf{max$\langle$T$\rangle$(a:T,b:T):T} and call it with a pair of
-Ints and a pair of Strings we need to expand the code into one method for ints
-and one for strings, for example \textbf{max\$Int(a:Int,b:Int):Int}.
+checking to expand the templates with the needed types. If we for example
+define a method \textbf{max\tmpl{T}(a:T,b:T):T} and call it with a pair of Ints
+and a pair of Strings we need to expand the code into one method for ints and
+one for strings, for example \textbf{max\$Int(a:Int,b:Int):Int}.
 
 This in addition to adding a new Type or Symbol for templates is all the
 changes we think are necessary for implementing templates. In particular, the
