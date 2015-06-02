@@ -2,11 +2,11 @@
   \caption{A list of the changes and extentions we are implementing for the language.}
   \begin{tabular}{ l  c  l}
     \hline
-    ClassDeclaration & ::= & \textbf{class} Identifier($\langle$ Identifier$\rangle$)?
+    ClassDeclaration & ::= & \textbf{class} Identifier (Template)?
     (\textbf{extends} Identifier($\langle$Type(, Type)*$\rangle$)?)?  \\
     && \{(VarDeclaration)* (MethodDeclaration)* \}  \\
     \hline
-    MethodDeclaration & ::= & \textbf{def} Identifier($\langle$ Identifier$\rangle$)?
+    MethodDeclaration & ::= & \textbf{def} Identifier(Template)?
     \textbf{(}( Identifier : Type ( , Identifier : Type )* )? \textbf{):}\\
     &&Type \textbf{=}
     \{ ( VarDeclaration )* ( Statement )*
@@ -18,6 +18,8 @@
     Statement & ::= & new Identifier$\langle$Type(, Type)*$\rangle$ \\
     \hline
     Type & ::= & Identifier$\langle$Type(, Type)*$\rangle$ \\
+    \hline
+    Template & ::= & $\langle$ Identifier(, Identifier)* $\rangle$ \\
     \hline
   \end{tabular}
 \end{table}
