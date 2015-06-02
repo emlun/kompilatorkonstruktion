@@ -74,6 +74,29 @@ template reference \textbf{A\tmpl{B\tmpl{C\tmpl{Int,Bool,Int[]}}, C\tmpl{B\tmpl{
 from the name \textbf{A\$B\$C\$Int,Bool,Int[], C\$B\$Bool,Bool,Bool}.
 
 
+\subsubsection{Infinite template recursion}
+
+Recursive templates can cause problems. Consider what would happen if the class template
+\textbf{Foo\tmpl{T}} has a member variable of type \textbf{Foo\tmpl{Foo\tmpl{T}}}. After expanding
+\textbf{Foo\tmpl{Int}}, we would then need to expand \textbf{Foo\tmpl{Foo\$Int}}, and then
+\textbf{Foo\tmpl{Foo\$Foo\$Int}} and so on. The easy way to make sure the compiler detects this and
+halts is to simply not allow the class template expansion phase to run more than a set number of
+times. Our implementation allows a maximum of 100 iterations. It might be possible to detect
+circular references that would result in infinite recursion through static analysis, but it would be
+nontrivial since such circular references might consist of multiple steps in several different
+templates.
+
+\subsubsection{Special handling of templates in the AST}
+
+Our implementation stores the class and method templates as ordinary class and method declarations
+in the AST, but with accompanying template information. Since these classes and methods will
+inevitably refer to undeclared types, they are ignored in the name analysis step. The template
+expansion routines also don't search within templates for template references to replace, since that
+would destroy the templates. After all template expansion is finished --- when the decision after
+method template expansion in \figref{compiler-flowchart} is ``No'' --- all class and method
+templates are removed from the AST before proceeding to type checking.
+
+
 \emph{Describe all non-obvious tricks you used. Tell us what you thought was hard and
 why. If it took you time to figure out the solution to a problem, it probably
 means it wasn't easy and you should definitely describe the solution in details
