@@ -35,6 +35,8 @@ The last two points mean we can replace template parameters in expanded template
 alone, without needing to resolve whether a type name refers to a concrete class or a type
 parameter.
 
+\subsubsection{Iterative expansion}
+
 Since templates may reference themselves or other templates, template expansion is done iteratively.
 The class template expansion phase loops back to itself if any templates were expanded, and the
 method template expansion subphase loops back to class template expansion if any templates were
