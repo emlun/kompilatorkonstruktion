@@ -98,10 +98,8 @@ class LinkedList<T> {
 }
 \end{lstlisting}
 
-The main corner case is nested template references, such as \textbf{new
-Maybe\tmpl{LinkedList\tmpl{LinkedList\tmpl{Int}}}()}.
-We can either run the template expansion step multiple times, or make sure to
-always expand deeper levels of nested template references first.
+Notice how templates can reference each other, and template arguments can in
+turn have their own template arguments (\textbf{Maybe\tmpl{LinkedList\tmpl{T}}}.
 
 
 \subsection{Simple example with expanded code}
